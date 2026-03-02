@@ -152,3 +152,20 @@
 - 已将 `docs/task.md` 的任务清单映射为 xtask 任务状态（`doing/todo/done`）并同步写入 `.xtask/task_graph.yaml`。
 - 已新增任务项登记：`梳理当前项目状态，并将任务清单同步添加到 xtask 管理中`。
 - 后续计划：补一条自动化脚本，避免后续手动同步漂移（已登记到 `docs/plan.md` 近期目标）。
+
+### 项目页四视图扩展（2026-03-02）
+
+- 项目页顶部视图切换从二态升级为四态：`Board / List / Plan / Feature`。
+- 新增 Plan View：
+  - 按里程碑节点展示任务计划，包含 `Backlog / Unplanned` 分区。
+  - 使用 `parent_child` 关系构建两层任务结构（父任务 + 直属子任务）。
+  - 支持在计划视图内快速修改任务状态。
+- 新增 Feature View：
+  - 按 `feature:` 标签分组任务（支持一个任务归属多个功能组）。
+  - 无 `feature:` 标签任务归入 `Unassigned` 组。
+  - 支持在功能视图内快速修改任务状态。
+- URL 同步增强：
+  - 新增 `view` 参数持久化视图模式，支持刷新/分享后保持当前视图。
+- 测试与验收：
+  - `make test` 通过（后端测试 + 前端构建）。
+  - `make e2e-test` 通过（desktop/mobile 共 10 条用例，含 plan/feature 新增场景）。

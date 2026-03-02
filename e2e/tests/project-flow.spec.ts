@@ -17,6 +17,15 @@ async function createTask(request: APIRequestContext, projectId: string, title: 
   return payload.id;
 }
 
+async function createMilestone(request: APIRequestContext, projectId: string, title: string): Promise<string> {
+  const response = await request.post(`http://127.0.0.1:8080/api/projects/${projectId}/milestones`, {
+    data: { title, due_date: '2026-03-15' },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = (await response.json()) as { id: string };
+  return payload.id;
+}
+
 test('home to project flow and create task', async ({ page }) => {
   const taskTitle = `e2e-ui-${Date.now()}`;
 
@@ -43,11 +52,67 @@ test('board and list view are consistent', async ({ page, request }) => {
   await expect(page.getByTestId('project-task-board')).toBeVisible();
 
   const boardCount = await page.getByTestId('project-task-card').count();
-  await page.getByRole('button', { name: /List|Board/ }).first().click();
+  await page.getByRole('button', { name: 'List' }).click();
   await expect(page.getByTestId('project-task-list')).toBeVisible();
 
   const rowCount = await page.locator('[data-testid="project-task-list"] tbody tr').count();
   expect(rowCount).toBe(boardCount);
+});
+
+test('plan and feature view render expected sections', async ({ page, request }) => {
+  const projectId = await getProjectId(request);
+  const timestamp = Date.now();
+  const milestoneId = await createMilestone(request, projectId, `M-${timestamp}`);
+
+  const parentRes = await request.post(`http://127.0.0.1:8080/api/projects/${projectId}/tasks`, {
+    data: {
+      title: `e2e-plan-parent-${timestamp}`,
+      milestone_id: milestoneId,
+      labels: ['feature:auth'],
+      priority: 'high',
+    },
+  });
+  expect(parentRes.ok()).toBeTruthy();
+  const parent = (await parentRes.json()) as { id: string; title: string };
+
+  const childRes = await request.post(`http://127.0.0.1:8080/api/projects/${projectId}/tasks`, {
+    data: {
+      title: `e2e-plan-child-${timestamp}`,
+      milestone_id: milestoneId,
+      labels: ['feature:auth', 'feature:billing'],
+      priority: 'medium',
+    },
+  });
+  expect(childRes.ok()).toBeTruthy();
+  const child = (await childRes.json()) as { id: string; title: string };
+
+  const unassignedRes = await request.post(`http://127.0.0.1:8080/api/projects/${projectId}/tasks`, {
+    data: {
+      title: `e2e-unassigned-${timestamp}`,
+      priority: 'low',
+    },
+  });
+  expect(unassignedRes.ok()).toBeTruthy();
+  const unassigned = (await unassignedRes.json()) as { id: string; title: string };
+
+  const relationRes = await request.post(`http://127.0.0.1:8080/api/projects/${projectId}/relations`, {
+    data: { type: 'parent_child', source_id: parent.id, target_id: child.id },
+  });
+  expect(relationRes.status()).toBe(201);
+
+  await page.goto(`/project/${projectId}`);
+  await page.getByRole('button', { name: 'Plan' }).click();
+  await expect(page.getByTestId('project-task-plan')).toBeVisible();
+  await expect(page.getByTestId('plan-section').filter({ hasText: 'Backlog / Unplanned' })).toBeVisible();
+  await expect(page.getByTestId('plan-task-row').filter({ hasText: parent.title })).toBeVisible();
+  await expect(page.getByTestId('plan-task-row').filter({ hasText: child.title })).toBeVisible();
+  await expect(page.getByText(unassigned.title)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Feature' }).click();
+  await expect(page.getByTestId('project-task-feature')).toBeVisible();
+  await expect(page.getByTestId('feature-group').filter({ hasText: 'auth' })).toBeVisible();
+  await expect(page.getByTestId('feature-group').filter({ hasText: 'billing' })).toBeVisible();
+  await expect(page.getByTestId('feature-group').filter({ hasText: 'Unassigned' })).toBeVisible();
 });
 
 test('api blocks done transition when blocked and rejects cycle', async ({ request }) => {

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { api } from '../lib/api';
-import type { HistoryEntry, MilestoneWithProgress, Relation, Task, TaskGraph, TaskStatus } from '../lib/types';
+import type { HistoryEntry, MilestoneWithProgress, ProjectViewMode, Relation, Task, TaskGraph, TaskStatus } from '../lib/types';
 
 interface TaskFilter {
   status?: string;
@@ -24,7 +24,7 @@ interface TaskStoreState {
   loading: boolean;
   saving: boolean;
   error: string;
-  viewMode: 'board' | 'list';
+  viewMode: ProjectViewMode;
   filters: TaskFilter;
   setProject: (projectId: string) => Promise<void>;
   refreshTasks: () => Promise<void>;
@@ -36,7 +36,7 @@ interface TaskStoreState {
   createRelation: (input: Pick<Relation, 'type' | 'source_id' | 'target_id'>) => Promise<void>;
   deleteRelation: (relationId: string) => Promise<void>;
   setSelectedTaskId: (taskId: string) => void;
-  setViewMode: (mode: 'board' | 'list') => void;
+  setViewMode: (mode: ProjectViewMode) => void;
   setFilter: (patch: Partial<TaskFilter>) => void;
   clearFilters: () => void;
   moveTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;

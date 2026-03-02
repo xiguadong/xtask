@@ -41,7 +41,7 @@ xtask/
 ### frontend/
 
 - `src/pages/`：首页、项目页
-- `src/components/`：布局、看板、抽屉、共享组件
+- `src/components/`：布局、看板、列表、计划视图、功能视图、抽屉、共享组件
 - `src/stores/`：项目与任务状态管理（Zustand）
 - `src/hooks/`：URL 筛选同步、快捷键、关系徽标
 - `src/lib/`：API 客户端、类型定义、常量

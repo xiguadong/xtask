@@ -6,7 +6,8 @@
 2. 补齐 P7 验收矩阵缺失场景
 3. 明确 CI 触发策略与失败阻断策略
 4. 建立 `docs/task.md` 与 `.xtask/task_graph.yaml` 的自动同步脚本（当前已完成首次手动同步）
-5. 建立 `.xtask/task_rule_doc.md` 规则文档并与 AGENTS/CLAUDE 自动同步
+5. 完成项目页四视图（Board/List/Plan/Feature）与一致性回归
+6. 建立 `.xtask/task_rule_doc.md` 规则文档并与 AGENTS/CLAUDE 自动同步
 
 ## 中期（2-4 周）
 
