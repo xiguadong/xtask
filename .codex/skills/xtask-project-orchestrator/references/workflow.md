@@ -28,10 +28,21 @@
 
 ## Phase 5: Create/update management files
 
-- Ensure `<project>/.xtask/` exists.
-- Ensure `<project>/.xtask/task_graph.yaml` exists and is valid.
-- Ensure `<project>/.xtask/task_rule_doc.md` exists.
-- Persist confirmed milestones/parent tasks/child tasks.
+1. Inspect existing `.xtask` first:
+   - Run `sync_task_graph.sh inspect <project_dir>`.
+2. Branch by result:
+   - `VALID_EXISTING`:
+     - ask user whether to add/register current project into xtask management.
+     - do not overwrite `.xtask`.
+   - `INVALID_EXISTING`:
+     - explicitly tell user `.xtask` will be overwritten.
+     - continue only after explicit approval, then run:
+       - `sync_task_graph.sh init <project_dir> --force-overwrite`
+   - `NEED_INIT`:
+     - run `sync_task_graph.sh init <project_dir>`.
+3. Validate:
+   - run `sync_task_graph.sh validate <project_dir>`.
+4. Persist confirmed milestones/parent tasks/child tasks.
 
 ## Phase 6: Sync governance docs
 

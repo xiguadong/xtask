@@ -28,6 +28,7 @@
 - [x] 新增 `<project_dir>/.xtask/task_rule_doc.md`，并补齐 `docs/templates/task_rule_doc.md`
 - [x] 建立 skill：`.codex/skills/xtask-project-orchestrator`（探索/分析/初始化/规则同步）
 - [x] 将“新建任务与完成任务回写 `.xtask/task_graph.yaml`”规则写入 `AGENTS.md` 与 `CLAUDE.md`
+- [x] 强化 skill 规则：创建 `.xtask` 前必须先 inspect，合法则先询问是否加入管理，不合法则告知覆盖并需用户明确允许
 - [x] 新增任务：创建和完善 `.gitignore`（忽略临时文件与生成目录），并执行仓库初始化（`git init`）
 - [x] 规范补充：新增任务必须同步更新 `docs/task.md`，并写入 `AGENTS.md`
 - [x] 添加 xtask 管理项目示例（README 增删改说明、`docs/templates/` 模板与字段文档、当前项目注册）

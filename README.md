@@ -112,8 +112,12 @@ make e2e-test
 - Skill 路径：`.codex/skills/xtask-project-orchestrator/`
 - 探索项目状态：
   - `bash .codex/skills/xtask-project-orchestrator/scripts/extract_context.sh <project_dir>`
+- 预检 `.xtask`（先检查是否合规）：
+  - `bash .codex/skills/xtask-project-orchestrator/scripts/sync_task_graph.sh inspect <project_dir>`
 - 初始化管理文件：
   - `bash .codex/skills/xtask-project-orchestrator/scripts/sync_task_graph.sh init <project_dir>`
+- 覆盖初始化（仅在用户明确允许后）：
+  - `bash .codex/skills/xtask-project-orchestrator/scripts/sync_task_graph.sh init <project_dir> --force-overwrite`
 - 同步 AGENTS/CLAUDE 规则：
   - `bash .codex/skills/xtask-project-orchestrator/scripts/sync_rules_docs.sh <repo_root>`
 

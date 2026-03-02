@@ -143,6 +143,19 @@
   - `make test` 通过（后端测试 + 前端构建）
   - skill 脚本自测通过（`extract_context`、`sync_task_graph init/validate/summary`、`sync_rules_docs`）
 
+### skill 规则强化（2026-03-02）
+
+- `xtask-project-orchestrator` 新增 `.xtask` 预检流程：
+  - `sync_task_graph.sh inspect <project_dir>`
+  - 若 `VALID_EXISTING`：先询问用户是否加入/注册 xtask 管理，不覆盖文件
+  - 若 `INVALID_EXISTING`：明确提示将覆盖目录，仅在用户明确允许后执行 `--force-overwrite`
+- `sync_task_graph.sh` 新增覆盖保护机制：
+  - 默认 `init` 不覆盖不合规目录
+  - `--force-overwrite` 执行前会自动备份为 `.xtask.backup.<timestamp>`
+- 同步更新文档：
+  - `SKILL.md`、`references/workflow.md`、`references/schema.md`
+  - `README.md` skill 使用说明补充 inspect/force-overwrite 命令
+
 ### 当前项目状态梳理与任务清单同步（2026-03-02）
 
 - 完成 `docs/task.md` 当前状态快照更新：

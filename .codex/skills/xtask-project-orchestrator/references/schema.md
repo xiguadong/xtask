@@ -6,6 +6,15 @@
 - Rule document: `<project>/.xtask/task_rule_doc.md`
 - Registry: `~/.xtask/projects.json` (or `$XTASK_REGISTRY`)
 
+## Existing `.xtask` handling contract
+
+- If `.xtask` is valid (`task_graph.yaml` + `task_rule_doc.md` pass checks):
+  - ask user whether to add/register project to xtask management.
+  - do not overwrite files.
+- If `.xtask` is invalid:
+  - explicitly warn that the `.xtask` directory will be overwritten.
+  - overwrite only after explicit user approval.
+
 ## task_graph.yaml required top-level keys
 
 - `version`

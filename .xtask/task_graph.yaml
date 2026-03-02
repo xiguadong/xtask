@@ -1,111 +1,359 @@
 version: 1
-
 project:
-  id: "proj-3615d2f50c"
-  name: "xtask"
-  description: ""
-  status: "healthy"
-  created_at: "2026-03-02T06:48:34Z"
-  updated_at: "2026-03-02T06:55:00Z"
-  updated_by: "codex"
-
+    id: proj-3615d2f50c
+    name: xtask
+    description: ""
+    status: healthy
+    created_at: "2026-03-02T06:48:34Z"
+    updated_at: "2026-03-02T09:54:20Z"
+    updated_by: user
 milestones:
-  - id: "ms-001"
-    title: "xtask orchestrator rollout"
-    description: "Migrate storage, build skill, and sync governance docs."
-    due_date: "2026-03-05"
-    status: "open"
-    created_at: "2026-03-02T06:50:00Z"
-
+    - id: ms-001
+      title: 设计开发
+      description: 设计、架构与核心开发阶段
+      due_date: "2026-03-02"
+      status: closed
+      created_at: "2026-03-02T09:50:00Z"
+    - id: ms-002
+      title: 个人使用
+      description: 以个人真实使用为驱动的稳定性与易用性改进阶段
+      due_date: "2026-03-20"
+      status: open
+      created_at: "2026-03-02T09:50:00Z"
+    - id: ms-003
+      title: 发布
+      description: 对外发布准备与发布后验证阶段
+      due_date: "2026-03-31"
+      status: open
+      created_at: "2026-03-02T09:50:00Z"
 labels:
-  - id: "lbl-module-env"
-    name: "module:env"
-    color: "#0EA5E9"
-  - id: "lbl-module-ci"
-    name: "module:ci"
-    color: "#22C55E"
-  - id: "lbl-module-backend"
-    name: "module:backend"
-    color: "#2563EB"
-  - id: "lbl-module-docs"
-    name: "module:docs"
-    color: "#F59E0B"
-  - id: "lbl-module-skill"
-    name: "module:skill"
-    color: "#EF4444"
-
+    - id: lbl-module-env
+      name: module:env
+      color: '#0EA5E9'
+    - id: lbl-module-ci
+      name: module:ci
+      color: '#22C55E'
+    - id: lbl-module-backend
+      name: module:backend
+      color: '#2563EB'
+    - id: lbl-module-docs
+      name: module:docs
+      color: '#F59E0B'
+    - id: lbl-module-skill
+      name: module:skill
+      color: '#EF4444'
 tasks:
-  - id: "task-001"
-    title: "Migrate project management path to .xtask"
-    description: "Switch backend storage path from .agents to .xtask and add legacy migration."
-    status: "done"
-    priority: "high"
-    due_date: "2026-03-03"
-    milestone_id: "ms-001"
-    labels: ["lbl-module-backend", "lbl-module-env"]
-    created_at: "2026-03-02T06:50:00Z"
-    updated_at: "2026-03-02T06:55:00Z"
-    updated_by: "codex"
-    notes: ""
-  - id: "task-002"
-    title: "Create xtask-project-orchestrator skill"
-    description: "Add skill workflow, scripts, templates, and references."
-    status: "done"
-    priority: "high"
-    due_date: "2026-03-03"
-    milestone_id: "ms-001"
-    labels: ["lbl-module-skill", "lbl-module-env"]
-    created_at: "2026-03-02T06:50:00Z"
-    updated_at: "2026-03-02T06:55:00Z"
-    updated_by: "codex"
-    notes: ""
-  - id: "task-003"
-    title: "Generate task_rule_doc and template"
-    description: "Create .xtask/task_rule_doc.md and docs template reference."
-    status: "done"
-    priority: "medium"
-    due_date: "2026-03-03"
-    milestone_id: "ms-001"
-    labels: ["lbl-module-docs", "lbl-module-ci"]
-    created_at: "2026-03-02T06:50:00Z"
-    updated_at: "2026-03-02T06:55:00Z"
-    updated_by: "codex"
-    notes: ""
-  - id: "task-004"
-    title: "Sync AGENTS and CLAUDE task graph rules"
-    description: "Write governance rule that new/done tasks must update .xtask/task_graph.yaml."
-    status: "done"
-    priority: "medium"
-    due_date: "2026-03-03"
-    milestone_id: "ms-001"
-    labels: ["lbl-module-docs", "lbl-module-ci"]
-    created_at: "2026-03-02T06:50:00Z"
-    updated_at: "2026-03-02T06:55:00Z"
-    updated_by: "codex"
-    notes: ""
+    - id: task-001
+      title: P7 扩展 E2E：补充更多筛选组合与关系跳转场景
+      description: ""
+      status: doing
+      priority: high
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-ci
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-002
+      title: 增加 API 错误码细化断言（INVALID_INPUT / NOT_FOUND）
+      description: ""
+      status: doing
+      priority: high
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-docs
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-003
+      title: 增加前端单元测试基础（组件/Store 级）
+      description: ""
+      status: doing
+      priority: high
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-ci
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-004
+      title: 讨论并分析“按模块划分 / 按节点划分”视图方案（当前仅有 task 记录视图）
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-docs
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-005
+      title: xtask 页面增加删除项目、删除任务功能
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-env
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-006
+      title: 里程碑更多边界场景测试（空里程碑、跨里程碑迁移）
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-backend
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-007
+      title: 历史记录分页测试（limit/offset）
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-ci
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-008
+      title: CI 平台化（GitHub Actions 或同类）
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-ci
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-009
+      title: 文档交叉链接自检脚本
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-docs
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-010
+      title: 路径迁移：项目管理文件从 `.agents` 一次性切换到 `.xtask`，并加入后端自动迁移逻辑
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-backend
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:53:51Z"
+      updated_by: user
+      notes: ""
+    - id: task-011
+      title: 新增 `<project_dir>/.xtask/task_rule_doc.md`，并补齐 `docs/templates/task_rule_doc.md`
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-backend
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-012
+      title: 建立 skill：`.codex/skills/xtask-project-orchestrator`（探索/分析/初始化/规则同步）
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-skill
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-013
+      title: 将“新建任务与完成任务回写 `.xtask/task_graph.yaml`”规则写入 `AGENTS.md` 与 `CLAUDE.md`
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-backend
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:54:20Z"
+      updated_by: user
+      notes: ""
+    - id: task-014
+      title: 强化 skill 规则：创建 `.xtask` 前必须先 inspect，合法则先询问是否加入管理，不合法则告知覆盖并需用户明确允许
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-skill
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-015
+      title: 新增任务：创建和完善 `.gitignore`（忽略临时文件与生成目录），并执行仓库初始化（`git init`）
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-docs
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-016
+      title: 规范补充：新增任务必须同步更新 `docs/task.md`，并写入 `AGENTS.md`
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-docs
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-017
+      title: 添加 xtask 管理项目示例（README 增删改说明、`docs/templates/` 模板与字段文档、当前项目注册）
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-docs
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-018
+      title: 文档结构迁移到 `docs/`（`design-system` / `prd_discussion`）
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-backend
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-019
+      title: 完整 README 与 AGENTS 模块说明补齐
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-docs
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-020
+      title: 后端单元 + 集成测试补齐
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-ci
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-021
+      title: E2E 桌面/移动视口关键路径通过
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-ci
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-022
+      title: 梳理当前项目状态，并将任务清单同步添加到 xtask 管理中（写入 `.xtask/task_graph.yaml`）
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-backend
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-023
+      title: 新增 Plan View：按里程碑节点展示计划与两层子任务
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-env
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
+    - id: task-024
+      title: 新增 Feature View：按 `feature:` 标签分组任务并支持快速状态更新
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-001
+      labels:
+        - lbl-module-env
+      created_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T09:43:13Z"
+      updated_by: user
+      notes: ""
 relations: []
-history:
-  - timestamp: "2026-03-02T06:55:00Z"
-    task_id: "task-001"
-    field: "status"
-    old_value: "todo"
-    new_value: "done"
-    actor: "codex"
-  - timestamp: "2026-03-02T06:55:00Z"
-    task_id: "task-002"
-    field: "status"
-    old_value: "todo"
-    new_value: "done"
-    actor: "codex"
-  - timestamp: "2026-03-02T06:55:00Z"
-    task_id: "task-003"
-    field: "status"
-    old_value: "todo"
-    new_value: "done"
-    actor: "codex"
-  - timestamp: "2026-03-02T06:55:00Z"
-    task_id: "task-004"
-    field: "status"
-    old_value: "todo"
-    new_value: "done"
-    actor: "codex"
+history: []
