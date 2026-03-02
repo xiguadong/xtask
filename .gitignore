@@ -1,0 +1,29 @@
+# Node
+frontend/node_modules/
+frontend/dist/
+e2e/node_modules/
+e2e/test-results/
+e2e/playwright-report/
+*.tsbuildinfo
+
+# Go build output
+bin/
+backend/frontend_dist/
+
+# Generated runtime data
+.agents/
+
+# Local cache and temp
+.cache/
+cache/
+coverage/
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,41 @@
+version: 1
+
+project:
+  id: "proj-your_project_id"
+  name: "your-project-name"
+  description: "project description"
+  status: "healthy"
+  created_at: "2026-03-02T00:00:00Z"
+  updated_at: "2026-03-02T00:00:00Z"
+  updated_by: "user"
+
+milestones:
+  - id: "ms-001"
+    title: "MVP milestone"
+    description: "milestone description"
+    due_date: "2026-03-31"
+    status: "open"
+    created_at: "2026-03-02T00:00:00Z"
+
+labels:
+  - id: "lbl-001"
+    name: "feature"
+    color: "#2563EB"
+
+tasks:
+  - id: "task-001"
+    title: "create first task"
+    description: "task description"
+    status: "todo"
+    priority: "medium"
+    due_date: "2026-03-10"
+    milestone_id: "ms-001"
+    labels: ["lbl-001"]
+    created_at: "2026-03-02T00:00:00Z"
+    updated_at: "2026-03-02T00:00:00Z"
+    updated_by: "user"
+    notes: ""
+
+relations: []
+
+history: []

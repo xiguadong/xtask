@@ -1,0 +1,6 @@
+{
+  "paths": [
+    "/abs/path/to/project-a",
+    "/abs/path/to/project-b"
+  ]
+}
