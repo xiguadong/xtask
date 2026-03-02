@@ -25,7 +25,7 @@
 
 ### 为什么需要后端
 
-浏览器无法写入任意文件系统路径。PRD 要求写入 `<project_dir>/.agents/task_graph.yaml`，跨不同项目目录。薄后端是必须的。
+浏览器无法写入任意文件系统路径。PRD 要求写入 `<project_dir>/.xtask/task_graph.yaml` 与 `<project_dir>/.xtask/task_rule_doc.md`，跨不同项目目录。薄后端是必须的。
 
 ---
 
@@ -118,7 +118,8 @@ xtask/
 ### 3.4 项目发现
 
 - `~/.xtask/projects.json` 注册项目目录路径列表
-- 后端启动时及 API 请求时扫描各路径下的 `.agents/task_graph.yaml`
+- 后端启动时及 API 请求时扫描各路径下的 `.xtask/task_graph.yaml`
+- 项目首次读取时自动确保 `.xtask/task_rule_doc.md` 存在
 - "Add Project" 仅注册目录路径，不创建目录
 
 ### 3.5 单二进制部署

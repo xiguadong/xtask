@@ -11,8 +11,11 @@ bin/
 backend/frontend_dist/
 
 # Generated runtime data
+.xtask/task_graph.lock
+.xtask/*.tmp
 .agents/task_graph.lock
 .agents/*.tmp
+.agents/*.migrated.bak
 
 # Local cache and temp
 .cache/

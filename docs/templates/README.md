@@ -1,8 +1,9 @@
 # xtask 管理模板说明
 
-本目录提供两个模板：
+本目录提供三个模板：
 
-- `task_graph.yaml`：单个项目的任务图数据模板（放在 `<project_dir>/.agents/task_graph.yaml`）
+- `task_graph.yaml`：单个项目的任务图数据模板（放在 `<project_dir>/.xtask/task_graph.yaml`）
+- `task_rule_doc.md`：任务治理规则文档（放在 `<project_dir>/.xtask/task_rule_doc.md`）
 - `projects.json`：xtask 项目注册表模板（默认路径 `~/.xtask/projects.json`）
 
 ## task_graph.yaml 字段说明
@@ -49,6 +50,8 @@
 | `id` | string | 标签 ID（建议 `lbl-` 前缀） |
 | `name` | string | 标签名称 |
 | `color` | string | 颜色值（HEX，例如 `#2563EB`） |
+
+建议至少包含模块标签：`module:env`、`module:ci`。
 
 ### tasks[]
 
@@ -97,3 +100,15 @@
 
 - 每个路径必须是本机已存在目录
 - 删除路径 = 从 xtask 管理中移除项目，不会删除项目目录本身
+
+## task_rule_doc.md 字段说明
+
+`task_rule_doc.md` 是规则文档，不是结构化 schema。建议固定包含以下章节：
+
+1. Goal And Scope
+2. Source Priority
+3. Milestone Confirmation Rule
+4. Module View Rule（默认模块：`module:env`、`module:ci`）
+5. Parent Task Planning Rule
+6. Task Graph Update Rule（新建/完成任务要回写 `task_graph.yaml`）
+7. AGENTS And CLAUDE Sync Rule

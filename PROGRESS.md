@@ -123,12 +123,32 @@
   - `docs/templates/README.md`（字段说明）
 - 已将当前项目 `/home/xiguapro/workspace/xtask` 注册到 xtask 管理中（`GET /api/projects` 可见）。
 
+### xtask orchestration 能力落地（2026-03-02）
+
+- 后端存储路径完成切换：`.agents` -> `.xtask`
+  - 新路径：`<project_dir>/.xtask/task_graph.yaml`
+  - 新规则文档：`<project_dir>/.xtask/task_rule_doc.md`
+- 新增一次性迁移能力：
+  - 读取旧 `.agents/task_graph.yaml` 时自动迁移到 `.xtask/task_graph.yaml`
+  - 旧文件重命名为 `.agents/task_graph.yaml.migrated.bak`
+- 新增仓库内 skill：`.codex/skills/xtask-project-orchestrator/`
+  - 支持探索、分析、初始化管理文件、同步 AGENTS/CLAUDE 规则
+  - 默认模块标签：`module:env`、`module:ci`
+- 文档已同步：
+  - `README.md`、`docs/design-system/design_v1/*`、`docs/prd_discussion/*`
+  - `docs/templates/task_rule_doc.md` 新增
+- 规则已同步到治理文档：
+  - `AGENTS.md` 与 `CLAUDE.md` 均增加“新建任务/完成任务需回写 `.xtask/task_graph.yaml`”约束
+- 验证结果：
+  - `make test` 通过（后端测试 + 前端构建）
+  - skill 脚本自测通过（`extract_context`、`sync_task_graph init/validate/summary`、`sync_rules_docs`）
+
 ### 当前项目状态梳理与任务清单同步（2026-03-02）
 
 - 完成 `docs/task.md` 当前状态快照更新：
   - 进行中 `3`
   - 待办 `4`
   - 已完成 `8`
-- 已将 `docs/task.md` 的任务清单映射为 xtask 任务状态（`doing/todo/done`）并同步写入 `.agents/task_graph.yaml`。
+- 已将 `docs/task.md` 的任务清单映射为 xtask 任务状态（`doing/todo/done`）并同步写入 `.xtask/task_graph.yaml`。
 - 已新增任务项登记：`梳理当前项目状态，并将任务清单同步添加到 xtask 管理中`。
 - 后续计划：补一条自动化脚本，避免后续手动同步漂移（已登记到 `docs/plan.md` 近期目标）。

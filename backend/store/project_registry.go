@@ -185,3 +185,21 @@ func (r *ProjectRegistry) SaveProject(projectID string, graph *model.TaskGraph) 
 	}
 	return r.store.Write(path, graph)
 }
+
+func (r *ProjectRegistry) MigrateLegacyAgentsToXTask() error {
+	paths, err := r.loadPaths()
+	if err != nil {
+		return err
+	}
+
+	failures := []string{}
+	for _, p := range paths {
+		if err := r.store.MigrateLegacyAgentsToXTask(p); err != nil {
+			failures = append(failures, fmt.Sprintf("%s: %v", p, err))
+		}
+	}
+	if len(failures) > 0 {
+		return fmt.Errorf("legacy migration failures: %s", strings.Join(failures, "; "))
+	}
+	return nil
+}

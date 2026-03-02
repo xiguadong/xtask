@@ -2,8 +2,12 @@
 
 ## 概述
 
-每个项目目录维护一个任务图文件：`<project_dir>/.agents/task_graph.yaml`。
-该文件是项目任务、里程碑、关系、历史的唯一存储源。
+每个项目目录维护以下管理文件：
+
+- 任务图：`<project_dir>/.xtask/task_graph.yaml`
+- 规则文档：`<project_dir>/.xtask/task_rule_doc.md`
+
+其中 `task_graph.yaml` 是项目任务、里程碑、关系、历史的唯一结构化存储源。
 
 ---
 
@@ -30,12 +34,12 @@ milestones:
     created_at: "2026-02-28T10:00:00Z"
 
 labels:
-  - id: "lbl-001"
-    name: "bug"
-    color: "#EF4444"
-  - id: "lbl-002"
-    name: "feature"
-    color: "#2563EB"
+  - id: "lbl-module-env"
+    name: "module:env"
+    color: "#0EA5E9"
+  - id: "lbl-module-ci"
+    name: "module:ci"
+    color: "#22C55E"
 
 tasks:
   - id: "task-001"
@@ -45,7 +49,7 @@ tasks:
     priority: "high"           # critical | high | medium | low
     due_date: "2026-03-05"
     milestone_id: "ms-001"     # 关联里程碑 ID
-    labels: ["lbl-001"]        # 标签 ID 列表
+    labels: ["lbl-module-env"] # 标签 ID 列表
     created_at: "2026-02-28T10:00:00Z"
     updated_at: "2026-02-28T11:00:00Z"
     updated_by: "user"
@@ -90,6 +94,7 @@ history:
 | 禁止循环 | `blocks` 关系不允许形成环（DFS 检测） |
 | 阻塞强约束 | 存在未完成的 `blocks` 上游时，target 任务不能进入 `done` |
 | 耦合无约束 | `related_strong` / `related_weak` 不影响状态流转，仅展示 |
+| 模块视图约束 | 每个任务至少带一个 `module:*` 标签，默认提供 `module:env` / `module:ci` |
 
 ---
 

@@ -18,9 +18,12 @@ milestones:
     created_at: "2026-03-02T00:00:00Z"
 
 labels:
-  - id: "lbl-001"
-    name: "feature"
-    color: "#2563EB"
+  - id: "lbl-module-env"
+    name: "module:env"
+    color: "#0EA5E9"
+  - id: "lbl-module-ci"
+    name: "module:ci"
+    color: "#22C55E"
 
 tasks:
   - id: "task-001"
@@ -30,7 +33,7 @@ tasks:
     priority: "medium"
     due_date: "2026-03-10"
     milestone_id: "ms-001"
-    labels: ["lbl-001"]
+    labels: ["lbl-module-env"]
     created_at: "2026-03-02T00:00:00Z"
     updated_at: "2026-03-02T00:00:00Z"
     updated_by: "user"

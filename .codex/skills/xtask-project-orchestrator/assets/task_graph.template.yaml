@@ -1,0 +1,24 @@
+version: 1
+
+project:
+  id: "__PROJECT_ID__"
+  name: "__PROJECT_NAME__"
+  description: ""
+  status: "healthy"
+  created_at: "__NOW__"
+  updated_at: "__NOW__"
+  updated_by: "system"
+
+milestones: []
+
+labels:
+  - id: "lbl-module-env"
+    name: "module:env"
+    color: "#0EA5E9"
+  - id: "lbl-module-ci"
+    name: "module:ci"
+    color: "#22C55E"
+
+tasks: []
+relations: []
+history: []

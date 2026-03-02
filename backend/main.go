@@ -20,6 +20,9 @@ func main() {
 	cfg := config.Load()
 	yamlStore := store.NewYAMLStore()
 	registry := store.NewProjectRegistry(cfg.RegistryPath, yamlStore)
+	if err := registry.MigrateLegacyAgentsToXTask(); err != nil {
+		log.Printf("legacy migration warning: %v", err)
+	}
 	ensureBootstrapProject(registry)
 
 	taskSvc := service.NewTaskService(registry)

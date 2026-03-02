@@ -60,7 +60,7 @@
 ## 3.3 轻量化数据存储与维护（MVP）
 - 存储方式：
   - 采用文件化存储，不引入数据库。
-  - 每个项目目录维护一个任务图文件：`<project_dir>/.agents/task_graph.yaml`。
+  - 每个项目目录维护管理文件：`<project_dir>/.xtask/task_graph.yaml` 与 `<project_dir>/.xtask/task_rule_doc.md`。
 - 文件职责：
   - 记录项目元信息、里程碑、任务字段、任务关系（父子/依赖/耦合）。
   - 作为 AGENTS 的唯一写入源，保证可追踪与可审阅。

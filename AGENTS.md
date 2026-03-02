@@ -67,3 +67,11 @@
 4. **文档同步**：结构或设计变更后，至少同步 `README.md`、`PROGRESS.md`，并维护 `docs/task.md`、`docs/plan.md`。
 5. **测试优先**：提交前至少执行 `make test`；涉及交互流程变更需执行 `make e2e-test`。
 6. **任务登记**：凡是新增任务项，必须同步写入 `docs/task.md`，再进入实现阶段。
+7. **任务图回写**：新增任务与完成任务后，必须同步更新 `<project_dir>/.xtask/task_graph.yaml`。
+
+<!-- XTASK_RULES_START -->
+## xtask Sync Rules
+
+- 新建任务与完成任务后，必须同步更新 `<project_dir>/.xtask/task_graph.yaml`。
+- 每次状态变化必须同步回写任务图并追加历史记录。
+<!-- XTASK_RULES_END -->

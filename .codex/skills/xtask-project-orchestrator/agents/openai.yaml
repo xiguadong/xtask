@@ -1,0 +1,7 @@
+version: 1
+interface:
+  display_name: xtask Project Orchestrator
+  short_description: Explore repo docs and maintain .xtask task graph and rules.
+  default_prompt: |
+    Explore the current project state, derive milestones/tasks from README/design/plan/task docs,
+    confirm milestones and parent tasks with me, then update .xtask/task_graph.yaml and task_rule_doc.md.

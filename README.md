@@ -4,7 +4,8 @@
 
 - 前端：React 18 + TypeScript + Vite + Tailwind + Zustand + dnd-kit
 - 后端：Go + chi + YAML 文件存储
-- 存储：`<project_dir>/.agents/task_graph.yaml`
+- 存储：`<project_dir>/.xtask/task_graph.yaml`
+- 规则文档：`<project_dir>/.xtask/task_rule_doc.md`
 - 部署：`go:embed` 嵌入前端产物，单二进制运行
 
 ## 项目组织
@@ -106,6 +107,16 @@ make e2e-test
 - 任务列表：[`docs/task.md`](docs/task.md)
 - 计划列表：[`docs/plan.md`](docs/plan.md)
 
+## xtask Skill
+
+- Skill 路径：`.codex/skills/xtask-project-orchestrator/`
+- 探索项目状态：
+  - `bash .codex/skills/xtask-project-orchestrator/scripts/extract_context.sh <project_dir>`
+- 初始化管理文件：
+  - `bash .codex/skills/xtask-project-orchestrator/scripts/sync_task_graph.sh init <project_dir>`
+- 同步 AGENTS/CLAUDE 规则：
+  - `bash .codex/skills/xtask-project-orchestrator/scripts/sync_rules_docs.sh <repo_root>`
+
 ## API 概览
 
 主要接口前缀 `/api`：
@@ -125,6 +136,7 @@ make e2e-test
 - 增加项目：`POST /api/projects`
 - 查询项目：`GET /api/projects`，`GET /api/projects/:id`
 - 删除/修改项目目录：暂未提供独立 API，使用注册表文件维护
+- 兼容迁移：若检测到旧 `.agents/task_graph.yaml`，后端会自动迁移到 `.xtask/task_graph.yaml`，并备份为 `.agents/task_graph.yaml.migrated.bak`
 
 ### 1) 增加项目（推荐）
 
@@ -144,8 +156,10 @@ curl -X POST http://localhost:8080/api/projects \
 ### 3) 修改项目
 
 - 修改项目路径：先从注册表删除旧路径，再按“增加项目”重新注册新路径
-- 修改项目元信息：编辑 `<project_dir>/.agents/task_graph.yaml` 中 `project` 段字段
+- 修改项目元信息：编辑 `<project_dir>/.xtask/task_graph.yaml` 中 `project` 段字段
+- 修改项目规则：编辑 `<project_dir>/.xtask/task_rule_doc.md`
 - 模板参考：[`docs/templates/task_graph.yaml`](docs/templates/task_graph.yaml)
+- 规则模板：[`docs/templates/task_rule_doc.md`](docs/templates/task_rule_doc.md)
 - 字段说明：[`docs/templates/README.md`](docs/templates/README.md)
 
 ## 设计与产品文档

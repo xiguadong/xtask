@@ -3,9 +3,9 @@
 ## 当前状态快照（2026-03-02）
 
 - 进行中：3
-- 待办：4
-- 已完成：8
-- 已同步到 xtask 管理任务图：15（含本次“状态梳理与同步”任务）
+- 待办：6
+- 已完成：12
+- 已同步到 xtask 管理任务图：4（本次规则迁移与 skill 建设关键任务）
 
 ## 进行中
 
@@ -15,10 +15,8 @@
 
 ## 待办
 
-- [ ] 梳理当前项目状态，并将任务清单同步添加到 xtask 管理中
 - [ ] 讨论并分析“按模块划分 / 按节点划分”视图方案（当前仅有 task 记录视图）
 - [ ] xtask 页面增加删除项目、删除任务功能
-- [ ] 为 xtask 建立 skill：支持本地项目增删改查，并持续探索迭代
 - [ ] 里程碑更多边界场景测试（空里程碑、跨里程碑迁移）
 - [ ] 历史记录分页测试（limit/offset）
 - [ ] CI 平台化（GitHub Actions 或同类）
@@ -26,6 +24,10 @@
 
 ## 已完成
 
+- [x] 路径迁移：项目管理文件从 `.agents` 一次性切换到 `.xtask`，并加入后端自动迁移逻辑
+- [x] 新增 `<project_dir>/.xtask/task_rule_doc.md`，并补齐 `docs/templates/task_rule_doc.md`
+- [x] 建立 skill：`.codex/skills/xtask-project-orchestrator`（探索/分析/初始化/规则同步）
+- [x] 将“新建任务与完成任务回写 `.xtask/task_graph.yaml`”规则写入 `AGENTS.md` 与 `CLAUDE.md`
 - [x] 新增任务：创建和完善 `.gitignore`（忽略临时文件与生成目录），并执行仓库初始化（`git init`）
 - [x] 规范补充：新增任务必须同步更新 `docs/task.md`，并写入 `AGENTS.md`
 - [x] 添加 xtask 管理项目示例（README 增删改说明、`docs/templates/` 模板与字段文档、当前项目注册）
@@ -33,4 +35,4 @@
 - [x] 完整 README 与 AGENTS 模块说明补齐
 - [x] 后端单元 + 集成测试补齐
 - [x] E2E 桌面/移动视口关键路径通过
-- [x] 梳理当前项目状态，并将任务清单同步添加到 xtask 管理中（写入 `.agents/task_graph.yaml`）
+- [x] 梳理当前项目状态，并将任务清单同步添加到 xtask 管理中（写入 `.xtask/task_graph.yaml`）
