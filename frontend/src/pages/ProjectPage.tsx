@@ -6,6 +6,8 @@ import { ErrorState } from '../components/shared/ErrorState';
 import { FilterBar } from '../components/shared/FilterBar';
 import { SkeletonCard } from '../components/shared/SkeletonCard';
 import { ListView } from '../components/project/ListView';
+import { PlanView } from '../components/project/PlanView';
+import { FeatureView } from '../components/project/FeatureView';
 import { TaskDrawer } from '../components/project/TaskDrawer';
 import { TaskForm } from '../components/project/TaskForm';
 import { Shell } from '../components/layout/Shell';
@@ -68,7 +70,16 @@ export function ProjectPage() {
         />
       );
     }
-    return viewMode === 'board' ? <BoardView /> : <ListView />;
+    if (viewMode === 'board') {
+      return <BoardView />;
+    }
+    if (viewMode === 'list') {
+      return <ListView />;
+    }
+    if (viewMode === 'plan') {
+      return <PlanView />;
+    }
+    return <FeatureView />;
   }, [error, loading, refreshTasks, tasks.length, viewMode]);
 
   return (
@@ -76,7 +87,7 @@ export function ProjectPage() {
       <TopBar
         projectName={graph?.project.name}
         viewMode={viewMode}
-        onToggleView={() => setViewMode(viewMode === 'board' ? 'list' : 'board')}
+        onChangeView={setViewMode}
         onNewTask={() => setShowCreateForm(true)}
         searchRef={searchRef}
       />

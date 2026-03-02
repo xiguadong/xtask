@@ -34,3 +34,5 @@
 - [x] 后端单元 + 集成测试补齐
 - [x] E2E 桌面/移动视口关键路径通过
 - [x] 梳理当前项目状态，并将任务清单同步添加到 xtask 管理中（写入 `.agents/task_graph.yaml`）
+- [x] 新增 Plan View：按里程碑节点展示计划与两层子任务
+- [x] 新增 Feature View：按 `feature:` 标签分组任务并支持快速状态更新
