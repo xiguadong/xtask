@@ -122,3 +122,13 @@
   - `docs/templates/projects.json`
   - `docs/templates/README.md`（字段说明）
 - 已将当前项目 `/home/xiguapro/workspace/xtask` 注册到 xtask 管理中（`GET /api/projects` 可见）。
+
+### 当前项目状态梳理与任务清单同步（2026-03-02）
+
+- 完成 `docs/task.md` 当前状态快照更新：
+  - 进行中 `3`
+  - 待办 `4`
+  - 已完成 `8`
+- 已将 `docs/task.md` 的任务清单映射为 xtask 任务状态（`doing/todo/done`）并同步写入 `.agents/task_graph.yaml`。
+- 已新增任务项登记：`梳理当前项目状态，并将任务清单同步添加到 xtask 管理中`。
+- 后续计划：补一条自动化脚本，避免后续手动同步漂移（已登记到 `docs/plan.md` 近期目标）。
