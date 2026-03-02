@@ -1,16 +1,24 @@
 import { ArrowLeft, LayoutGrid, List, Plus, Search } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { RefObject } from 'react';
+import type { ProjectViewMode } from '../../lib/types';
 
 interface TopBarProps {
   projectName?: string;
-  viewMode?: 'board' | 'list';
-  onToggleView?: () => void;
+  viewMode?: ProjectViewMode;
+  onChangeView?: (mode: ProjectViewMode) => void;
   onNewTask?: () => void;
   searchRef?: RefObject<HTMLInputElement>;
 }
 
-export function TopBar({ projectName, viewMode, onToggleView, onNewTask, searchRef }: TopBarProps) {
+const VIEW_OPTIONS: Array<{ mode: ProjectViewMode; label: string; icon: typeof LayoutGrid }> = [
+  { mode: 'board', label: 'Board', icon: LayoutGrid },
+  { mode: 'list', label: 'List', icon: List },
+  { mode: 'plan', label: 'Plan', icon: LayoutGrid },
+  { mode: 'feature', label: 'Feature', icon: LayoutGrid },
+];
+
+export function TopBar({ projectName, viewMode, onChangeView, onNewTask, searchRef }: TopBarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const isProject = location.pathname.startsWith('/project/');
@@ -47,14 +55,26 @@ export function TopBar({ projectName, viewMode, onToggleView, onNewTask, searchR
 
         {isProject && (
           <>
-            <button
-              type="button"
-              onClick={onToggleView}
-              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium hover:bg-slate-100"
-            >
-              {viewMode === 'board' ? <List className="h-3.5 w-3.5" /> : <LayoutGrid className="h-3.5 w-3.5" />}
-              {viewMode === 'board' ? 'List' : 'Board'}
-            </button>
+            <div className="inline-flex overflow-hidden rounded-md border border-border bg-white">
+              {VIEW_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                const active = viewMode === option.mode;
+                return (
+                  <button
+                    key={option.mode}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => onChangeView?.(option.mode)}
+                    className={`inline-flex items-center gap-1 border-r border-border px-2 py-1 text-xs font-medium last:border-r-0 ${
+                      active ? 'bg-primary text-white hover:bg-primary-hover' : 'hover:bg-slate-100'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
             <button
               type="button"
               onClick={onNewTask}

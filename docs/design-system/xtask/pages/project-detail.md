@@ -21,7 +21,7 @@
   - project name
   - task search
   - `New Task`
-  - board/list toggle
+  - `Board / List / Plan / Feature` view switcher
 - Sidebar:
   - overview
   - milestones
@@ -30,7 +30,7 @@
   - history
 - Main area:
   - filter bar
-  - board columns (`Todo`, `Doing`, `Blocked`, `Done`) or list
+  - board columns (`Todo`, `Doing`, `Blocked`, `Done`) or list or plan or feature view
 - Detail drawer:
   - core fields
   - relations
@@ -65,5 +65,9 @@ Each task card should show:
 - `data-testid="project-filter-sidebar"`
 - `data-testid="project-task-board"`
 - `data-testid="project-task-list"`
+- `data-testid="project-task-plan"`
+- `data-testid="project-task-feature"`
+- `data-testid="plan-section"`
+- `data-testid="feature-group"`
 - `data-testid="project-task-card"`
 - `data-testid="project-task-drawer"`

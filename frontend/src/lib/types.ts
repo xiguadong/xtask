@@ -3,6 +3,7 @@ export type MilestoneStatus = 'open' | 'closed';
 export type TaskStatus = 'todo' | 'doing' | 'blocked' | 'done';
 export type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
 export type RelationType = 'parent_child' | 'blocks' | 'related_strong' | 'related_weak';
+export type ProjectViewMode = 'board' | 'list' | 'plan' | 'feature';
 
 export interface ProjectSummary {
   id: string;
