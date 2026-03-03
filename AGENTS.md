@@ -68,10 +68,12 @@
 5. **测试优先**：提交前至少执行 `make test`；涉及交互流程变更需执行 `make e2e-test`。
 6. **任务登记**：凡是新增任务项，必须同步写入 `docs/task.md`，再进入实现阶段。
 7. **任务图回写**：新增任务与完成任务后，必须同步更新 `<project_dir>/.xtask/task_graph.yaml`。
+8. **子任务约束**：Agent 新建子任务时，必须关联到用户确认的父任务；并记录创建者身份（`actor/updated_by`），任务详情页需可查看创建人和完成人。
 
 <!-- XTASK_RULES_START -->
 ## xtask Sync Rules
 
 - 新建任务与完成任务后，必须同步更新 `<project_dir>/.xtask/task_graph.yaml`。
 - 每次状态变化必须同步回写任务图并追加历史记录。
+- Agent 创建子任务必须绑定父任务，不允许孤立子任务；并保留创建者身份字段，支持在任务详情页展示创建人/完成人。
 <!-- XTASK_RULES_END -->
