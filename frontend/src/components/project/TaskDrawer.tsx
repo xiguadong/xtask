@@ -64,6 +64,10 @@ export function TaskDrawer() {
   }
 
   const taskHistory = history.filter((entry) => entry.task_id === task.id);
+  const creatorEntry = taskHistory.find((entry) => entry.field === 'created');
+  const completedEntry = [...taskHistory].reverse().find((entry) => entry.field === 'status' && entry.new_value === 'done');
+  const createdBy = creatorEntry?.actor || task.updated_by || '-';
+  const completedBy = completedEntry?.actor || (task.status === 'done' ? task.updated_by || '-' : '-');
 
   return (
     <aside
@@ -81,6 +85,15 @@ export function TaskDrawer() {
       </header>
 
       <div className="space-y-3">
+        <section className="rounded-md border border-border bg-slate-50 p-2 text-xs" data-testid="task-ownership-meta">
+          <p className="text-muted">
+            Created by: <span className="font-mono text-text">{createdBy}</span>
+          </p>
+          <p className="mt-1 text-muted">
+            Completed by: <span className="font-mono text-text">{completedBy}</span>
+          </p>
+        </section>
+
         <label className="block text-xs font-medium text-muted">
           Title
           <input
