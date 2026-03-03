@@ -90,6 +90,22 @@ func decodeBody(t *testing.T, resp *http.Response, dst any) {
 	}
 }
 
+func assertErrorCode(t *testing.T, resp *http.Response, status int, code string) {
+	t.Helper()
+	if resp.StatusCode != status {
+		t.Fatalf("expected %d, got %d", status, resp.StatusCode)
+	}
+	var errBody struct {
+		Error struct {
+			Code string `json:"code"`
+		} `json:"error"`
+	}
+	decodeBody(t, resp, &errBody)
+	if errBody.Error.Code != code {
+		t.Fatalf("expected error code %s, got %s", code, errBody.Error.Code)
+	}
+}
+
 func TestTaskEndpoints_CreateAndList(t *testing.T) {
 	server, projectID := setupServer(t)
 
@@ -209,4 +225,31 @@ func TestRelationCycle_Returns422(t *testing.T) {
 	if errBody.Error.Code != "CYCLE_DETECTED" {
 		t.Fatalf("expected CYCLE_DETECTED, got %s", errBody.Error.Code)
 	}
+}
+
+func TestAPIErrorCodes_InvalidInputAndNotFound(t *testing.T) {
+	server, projectID := setupServer(t)
+
+	invalidTask := httpJSON(t, http.MethodPost, server.URL+"/api/projects/"+projectID+"/tasks", map[string]any{
+		"title": "   ",
+	})
+	assertErrorCode(t, invalidTask, http.StatusBadRequest, "INVALID_INPUT")
+
+	invalidMilestone := httpJSON(t, http.MethodPost, server.URL+"/api/projects/"+projectID+"/milestones", map[string]any{
+		"title": "",
+	})
+	assertErrorCode(t, invalidMilestone, http.StatusBadRequest, "INVALID_INPUT")
+
+	invalidRelation := httpJSON(t, http.MethodPost, server.URL+"/api/projects/"+projectID+"/relations", map[string]any{
+		"type": "blocks",
+	})
+	assertErrorCode(t, invalidRelation, http.StatusBadRequest, "INVALID_INPUT")
+
+	missingTask := httpJSON(t, http.MethodPut, server.URL+"/api/projects/"+projectID+"/tasks/task-not-exists", map[string]any{
+		"title": "new-title",
+	})
+	assertErrorCode(t, missingTask, http.StatusNotFound, "NOT_FOUND")
+
+	missingRelation := httpJSON(t, http.MethodDelete, server.URL+"/api/projects/"+projectID+"/relations/rel-not-exists", nil)
+	assertErrorCode(t, missingRelation, http.StatusNotFound, "NOT_FOUND")
 }

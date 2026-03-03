@@ -17,6 +17,16 @@ async function createTask(request: APIRequestContext, projectId: string, title: 
   return payload.id;
 }
 
+async function createTaskWithInput(
+  request: APIRequestContext,
+  projectId: string,
+  input: Record<string, unknown>,
+): Promise<{ id: string; title: string }> {
+  const response = await request.post(`http://127.0.0.1:8080/api/projects/${projectId}/tasks`, { data: input });
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()) as { id: string; title: string };
+}
+
 async function createMilestone(request: APIRequestContext, projectId: string, title: string): Promise<string> {
   const response = await request.post(`http://127.0.0.1:8080/api/projects/${projectId}/milestones`, {
     data: { title, due_date: '2026-03-15' },
@@ -113,6 +123,79 @@ test('plan and feature view render expected sections', async ({ page, request })
   await expect(page.getByTestId('feature-group').filter({ hasText: 'auth' })).toBeVisible();
   await expect(page.getByTestId('feature-group').filter({ hasText: 'billing' })).toBeVisible();
   await expect(page.getByTestId('feature-group').filter({ hasText: 'Unassigned' })).toBeVisible();
+});
+
+test('filter bar supports combined filters', async ({ page, request }) => {
+  const projectId = await getProjectId(request);
+  const token = `e2e-filter-${Date.now()}`;
+  const milestoneId = await createMilestone(request, projectId, `MS-${token}`);
+
+  const blocker = await createTaskWithInput(request, projectId, {
+    title: `${token}-blocker`,
+    priority: 'medium',
+    milestone_id: milestoneId,
+    due_date: '2026-03-18',
+  });
+  const target = await createTaskWithInput(request, projectId, {
+    title: `${token}-target`,
+    priority: 'high',
+    milestone_id: milestoneId,
+    due_date: '2026-03-18',
+  });
+  await createTaskWithInput(request, projectId, {
+    title: `${token}-distractor`,
+    priority: 'low',
+    milestone_id: milestoneId,
+    due_date: '2026-03-18',
+  });
+
+  const relationRes = await request.post(`http://127.0.0.1:8080/api/projects/${projectId}/relations`, {
+    data: { type: 'blocks', source_id: blocker.id, target_id: target.id },
+  });
+  expect(relationRes.status()).toBe(201);
+
+  await page.goto(`/project/${projectId}`);
+  await page.getByRole('button', { name: 'List' }).click();
+  await expect(page.getByTestId('project-task-list')).toBeVisible();
+
+  await page.getByLabel('Search tasks').fill(token);
+  await page.getByLabel('Filter by status').selectOption('todo');
+  await page.getByLabel('Filter by priority').selectOption('high');
+  await page.getByLabel('Filter by milestone').selectOption(milestoneId);
+  await page.getByLabel('Due before').fill('2026-03-20');
+  await page.getByLabel('Blocked filter').selectOption('true');
+
+  const rows = page.locator('[data-testid="project-task-list"] tbody tr');
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toContainText(`${token}-target`);
+  await expect(page.getByText(`${token}-distractor`)).toHaveCount(0);
+});
+
+test('relation list supports jump-to-related-task in drawer', async ({ page, request }) => {
+  const projectId = await getProjectId(request);
+  const token = `e2e-rel-jump-${Date.now()}`;
+  const source = await createTaskWithInput(request, projectId, { title: `${token}-source`, priority: 'high' });
+  const target = await createTaskWithInput(request, projectId, { title: `${token}-target`, priority: 'medium' });
+
+  const relationRes = await request.post(`http://127.0.0.1:8080/api/projects/${projectId}/relations`, {
+    data: { type: 'related_strong', source_id: source.id, target_id: target.id },
+  });
+  expect(relationRes.status()).toBe(201);
+
+  await page.goto(`/project/${projectId}`);
+  await page.getByRole('button', { name: 'List' }).click();
+  await expect(page.getByTestId('project-task-list')).toBeVisible();
+  await page.locator('[data-testid="project-task-list"] tbody tr').filter({ hasText: source.title }).first().click();
+
+  const drawer = page.getByTestId('project-task-drawer');
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole('heading', { name: source.title })).toBeVisible();
+
+  await drawer
+    .getByRole('button', { name: new RegExp(`related_strong:\\s*${source.id}\\s*->\\s*${target.id}`) })
+    .click();
+
+  await expect(drawer.getByRole('heading', { name: target.title })).toBeVisible();
 });
 
 test('api blocks done transition when blocked and rejects cycle', async ({ request }) => {

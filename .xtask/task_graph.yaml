@@ -5,7 +5,7 @@ project:
     description: ""
     status: healthy
     created_at: "2026-03-02T06:48:34Z"
-    updated_at: "2026-03-03T03:03:52Z"
+    updated_at: "2026-03-03T03:43:46Z"
     updated_by: user
 milestones:
     - id: ms-001
@@ -46,40 +46,40 @@ tasks:
     - id: task-001
       title: P7 扩展 E2E：补充更多筛选组合与关系跳转场景
       description: ""
-      status: doing
+      status: done
       priority: high
       due_date: ""
       milestone_id: ms-002
       labels:
         - lbl-module-ci
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-03T03:43:46Z"
       updated_by: user
       notes: ""
     - id: task-002
       title: 增加 API 错误码细化断言（INVALID_INPUT / NOT_FOUND）
       description: ""
-      status: doing
+      status: done
       priority: high
       due_date: ""
       milestone_id: ms-002
       labels:
         - lbl-module-docs
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-03T03:43:46Z"
       updated_by: user
       notes: ""
     - id: task-003
       title: 增加前端单元测试基础（组件/Store 级）
       description: ""
-      status: doing
+      status: done
       priority: high
       due_date: ""
       milestone_id: ms-002
       labels:
         - lbl-module-ci
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-03T03:43:46Z"
       updated_by: user
       notes: ""
     - id: task-004
@@ -481,5 +481,23 @@ history:
       task_id: task-030
       field: status
       old_value: todo
+      new_value: done
+      actor: user
+    - timestamp: "2026-03-03T03:43:46Z"
+      task_id: task-001
+      field: status
+      old_value: doing
+      new_value: done
+      actor: user
+    - timestamp: "2026-03-03T03:43:46Z"
+      task_id: task-002
+      field: status
+      old_value: doing
+      new_value: done
+      actor: user
+    - timestamp: "2026-03-03T03:43:46Z"
+      task_id: task-003
+      field: status
+      old_value: doing
       new_value: done
       actor: user

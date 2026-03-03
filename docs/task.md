@@ -2,16 +2,14 @@
 
 ## 当前状态快照（2026-03-03）
 
-- 进行中：3
+- 进行中：0
 - 待办：10
-- 已完成：16
-- 已同步到 xtask 管理任务图：12（含本次完成 2 项 skill 任务）
+- 已完成：19
+- 已同步到 xtask 管理任务图：15（含本次完成 3 项 high 优先级任务）
 
 ## 进行中
 
-- [ ] P7 扩展 E2E：补充更多筛选组合与关系跳转场景
-- [ ] 增加 API 错误码细化断言（INVALID_INPUT / NOT_FOUND）
-- [ ] 增加前端单元测试基础（组件/Store 级）
+- （空）
 
 ## 待办
 
@@ -28,6 +26,9 @@
 
 ## 已完成
 
+- [x] P7 扩展 E2E：补充更多筛选组合与关系跳转场景
+- [x] 增加 API 错误码细化断言（INVALID_INPUT / NOT_FOUND）
+- [x] 增加前端单元测试基础（组件/Store 级）
 - [x] [个人使用][module:skill] 更新 skill：将 `.xtask/` 加入 `.gitignore`，避免切换分支导致该目录冲突与脏改动
 - [x] [个人使用][module:skill] 为 `.codex/skills/xtask-project-orchestrator` 增加添加到 `~/.xtask/projects.json` 的功能
 - [x] 路径迁移：项目管理文件从 `.agents` 一次性切换到 `.xtask`，并加入后端自动迁移逻辑
