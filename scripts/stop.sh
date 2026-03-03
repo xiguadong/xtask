@@ -78,7 +78,24 @@ stop_by_port_fallback() {
 
 stop_by_pid_file "$FRONTEND_PID_FILE" "Frontend"
 stop_by_pid_file "$BACKEND_PID_FILE" "Backend"
-stop_by_port_fallback "$FRONTEND_PORT" "Frontend"
-stop_by_port_fallback "$BACKEND_PORT" "Backend"
+
+# Fallback: find and stop xtask processes owned by current user
+backend_pids=$(pgrep -u "$USER" -f "exe/backend" || true)
+if [[ -n "$backend_pids" ]]; then
+  for pid in $backend_pids; do
+    if is_alive "$pid"; then
+      stop_pid "$pid" "Backend (user process)"
+    fi
+  done
+fi
+
+vite_pids=$(pgrep -u "$USER" -f "vite.*--port.*5173" || true)
+if [[ -n "$vite_pids" ]]; then
+  for pid in $vite_pids; do
+    if is_alive "$pid"; then
+      stop_pid "$pid" "Frontend (user process)"
+    fi
+  done
+fi
 
 echo "Stop complete."

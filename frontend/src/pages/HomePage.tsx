@@ -17,6 +17,8 @@ export function HomePage() {
   const loading = useProjectStore((state) => state.loading);
   const error = useProjectStore((state) => state.error);
   const fetchProjects = useProjectStore((state) => state.fetchProjects);
+  const deleteProject = useProjectStore((state) => state.deleteProject);
+  const deletingProjectId = useProjectStore((state) => state.deletingProjectId);
   const statusFilter = useProjectStore((state) => state.statusFilter);
   const setStatusFilter = useProjectStore((state) => state.setStatusFilter);
 
@@ -43,8 +45,20 @@ export function HomePage() {
     setParams(params, { replace: true });
   }
 
+  async function handleDeleteProject(project: (typeof projects)[number]) {
+    const ok = window.confirm(`Delete project "${project.name}" from home list?`);
+    if (!ok) return;
+    await deleteProject(project.id);
+  }
+
   let content = (
-    <StatusLanes projects={visibleProjects} onToggleStatus={handleToggle} selectedStatus={statusFilter} />
+    <StatusLanes
+      projects={visibleProjects}
+      onToggleStatus={handleToggle}
+      selectedStatus={statusFilter}
+      deletingProjectId={deletingProjectId}
+      onDeleteProject={handleDeleteProject}
+    />
   );
 
   if (loading) {

@@ -133,6 +133,47 @@ func TestTaskEndpoints_CreateAndList(t *testing.T) {
 	}
 }
 
+func TestProjectEndpoint_DeleteProject(t *testing.T) {
+	server, projectID := setupServer(t)
+
+	listBefore := httpJSON(t, http.MethodGet, server.URL+"/api/projects", nil)
+	if listBefore.StatusCode != http.StatusOK {
+		t.Fatalf("list projects expected 200, got %d", listBefore.StatusCode)
+	}
+	var beforePayload struct {
+		Projects []struct {
+			ID string `json:"id"`
+		} `json:"projects"`
+	}
+	decodeBody(t, listBefore, &beforePayload)
+	if len(beforePayload.Projects) != 1 {
+		t.Fatalf("expected 1 project before delete, got %d", len(beforePayload.Projects))
+	}
+
+	deleted := httpJSON(t, http.MethodDelete, server.URL+"/api/projects/"+projectID, nil)
+	if deleted.StatusCode != http.StatusOK {
+		t.Fatalf("delete project expected 200, got %d", deleted.StatusCode)
+	}
+	_ = deleted.Body.Close()
+
+	listAfter := httpJSON(t, http.MethodGet, server.URL+"/api/projects", nil)
+	if listAfter.StatusCode != http.StatusOK {
+		t.Fatalf("list projects expected 200, got %d", listAfter.StatusCode)
+	}
+	var afterPayload struct {
+		Projects []struct {
+			ID string `json:"id"`
+		} `json:"projects"`
+	}
+	decodeBody(t, listAfter, &afterPayload)
+	if len(afterPayload.Projects) != 0 {
+		t.Fatalf("expected 0 projects after delete, got %d", len(afterPayload.Projects))
+	}
+
+	missing := httpJSON(t, http.MethodGet, server.URL+"/api/projects/"+projectID, nil)
+	assertErrorCode(t, missing, http.StatusNotFound, "NOT_FOUND")
+}
+
 func TestTaskDoneBlockedConstraint_Returns409(t *testing.T) {
 	server, projectID := setupServer(t)
 

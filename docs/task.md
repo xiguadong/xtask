@@ -4,7 +4,7 @@
 
 - 进行中：0
 - 待办：10
-- 已完成：19
+- 已完成：20
 - 已同步到 xtask 管理任务图：15（含本次完成 3 项 high 优先级任务）
 
 ## 进行中
@@ -19,10 +19,10 @@
 - [ ] 历史记录分页测试（limit/offset）
 - [ ] CI 平台化（GitHub Actions 或同类）
 - [ ] 文档交叉链接自检脚本
-- [ ] [个人使用][module:env] 在主页面增加删除项目功能
 - [ ] [个人使用][module:env] 子页面增加添加标签功能
 - [ ] [个人使用][module:env] 修复子页面 Board 视图无法查看详情页
 - [ ] [个人使用][module:env,module:backend] 任务详情页增加修改 milestone 阶段、feature 模块、plan 模块、label 模块的能力
+- [ ] [个人使用][module:env] 任务详情页点击刷新报错 404 page not found（先记录，不实现）
 
 ## 已完成
 
@@ -46,3 +46,4 @@
 - [x] 梳理当前项目状态，并将任务清单同步添加到 xtask 管理中（写入 `.xtask/task_graph.yaml`）
 - [x] 新增 Plan View：按里程碑节点展示计划与两层子任务
 - [x] 新增 Feature View：按 `feature:` 标签分组任务并支持快速状态更新
+- [x] [个人使用][module:env] 在主页面增加删除项目功能

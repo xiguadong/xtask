@@ -20,6 +20,7 @@ func (h *ProjectHandler) Mount(r chi.Router) {
 	r.Get("/projects", Wrap(h.ListProjects))
 	r.Post("/projects", Wrap(h.AddProject))
 	r.Get("/projects/{projectID}", Wrap(h.GetProject))
+	r.Delete("/projects/{projectID}", Wrap(h.DeleteProject))
 }
 
 func (h *ProjectHandler) ListProjects(w http.ResponseWriter, _ *http.Request) error {
@@ -52,5 +53,14 @@ func (h *ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) erro
 		return err
 	}
 	JSON(w, http.StatusOK, graph)
+	return nil
+}
+
+func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) error {
+	projectID := chi.URLParam(r, "projectID")
+	if err := h.registry.RemoveByID(projectID); err != nil {
+		return err
+	}
+	JSON(w, http.StatusOK, map[string]string{"status": "deleted"})
 	return nil
 }

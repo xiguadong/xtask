@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"xtask/backend/service"
+	"xtask/backend/store"
 )
 
 type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
@@ -58,6 +59,9 @@ func writeError(w http.ResponseWriter, err error) {
 		status = http.StatusBadRequest
 		code = "INVALID_INPUT"
 	case errors.Is(err, service.ErrNotFound):
+		status = http.StatusNotFound
+		code = "NOT_FOUND"
+	case errors.Is(err, store.ErrProjectNotFound):
 		status = http.StatusNotFound
 		code = "NOT_FOUND"
 	case errors.Is(err, service.ErrBlockedConstraint):

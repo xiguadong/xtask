@@ -5,6 +5,8 @@ interface StatusLanesProps {
   projects: ProjectSummary[];
   onToggleStatus: (status: '' | 'healthy' | 'at_risk' | 'blocked') => void;
   selectedStatus: '' | 'healthy' | 'at_risk' | 'blocked';
+  deletingProjectId?: string;
+  onDeleteProject?: (project: ProjectSummary) => void;
 }
 
 const lanes: Array<{ key: 'healthy' | 'at_risk' | 'blocked'; label: string }> = [
@@ -13,7 +15,7 @@ const lanes: Array<{ key: 'healthy' | 'at_risk' | 'blocked'; label: string }> = 
   { key: 'blocked', label: 'Blocked' },
 ];
 
-export function StatusLanes({ projects, onToggleStatus, selectedStatus }: StatusLanesProps) {
+export function StatusLanes({ projects, onToggleStatus, selectedStatus, deletingProjectId = '', onDeleteProject }: StatusLanesProps) {
   return (
     <section className="grid gap-4 lg:grid-cols-3" data-testid="home-status-lanes">
       {lanes.map((lane) => {
@@ -31,7 +33,12 @@ export function StatusLanes({ projects, onToggleStatus, selectedStatus }: Status
             </button>
             <div className="space-y-2">
               {laneProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  deleting={deletingProjectId === project.id}
+                  onDelete={onDeleteProject}
+                />
               ))}
               {laneProjects.length === 0 && <p className="text-xs text-muted">No projects in this lane.</p>}
             </div>

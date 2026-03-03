@@ -32,6 +32,7 @@ export const api = {
   health: () => request<string>('/healthz'),
   listProjects: () => request<ProjectListResponse>('/api/projects'),
   addProject: (path: string) => request('/api/projects', { method: 'POST', body: JSON.stringify({ path }) }),
+  deleteProject: (projectId: string) => request(`/api/projects/${projectId}`, { method: 'DELETE' }),
   getProject: (projectId: string) => request<TaskGraph>(`/api/projects/${projectId}`),
   listTasks: (projectId: string, query = '') => request<{ tasks: Task[] }>(`/api/projects/${projectId}/tasks${query ? `?${query}` : ''}`),
   createTask: (projectId: string, input: Partial<Task>) => request<Task>(`/api/projects/${projectId}/tasks`, { method: 'POST', body: JSON.stringify(input) }),

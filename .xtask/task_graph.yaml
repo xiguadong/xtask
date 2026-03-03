@@ -5,7 +5,7 @@ project:
     description: ""
     status: healthy
     created_at: "2026-03-02T06:48:34Z"
-    updated_at: "2026-03-03T03:43:46Z"
+    updated_at: "2026-03-03T08:57:51Z"
     updated_by: user
 milestones:
     - id: ms-001
@@ -53,7 +53,7 @@ tasks:
       labels:
         - lbl-module-ci
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-03T03:43:46Z"
+      updated_at: "2026-03-03T08:50:11Z"
       updated_by: user
       notes: ""
     - id: task-002
@@ -105,7 +105,7 @@ tasks:
       labels:
         - lbl-module-backend
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-03T08:51:13Z"
       updated_by: user
       notes: ""
     - id: task-007
@@ -118,8 +118,8 @@ tasks:
       labels:
         - lbl-module-ci
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
-      updated_by: user
+    updated_at: "2026-03-03T07:53:07Z"
+    updated_by: user
       notes: ""
     - id: task-008
       title: CI 平台化（GitHub Actions 或同类）
@@ -131,7 +131,7 @@ tasks:
       labels:
         - lbl-module-ci
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-03T07:53:06Z"
       updated_by: user
       notes: ""
     - id: task-009
@@ -144,7 +144,7 @@ tasks:
       labels:
         - lbl-module-docs
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-03T07:53:05Z"
       updated_by: user
       notes: ""
     - id: task-010
@@ -157,7 +157,7 @@ tasks:
       labels:
         - lbl-module-backend
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:53:51Z"
+      updated_at: "2026-03-03T08:49:48Z"
       updated_by: user
       notes: ""
     - id: task-011
@@ -170,7 +170,7 @@ tasks:
       labels:
         - lbl-module-backend
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-03T08:49:49Z"
       updated_by: user
       notes: ""
     - id: task-012
@@ -183,7 +183,7 @@ tasks:
       labels:
         - lbl-module-skill
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-03T08:49:49Z"
       updated_by: user
       notes: ""
     - id: task-013
@@ -352,7 +352,7 @@ tasks:
       labels:
         - lbl-module-env
       created_at: "2026-03-02T10:08:30Z"
-      updated_at: "2026-03-02T10:08:30Z"
+      updated_at: "2026-03-03T08:52:56Z"
       updated_by: user
       notes: ""
     - id: task-026
@@ -365,7 +365,7 @@ tasks:
       labels:
         - lbl-module-env
       created_at: "2026-03-02T10:08:30Z"
-      updated_at: "2026-03-02T10:08:30Z"
+      updated_at: "2026-03-03T08:52:57Z"
       updated_by: user
       notes: ""
     - id: task-027
@@ -391,7 +391,7 @@ tasks:
       labels:
         - lbl-module-env
       created_at: "2026-03-02T10:08:30Z"
-      updated_at: "2026-03-02T10:08:30Z"
+      updated_at: "2026-03-03T08:52:58Z"
       updated_by: user
       notes: ""
     - id: task-029
@@ -405,7 +405,7 @@ tasks:
         - lbl-module-env
         - lbl-module-backend
       created_at: "2026-03-02T10:08:30Z"
-      updated_at: "2026-03-02T10:08:30Z"
+      updated_at: "2026-03-03T08:52:58Z"
       updated_by: user
       notes: ""
     - id: task-030
@@ -419,6 +419,19 @@ tasks:
         - lbl-module-skill
       created_at: "2026-03-03T02:53:57Z"
       updated_at: "2026-03-03T03:03:52Z"
+      updated_by: user
+      notes: ""
+    - id: task-031
+      title: 任务详情页点击刷新报错 404 page not found（先记录，不实现）
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-env
+      created_at: "2026-03-03T08:57:51Z"
+      updated_at: "2026-03-03T08:57:51Z"
       updated_by: user
       notes: ""
 relations: []
@@ -500,4 +513,10 @@ history:
       field: status
       old_value: doing
       new_value: done
+      actor: user
+    - timestamp: "2026-03-03T08:57:51Z"
+      task_id: task-031
+      field: status
+      old_value: ""
+      new_value: todo
       actor: user

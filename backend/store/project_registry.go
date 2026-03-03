@@ -167,7 +167,35 @@ func (r *ProjectRegistry) ResolvePathByID(projectID string) (string, error) {
 			return p, nil
 		}
 	}
-	return "", fmt.Errorf("project not found: %s", projectID)
+	return "", fmt.Errorf("%w: %s", ErrProjectNotFound, projectID)
+}
+
+func (r *ProjectRegistry) RemoveByID(projectID string) error {
+	path, err := r.ResolvePathByID(projectID)
+	if err != nil {
+		return err
+	}
+
+	paths, err := r.loadPaths()
+	if err != nil {
+		return err
+	}
+
+	next := make([]string, 0, len(paths))
+	removed := false
+	for _, p := range paths {
+		if p == path {
+			removed = true
+			continue
+		}
+		next = append(next, p)
+	}
+
+	if !removed {
+		return fmt.Errorf("%w: %s", ErrProjectNotFound, projectID)
+	}
+
+	return r.savePaths(next)
 }
 
 func (r *ProjectRegistry) GetProject(projectID string) (*model.TaskGraph, error) {
