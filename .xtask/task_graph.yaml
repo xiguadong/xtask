@@ -5,7 +5,7 @@ project:
     description: ""
     status: healthy
     created_at: "2026-03-02T06:48:34Z"
-    updated_at: "2026-03-02T09:54:20Z"
+    updated_at: "2026-03-03T03:03:52Z"
     updated_by: user
 milestones:
     - id: ms-001
@@ -85,27 +85,14 @@ tasks:
     - id: task-004
       title: 讨论并分析“按模块划分 / 按节点划分”视图方案（当前仅有 task 记录视图）
       description: ""
-      status: todo
+      status: done
       priority: medium
       due_date: ""
       milestone_id: ms-002
       labels:
         - lbl-module-docs
       created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
-      updated_by: user
-      notes: ""
-    - id: task-005
-      title: xtask 页面增加删除项目、删除任务功能
-      description: ""
-      status: todo
-      priority: medium
-      due_date: ""
-      milestone_id: ms-002
-      labels:
-        - lbl-module-env
-      created_at: "2026-03-02T09:43:13Z"
-      updated_at: "2026-03-02T09:43:13Z"
+      updated_at: "2026-03-02T10:30:41Z"
       updated_by: user
       notes: ""
     - id: task-006
@@ -355,5 +342,144 @@ tasks:
       updated_at: "2026-03-02T09:43:13Z"
       updated_by: user
       notes: ""
+    - id: task-025
+      title: 在主页面增加删除项目功能
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-env
+      created_at: "2026-03-02T10:08:30Z"
+      updated_at: "2026-03-02T10:08:30Z"
+      updated_by: user
+      notes: ""
+    - id: task-026
+      title: 子页面增加添加标签功能
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-env
+      created_at: "2026-03-02T10:08:30Z"
+      updated_at: "2026-03-02T10:08:30Z"
+      updated_by: user
+      notes: ""
+    - id: task-027
+      title: 更新 skill，将 `.xtask/` 加入 `.gitignore` 以避免切换分支导致目录冲突与脏改动
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-skill
+      created_at: "2026-03-02T10:08:30Z"
+      updated_at: "2026-03-03T03:03:52Z"
+      updated_by: user
+      notes: ""
+    - id: task-028
+      title: 修复子页面 Board 视图无法查看详情页
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-env
+      created_at: "2026-03-02T10:08:30Z"
+      updated_at: "2026-03-02T10:08:30Z"
+      updated_by: user
+      notes: ""
+    - id: task-029
+      title: 任务详情页增加修改 milestone 阶段、feature 模块、plan 模块、label 模块的能力
+      description: ""
+      status: todo
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-env
+        - lbl-module-backend
+      created_at: "2026-03-02T10:08:30Z"
+      updated_at: "2026-03-02T10:08:30Z"
+      updated_by: user
+      notes: ""
+    - id: task-030
+      title: 为 `.codex/skills/xtask-project-orchestrator` 增加添加到 `~/.xtask/projects.json` 的功能
+      description: ""
+      status: done
+      priority: medium
+      due_date: ""
+      milestone_id: ms-002
+      labels:
+        - lbl-module-skill
+      created_at: "2026-03-03T02:53:57Z"
+      updated_at: "2026-03-03T03:03:52Z"
+      updated_by: user
+      notes: ""
 relations: []
-history: []
+history:
+    - timestamp: "2026-03-02T10:08:30Z"
+      task_id: task-025
+      field: status
+      old_value: ""
+      new_value: todo
+      actor: user
+    - timestamp: "2026-03-02T10:08:30Z"
+      task_id: task-026
+      field: status
+      old_value: ""
+      new_value: todo
+      actor: user
+    - timestamp: "2026-03-02T10:08:30Z"
+      task_id: task-027
+      field: status
+      old_value: ""
+      new_value: todo
+      actor: user
+    - timestamp: "2026-03-02T10:08:30Z"
+      task_id: task-028
+      field: status
+      old_value: ""
+      new_value: todo
+      actor: user
+    - timestamp: "2026-03-02T10:08:30Z"
+      task_id: task-029
+      field: status
+      old_value: ""
+      new_value: todo
+      actor: user
+    - timestamp: "2026-03-02T10:30:41Z"
+      task_id: task-004
+      field: status
+      old_value: todo
+      new_value: done
+      actor: user
+    - timestamp: "2026-03-02T10:31:00Z"
+      task_id: task-005
+      field: deleted
+      old_value: exists
+      new_value: deleted
+      actor: user
+    - timestamp: "2026-03-03T02:53:57Z"
+      task_id: task-030
+      field: status
+      old_value: ""
+      new_value: todo
+      actor: user
+    - timestamp: "2026-03-03T03:03:52Z"
+      task_id: task-027
+      field: status
+      old_value: todo
+      new_value: done
+      actor: user
+    - timestamp: "2026-03-03T03:03:52Z"
+      task_id: task-030
+      field: status
+      old_value: todo
+      new_value: done
+      actor: user

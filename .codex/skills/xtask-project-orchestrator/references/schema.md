@@ -10,6 +10,7 @@
 
 - If `.xtask` is valid (`task_graph.yaml` + `task_rule_doc.md` pass checks):
   - ask user whether to add/register project to xtask management.
+  - if confirmed, append project path into registry via `scripts/register_project.sh`.
   - do not overwrite files.
 - If `.xtask` is invalid:
   - explicitly warn that the `.xtask` directory will be overwritten.

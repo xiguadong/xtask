@@ -33,6 +33,7 @@
 2. Branch by result:
    - `VALID_EXISTING`:
      - ask user whether to add/register current project into xtask management.
+     - if user confirms, run `register_project.sh <project_dir>` to persist registry.
      - do not overwrite `.xtask`.
    - `INVALID_EXISTING`:
      - explicitly tell user `.xtask` will be overwritten.

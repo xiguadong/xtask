@@ -118,6 +118,8 @@ make e2e-test
   - `bash .codex/skills/xtask-project-orchestrator/scripts/sync_task_graph.sh init <project_dir>`
 - 覆盖初始化（仅在用户明确允许后）：
   - `bash .codex/skills/xtask-project-orchestrator/scripts/sync_task_graph.sh init <project_dir> --force-overwrite`
+- 注册项目到 xtask 注册表（用户确认后）：
+  - `bash .codex/skills/xtask-project-orchestrator/scripts/register_project.sh <project_dir>`
 - 同步 AGENTS/CLAUDE 规则：
   - `bash .codex/skills/xtask-project-orchestrator/scripts/sync_rules_docs.sh <repo_root>`
 

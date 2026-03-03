@@ -66,6 +66,17 @@ bash .codex/skills/xtask-project-orchestrator/scripts/sync_task_graph.sh validat
 bash .codex/skills/xtask-project-orchestrator/scripts/sync_rules_docs.sh <repo_root>
 ```
 
+### 7) Register project into xtask registry (after user confirmation)
+
+```bash
+bash .codex/skills/xtask-project-orchestrator/scripts/register_project.sh <project_dir>
+```
+
+Notes:
+- default registry: `~/.xtask/projects.json`
+- override by env: `XTASK_REGISTRY`
+- optional explicit path: `bash .../register_project.sh <project_dir> <registry_path>`
+
 ## Required rules
 
 - Source priority for extraction: `README > design* > plan.md > task.md`
@@ -74,3 +85,4 @@ bash .codex/skills/xtask-project-orchestrator/scripts/sync_rules_docs.sh <repo_r
 - Keep both `AGENTS.md` and `CLAUDE.md` in sync with the rule above
 - Never overwrite existing `.xtask` when invalid unless user explicitly approves
 - When `.xtask` is valid, ask user whether to add/register this project into xtask management
+- If user confirms registration, persist `<project_dir>` into `~/.xtask/projects.json` (or `$XTASK_REGISTRY`)
