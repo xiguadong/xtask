@@ -3,9 +3,10 @@
 import { Command } from 'commander';
 import { initCommand } from './commands/init.js';
 import { registerProject, listProjects, deleteProject } from './commands/project.js';
-import { createTask, listTasks, showTask, updateTask, assignAgent } from './commands/task.js';
+import { createTask, listTasks, showTask, updateTask, assignAgent, mergeTask } from './commands/task.js';
 import { createMilestone, listMilestones, updateMilestone } from './commands/milestone.js';
 import { startServer } from './commands/start.js';
+import worktreeCommand from './commands/worktree.js';
 
 const program = new Command();
 
@@ -82,6 +83,12 @@ task
   .option('-b, --branch <branch>', 'Git branch')
   .action((id, options) => assignAgent(id, options));
 
+task
+  .command('merge <id>')
+  .description('Merge task from branch')
+  .option('-f, --from-branch <branch>', 'Source branch')
+  .action((id, options) => mergeTask(id, options));
+
 const milestone = program.command('milestone').description('Manage milestones');
 
 milestone
@@ -103,5 +110,7 @@ milestone
   .option('-s, --status <status>', 'Status')
   .option('-d, --due <date>', 'Due date')
   .action((id, options) => updateMilestone(id, options));
+
+program.addCommand(worktreeCommand);
 
 program.parse();

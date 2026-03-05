@@ -107,3 +107,21 @@ export function createBranchTask(projectPath, branch, taskData) {
 
   return task;
 }
+
+export function renameBranchTasks(projectPath, oldBranch, newBranch) {
+  const branchDir = path.join(projectPath, '.xtask', 'branches', newBranch);
+  if (!fileExists(branchDir)) return [];
+
+  const files = readDir(branchDir).filter(f => f.endsWith('.yaml'));
+  const updatedTasks = [];
+
+  files.forEach(file => {
+    const taskFile = path.join(branchDir, file);
+    const task = readYaml(taskFile);
+    task.git.branch = newBranch;
+    writeYaml(taskFile, task);
+    updatedTasks.push(task);
+  });
+
+  return updatedTasks;
+}

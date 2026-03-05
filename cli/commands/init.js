@@ -13,6 +13,8 @@ export function initCommand() {
   }
 
   ensureDir(tasksDir);
+  ensureDir(path.join(xtaskDir, 'branches'));
+  ensureDir(path.join(xtaskDir, 'worktrees'));
   writeYaml(path.join(xtaskDir, 'config.yaml'), {});
   writeYaml(path.join(xtaskDir, 'milestones.yaml'), { milestones: [] });
 

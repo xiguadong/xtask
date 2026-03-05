@@ -24,7 +24,7 @@ function getCurrentBranch() {
 }
 
 program
-  .name('xtask worktree')
+  .name('worktree')
   .description('管理 worktree');
 
 program
@@ -113,6 +113,45 @@ program
 
     fs.unlinkSync(file);
     console.log(`✓ Worktree deleted: ${branch}`);
+  });
+
+program
+  .command('rename <oldBranch> <newBranch>')
+  .action((oldBranch, newBranch) => {
+    const projectRoot = getProjectRoot();
+    const oldFile = path.join(projectRoot, '.xtask', 'worktrees', `${oldBranch}.yaml`);
+    const newFile = path.join(projectRoot, '.xtask', 'worktrees', `${newBranch}.yaml`);
+
+    if (!fs.existsSync(oldFile)) {
+      console.error(`Worktree not found: ${oldBranch}`);
+      process.exit(1);
+    }
+
+    if (fs.existsSync(newFile)) {
+      console.error(`Target worktree already exists: ${newBranch}`);
+      process.exit(1);
+    }
+
+    const worktree = yaml.load(fs.readFileSync(oldFile, 'utf-8'));
+    worktree.branch = newBranch;
+    fs.writeFileSync(newFile, yaml.dump(worktree));
+    fs.unlinkSync(oldFile);
+
+    const oldBranchDir = path.join(projectRoot, '.xtask', 'branches', oldBranch);
+    const newBranchDir = path.join(projectRoot, '.xtask', 'branches', newBranch);
+    if (fs.existsSync(oldBranchDir)) {
+      fs.renameSync(oldBranchDir, newBranchDir);
+
+      const files = fs.readdirSync(newBranchDir).filter(f => f.endsWith('.yaml'));
+      files.forEach(file => {
+        const taskFile = path.join(newBranchDir, file);
+        const task = yaml.load(fs.readFileSync(taskFile, 'utf-8'));
+        task.git.branch = newBranch;
+        fs.writeFileSync(taskFile, yaml.dump(task));
+      });
+    }
+
+    console.log(`✓ Worktree renamed: ${oldBranch} → ${newBranch}`);
   });
 
 export default program;

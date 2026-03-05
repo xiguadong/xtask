@@ -63,4 +63,21 @@ router.delete('/:projectName/worktrees/:branch', (req, res) => {
   }
 });
 
+router.post('/:projectName/worktrees/:oldBranch/rename', (req, res) => {
+  try {
+    const project = getProjectByName(req.params.projectName);
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+    const { newBranch } = req.body;
+    const worktree = worktreeService.renameWorktree(project.path, req.params.oldBranch, newBranch);
+    if (!worktree) return res.status(404).json({ error: 'Worktree not found' });
+
+    const branchTaskService = await import('../services/branchTaskService.js');
+    branchTaskService.renameBranchTasks(project.path, req.params.oldBranch, newBranch);
+
+    res.json(worktree);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

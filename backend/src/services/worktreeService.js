@@ -57,3 +57,24 @@ export function deleteWorktree(projectPath, branch) {
   fs.unlinkSync(file);
   return true;
 }
+
+export function renameWorktree(projectPath, oldBranch, newBranch) {
+  const oldFile = path.join(projectPath, '.xtask', 'worktrees', `${oldBranch}.yaml`);
+  const newFile = path.join(projectPath, '.xtask', 'worktrees', `${newBranch}.yaml`);
+
+  if (!fileExists(oldFile)) return null;
+  if (fileExists(newFile)) throw new Error('Target branch already exists');
+
+  const worktree = readYaml(oldFile);
+  worktree.branch = newBranch;
+  writeYaml(newFile, worktree);
+  fs.unlinkSync(oldFile);
+
+  const oldBranchDir = path.join(projectPath, '.xtask', 'branches', oldBranch);
+  const newBranchDir = path.join(projectPath, '.xtask', 'branches', newBranch);
+  if (fileExists(oldBranchDir)) {
+    fs.renameSync(oldBranchDir, newBranchDir);
+  }
+
+  return worktree;
+}

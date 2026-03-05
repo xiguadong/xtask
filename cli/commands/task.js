@@ -78,19 +78,29 @@ export function createTask(title, options = {}) {
 }
 
 export function listTasks(options = {}) {
-  const projectPath = process.cwd();
-  const tasksDir = path.join(projectPath, '.xtask', 'tasks');
+  const projectRoot = getProjectRoot();
+  const currentBranch = getCurrentBranch();
+  const worktreeFile = currentBranch ? path.join(projectRoot, '.xtask', 'worktrees', `${currentBranch}.yaml`) : null;
+  const isInWorktree = worktreeFile && fs.existsSync(worktreeFile);
 
-  if (!fs.existsSync(tasksDir)) {
-    console.log('Error: Not in an xtask project');
-    return;
+  let tasks = [];
+
+  if (isInWorktree) {
+    const branchDir = path.join(projectRoot, '.xtask', 'branches', currentBranch);
+    if (fs.existsSync(branchDir)) {
+      const files = fs.readdirSync(branchDir).filter(f => f.endsWith('.yaml'));
+      tasks = files.map(f => readYaml(path.join(branchDir, f)));
+    }
+  } else {
+    const tasksDir = path.join(projectRoot, '.xtask', 'tasks');
+    if (fs.existsSync(tasksDir)) {
+      const taskDirs = fs.readdirSync(tasksDir);
+      tasks = taskDirs.map(dir => {
+        const taskFile = path.join(tasksDir, dir, 'task.yaml');
+        return fs.existsSync(taskFile) ? readYaml(taskFile) : null;
+      }).filter(Boolean);
+    }
   }
-
-  const taskDirs = fs.readdirSync(tasksDir);
-  const tasks = taskDirs.map(dir => {
-    const taskFile = path.join(tasksDir, dir, 'task.yaml');
-    return fs.existsSync(taskFile) ? readYaml(taskFile) : null;
-  }).filter(Boolean);
 
   let filtered = tasks;
   if (options.milestone) {
@@ -114,8 +124,17 @@ export function listTasks(options = {}) {
 }
 
 export function showTask(id) {
-  const projectPath = process.cwd();
-  const taskFile = path.join(projectPath, '.xtask', 'tasks', id, 'task.yaml');
+  const projectRoot = getProjectRoot();
+  const currentBranch = getCurrentBranch();
+  const worktreeFile = currentBranch ? path.join(projectRoot, '.xtask', 'worktrees', `${currentBranch}.yaml`) : null;
+  const isInWorktree = worktreeFile && fs.existsSync(worktreeFile);
+
+  let taskFile;
+  if (isInWorktree) {
+    taskFile = path.join(projectRoot, '.xtask', 'branches', currentBranch, `${id}.yaml`);
+  } else {
+    taskFile = path.join(projectRoot, '.xtask', 'tasks', id, 'task.yaml');
+  }
 
   if (!fs.existsSync(taskFile)) {
     console.log('Task not found');
@@ -136,8 +155,17 @@ export function showTask(id) {
 }
 
 export function updateTask(id, options = {}) {
-  const projectPath = process.cwd();
-  const taskFile = path.join(projectPath, '.xtask', 'tasks', id, 'task.yaml');
+  const projectRoot = getProjectRoot();
+  const currentBranch = getCurrentBranch();
+  const worktreeFile = currentBranch ? path.join(projectRoot, '.xtask', 'worktrees', `${currentBranch}.yaml`) : null;
+  const isInWorktree = worktreeFile && fs.existsSync(worktreeFile);
+
+  let taskFile;
+  if (isInWorktree) {
+    taskFile = path.join(projectRoot, '.xtask', 'branches', currentBranch, `${id}.yaml`);
+  } else {
+    taskFile = path.join(projectRoot, '.xtask', 'tasks', id, 'task.yaml');
+  }
 
   if (!fs.existsSync(taskFile)) {
     console.log('Task not found');
@@ -153,7 +181,7 @@ export function updateTask(id, options = {}) {
   task.updated_at = new Date().toISOString();
 
   writeYaml(taskFile, task);
-  console.log(`Updated task: ${id}`);
+  console.log(`Updated task: ${id}${isInWorktree ? ` (branch: ${currentBranch})` : ''}`);
 }
 
 export function assignAgent(id, options = {}) {
