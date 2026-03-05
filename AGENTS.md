@@ -1,4 +1,4 @@
-# xtask 项目配置
+# xtask 项目配置（Codex）
 
 ## 项目概述
 
@@ -91,45 +91,19 @@ xtask task create <title>     # 创建任务
 ./scripts/build.sh            # 编译前端
 ```
 
-## xtask 使用规范
+## Codex Skills
 
-### 任务管理流程
+- `xtask-safe`: `.codex/skills/xtask-safe/SKILL.md`
+- `ui-ux-pro-max`: `.codex/skills/ui-ux-pro-max/SKILL.md`
 
-1. **开始新任务前**
-   ```bash
-   # 创建任务并记录到系统
-   xtask task create "任务标题" --milestone <里程碑ID> --labels <标签>
-   ```
+### xtask 使用规范
 
-2. **任务进行中**
-   ```bash
-   # 更新任务状态为进行中
-   xtask task update <task-id> --status in_progress
-   ```
-
-3. **任务完成后（必须执行）**
-   ```bash
-   # 更新任务状态为已完成
-   xtask task update <task-id> --status completed
-
-   # 如果是关键功能，同时更新 PROGRESS.md
-   ```
-
-### 使用原则
-
-- 所有开发任务都应该在 xtask 中创建和跟踪
-- 完成任务后必须更新状态，保持任务列表准确
-- 重要功能完成后，同步更新 PROGRESS.md 的已完成功能清单
-- 使用里程碑组织相关任务，便于进度跟踪
-
-### 任务操作安全
-
-项目配置了 `xtask-safe` 技能，在执行任务维护操作时自动触发，确保：
+在执行任务维护操作时优先使用 `xtask-safe` 技能，确保：
 - 所有变更通过 xtask CLI 命令执行
 - 子任务正确继承父任务属性
 - 禁止删除操作
 
-详见：`.claude/skills/xtask-safe/SKILL.md`
+详见：`.codex/skills/xtask-safe/SKILL.md`
 
 ## 文件系统安全规范
 

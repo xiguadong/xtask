@@ -1,11 +1,32 @@
 import path from 'path';
 import fs from 'fs';
+import { execSync } from 'child_process';
 import { readYaml, writeYaml } from '../utils/yamlHelper.js';
 import { fileExists, ensureDir, readDir } from '../utils/fileSystem.js';
 
-export function createWorktree(projectPath, branch, worktreePath, agent) {
+export function createWorktree(projectPath, branch, worktreePath, agent, sourceBranch) {
   const worktreesDir = path.join(projectPath, '.xtask', 'worktrees');
   ensureDir(worktreesDir);
+
+  // 自动检测主分支
+  if (!sourceBranch) {
+    try {
+      sourceBranch = execSync('git symbolic-ref refs/remotes/origin/HEAD', { cwd: projectPath, encoding: 'utf-8' })
+        .trim().replace('refs/remotes/origin/', '');
+    } catch {
+      sourceBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: projectPath, encoding: 'utf-8' }).trim();
+    }
+  }
+
+  // 创建 git worktree
+  try {
+    execSync(`git worktree add -b ${branch} ${worktreePath} ${sourceBranch}`, {
+      cwd: projectPath,
+      stdio: 'inherit'
+    });
+  } catch (error) {
+    throw new Error(`Failed to create git worktree: ${error.message}`);
+  }
 
   const worktree = {
     branch,

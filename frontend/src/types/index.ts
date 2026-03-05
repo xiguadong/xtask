@@ -38,6 +38,7 @@ export interface Task {
     assigned: boolean;
     identity: string | null;
     assigned_at: string | null;
+    session_id?: string | null;
     status: 'pending' | 'running' | 'completed' | 'failed' | null;
   };
   git: {

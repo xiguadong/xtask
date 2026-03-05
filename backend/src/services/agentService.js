@@ -21,18 +21,26 @@ export function startAgent(projectPath, taskId, branch = null) {
     throw new Error('Agent already running for this task');
   }
 
+  const env = { ...process.env, CLAUDE_BYPASS_PERMISSIONS: '1' };
+  delete env.CLAUDECODE; // 避免嵌套 session 冲突
+
   const agentProcess = spawn('claude', [
     '--dangerously-skip-permissions',
+    '--permission-mode', 'bypassPermissions',
     'chat',
     task.description || task.title
   ], {
     cwd: projectPath,
-    env: { ...process.env, CLAUDE_BYPASS_PERMISSIONS: '1' }
+    env,
+    stdio: ['ignore', 'pipe', 'pipe']
   });
+
+  const sessionId = `${taskId}-${Date.now()}`;
 
   const agentData = {
     taskId,
     branch,
+    sessionId,
     process: agentProcess,
     output: [],
     status: 'running',
@@ -57,13 +65,16 @@ export function startAgent(projectPath, taskId, branch = null) {
     updateTaskWithAgentResult(projectPath, taskId, branch, agentData);
   });
 
+  task.agent.assigned = true;
   task.agent.status = 'running';
   task.agent.assigned_at = agentData.startedAt;
+  task.agent.session_id = sessionId;
   task.updated_at = new Date().toISOString();
   writeYaml(taskFile, task);
 
   return {
     taskId,
+    sessionId,
     status: 'running',
     startedAt: agentData.startedAt
   };
@@ -98,9 +109,10 @@ export function getAgentStatus(taskId) {
 
   return {
     taskId: agentData.taskId,
+    sessionId: agentData.sessionId,
     status: agentData.status,
     startedAt: agentData.startedAt,
-    output: agentData.output.slice(-10)
+    output: agentData.output
   };
 }
 

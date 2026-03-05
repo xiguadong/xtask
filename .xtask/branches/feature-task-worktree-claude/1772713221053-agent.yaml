@@ -1,0 +1,21 @@
+id: 1772713221053-agent
+title: 测试 Agent 启动
+description: ''
+description_file: tasks/1772713221053-agent/description.md
+status: in_progress
+priority: medium
+milestone_id: null
+parent_tasks: []
+labels: []
+created_at: '2026-03-05T12:20:21.053Z'
+updated_at: '2026-03-05T12:20:56.844Z'
+created_by: cli
+agent:
+  assigned: false
+  identity: null
+  assigned_at: '2026-03-05T12:20:40.952Z'
+  status: failed
+git:
+  branch: feature-task-worktree-claude
+  commits: []
+  source_branch: master

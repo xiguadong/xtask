@@ -1,0 +1,21 @@
+id: 1772712656337-ci
+title: CI测试覆盖
+description: '构建完善的CI测试系统，覆盖 xtask cli / 编译 / 页面元素测试 '
+description_file: tasks/1772712656337-ci/description.md
+status: in_progress
+priority: high
+milestone_id: m1
+parent_tasks: []
+labels:
+  - ci
+created_at: '2026-03-05T12:10:56.337Z'
+updated_at: '2026-03-05T12:11:53.532Z'
+created_by: web
+agent:
+  assigned: false
+  identity: null
+  assigned_at: '2026-03-05T12:11:53.139Z'
+  status: failed
+git:
+  branch: null
+  commits: []
