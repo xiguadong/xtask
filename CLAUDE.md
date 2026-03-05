@@ -95,6 +95,15 @@ xtask task create <title>     # 创建任务
 - 重要功能完成后，同步更新 PROGRESS.md 的已完成功能清单
 - 使用里程碑组织相关任务，便于进度跟踪
 
+### 任务操作安全
+
+项目配置了 `xtask-safe` 技能，在执行任务维护操作时自动触发，确保：
+- 所有变更通过 xtask CLI 命令执行
+- 子任务正确继承父任务属性
+- 禁止删除操作
+
+详见：`.claude/skills/xtask-safe/SKILL.md`
+
 ## 开发注意事项
 
 1. 后端使用纯 JavaScript，无需编译
