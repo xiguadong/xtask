@@ -28,7 +28,7 @@ export default function ProjectDetailPage() {
     items: []
   });
 
-  const filters = activeTab === 'all' ? {} : activeTab === 'uncategorized' ? { milestone: 'null' } : { milestone: activeTab };
+  const filters = activeTab === 'all' ? undefined : activeTab === 'uncategorized' ? { milestone: 'null' } : { milestone: activeTab };
   const { tasks, refresh: refreshTasks } = useTasks(projectName!, filters);
   const { milestones, refresh: refreshMilestones } = useMilestones(projectName!);
   const { worktrees, createWorktree, deleteWorktree } = useWorktrees(projectName!);
