@@ -20,11 +20,14 @@ router.post('/:projectName/worktrees', (req, res) => {
   try {
     const project = getProjectByName(req.params.projectName);
     if (!project) return res.status(404).json({ error: 'Project not found' });
-    const { branch, worktree_path, agent, source_branch } = req.body;
+    const { branch, worktree_path, agent, source_branch } = req.body || {};
+    if (!branch || !worktree_path) {
+      return res.status(400).json({ error: 'branch 和 worktree_path 为必填项' });
+    }
     const worktree = worktreeService.createWorktree(project.path, branch, worktree_path, agent, source_branch);
     res.json(worktree);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 

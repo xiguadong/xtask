@@ -9,8 +9,8 @@ export function useWorktrees(projectName: string) {
 
   useEffect(() => {
     fetch(`${API_BASE}/projects/${projectName}/worktrees`)
-      .then(res => res.json())
-      .then(data => setWorktrees(data))
+      .then(async (res) => (res.ok ? res.json() : []))
+      .then((data) => setWorktrees(Array.isArray(data) ? data : []))
       .finally(() => setLoading(false));
   }, [projectName]);
 
@@ -20,16 +20,24 @@ export function useWorktrees(projectName: string) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
+    if (!res.ok) {
+      const payload = await res.json().catch(() => null);
+      throw new Error(payload?.error || '创建 worktree 失败');
+    }
     const newWorktree = await res.json();
-    setWorktrees([...worktrees, newWorktree]);
+    setWorktrees((prev) => [...prev, newWorktree]);
     return newWorktree;
   };
 
   const deleteWorktree = async (branch: string) => {
-    await fetch(`${API_BASE}/projects/${projectName}/worktrees/${branch}`, {
+    const res = await fetch(`${API_BASE}/projects/${projectName}/worktrees/${branch}`, {
       method: 'DELETE'
     });
-    setWorktrees(worktrees.filter(w => w.branch !== branch));
+    if (!res.ok) {
+      const payload = await res.json().catch(() => null);
+      throw new Error(payload?.error || '删除 worktree 失败');
+    }
+    setWorktrees((prev) => prev.filter((w) => w.branch !== branch));
   };
 
   return { worktrees, loading, createWorktree, deleteWorktree };

@@ -1,12 +1,33 @@
 import path from 'path';
 import fs from 'fs';
-import { execSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import { readYaml, writeYaml } from '../utils/yamlHelper.js';
 import { fileExists, ensureDir, readDir } from '../utils/fileSystem.js';
 
 export function createWorktree(projectPath, branch, worktreePath, agent, sourceBranch) {
   const worktreesDir = path.join(projectPath, '.xtask', 'worktrees');
   ensureDir(worktreesDir);
+
+  const resolvedWorktreePath = path.isAbsolute(worktreePath)
+    ? worktreePath
+    : path.resolve(projectPath, worktreePath);
+
+  if (resolvedWorktreePath === '/tmp' || resolvedWorktreePath.startsWith('/tmp/')) {
+    throw new Error('禁止使用 /tmp 作为 worktree 目录，请使用项目内的 cache/worktrees 等路径');
+  }
+
+  const parentDir = path.dirname(resolvedWorktreePath);
+  if (parentDir && parentDir !== resolvedWorktreePath) {
+    ensureDir(parentDir);
+  }
+
+  const storedWorktreePath = (() => {
+    const relative = path.relative(projectPath, resolvedWorktreePath);
+    if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+      return relative;
+    }
+    return resolvedWorktreePath;
+  })();
 
   // 自动检测主分支
   if (!sourceBranch) {
@@ -20,7 +41,7 @@ export function createWorktree(projectPath, branch, worktreePath, agent, sourceB
 
   // 创建 git worktree
   try {
-    execSync(`git worktree add -b ${branch} ${worktreePath} ${sourceBranch}`, {
+    execFileSync('git', ['worktree', 'add', '-b', branch, resolvedWorktreePath, sourceBranch], {
       cwd: projectPath,
       stdio: 'inherit'
     });
@@ -30,7 +51,7 @@ export function createWorktree(projectPath, branch, worktreePath, agent, sourceB
 
   const worktree = {
     branch,
-    worktree_path: worktreePath,
+    worktree_path: storedWorktreePath,
     created_at: new Date().toISOString(),
     agent: {
       identity: agent?.identity || null,
