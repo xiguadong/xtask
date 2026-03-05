@@ -9,6 +9,7 @@ export default function TaskDetailPage() {
   const { projectName, taskId } = useParams<{ projectName: string; taskId: string }>();
   const [task, setTask] = useState<Task | null>(null);
   const [editing, setEditing] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
 
   useEffect(() => {
     void loadTask();
@@ -27,10 +28,26 @@ export default function TaskDetailPage() {
       status: data.get('status'),
       priority: data.get('priority'),
       milestone_id: data.get('milestone') || null,
-      labels: (data.get('labels') as string)?.split(',').map((label) => label.trim()).filter(Boolean) || []
+      labels: task!.labels
     });
     setEditing(false);
     loadTask();
+  }
+
+  function handleAddLabel(event: React.FormEvent) {
+    event.preventDefault();
+    if (!newLabel.trim() || !task) return;
+    if (task.labels.includes(newLabel.trim())) {
+      setNewLabel('');
+      return;
+    }
+    setTask({ ...task, labels: [...task.labels, newLabel.trim()] });
+    setNewLabel('');
+  }
+
+  function handleRemoveLabel(label: string) {
+    if (!task) return;
+    setTask({ ...task, labels: task.labels.filter((l) => l !== label) });
   }
 
   async function handleAssignAgent(event: React.FormEvent<HTMLFormElement>) {
@@ -117,12 +134,38 @@ export default function TaskDetailPage() {
                     <option value="critical">critical</option>
                   </select>
                 </div>
-                <input
-                  name="labels"
-                  defaultValue={task.labels.join(',')}
-                  className="w-full rounded border border-border bg-white p-2 text-sm"
-                  placeholder="Labels (comma separated)"
-                />
+                <div>
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Labels</h3>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {task.labels.map((label) => (
+                      <span key={label} className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                        {label}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLabel(label)}
+                          className="text-slate-500 hover:text-red-600"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      value={newLabel}
+                      onChange={(e) => setNewLabel(e.target.value)}
+                      className="flex-1 rounded border border-border bg-white p-2 text-sm"
+                      placeholder="添加新标签"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddLabel}
+                      className="rounded bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-300"
+                    >
+                      添加
+                    </button>
+                  </div>
+                </div>
                 <button type="submit" className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-hover">
                   Save
                 </button>

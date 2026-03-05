@@ -1,0 +1,20 @@
+id: 1772702785725-
+title: 使用输入框和添加按钮添加新标签
+description: ''
+status: completed
+priority: medium
+milestone_id: m1
+parent_tasks: []
+labels:
+  - ui
+created_at: '2026-03-05T09:26:25.726Z'
+updated_at: '2026-03-05T09:28:41.114Z'
+created_by: cli
+agent:
+  assigned: false
+  identity: null
+  assigned_at: null
+  status: null
+git:
+  branch: null
+  commits: []
