@@ -1,0 +1,16 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ProjectListPage from './pages/ProjectListPage';
+import ProjectDetailPage from './pages/ProjectDetailPage';
+import TaskDetailPage from './pages/TaskDetailPage';
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<ProjectListPage />} />
+        <Route path="/projects/:projectName" element={<ProjectDetailPage />} />
+        <Route path="/projects/:projectName/tasks/:taskId" element={<TaskDetailPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
