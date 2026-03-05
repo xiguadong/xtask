@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Shell from '../components/layout/Shell';
 import TopBar from '../components/layout/TopBar';
+import TaskActions from '../components/TaskActions';
 import { Task } from '../types';
 import { assignAgent, fetchTask, updateTask } from '../utils/api';
 
@@ -208,6 +209,8 @@ export default function TaskDetailPage() {
                 </button>
               </form>
             </section>
+
+            <TaskActions task={task} projectName={projectName!} onUpdate={loadTask} />
           </section>
         }
       />
