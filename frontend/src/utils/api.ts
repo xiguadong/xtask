@@ -76,3 +76,101 @@ export async function deleteMilestone(projectName: string, id: string) {
     method: 'DELETE'
   });
 }
+
+export async function fetchTerminalOverview(projectName: string) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/terminals/overview`);
+  return res.json();
+}
+
+export async function fetchTerminalConfig(projectName: string) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/terminals/config`);
+  return res.json();
+}
+
+export async function updateTerminalConfig(projectName: string, payload: any) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/terminals/config`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '更新终端配置失败');
+  }
+  return res.json();
+}
+
+export async function fetchTaskTerminalStatus(projectName: string, taskId: string) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/tasks/${taskId}/terminal/status`);
+  return res.json();
+}
+
+export async function fetchTaskTerminalOutput(projectName: string, taskId: string, cursor: number) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/tasks/${taskId}/terminal/output?cursor=${cursor}`);
+  return res.json();
+}
+
+export async function startTaskTerminal(projectName: string, taskId: string, payload: any) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/tasks/${taskId}/terminal/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '启动终端失败');
+  }
+  return res.json();
+}
+
+export async function stopTaskTerminal(projectName: string, taskId: string, reason = 'manual') {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/tasks/${taskId}/terminal/stop`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason })
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '停止终端失败');
+  }
+  return res.json();
+}
+
+export async function sendTaskTerminalInput(projectName: string, taskId: string, input: string) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/tasks/${taskId}/terminal/input`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ input })
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '发送命令失败');
+  }
+  return res.json();
+}
+
+export async function resizeTaskTerminal(projectName: string, taskId: string, cols: number, rows: number) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/tasks/${taskId}/terminal/resize`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cols, rows })
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '调整终端尺寸失败');
+  }
+  return res.json();
+}
+
+export async function updateTaskTerminalConfig(projectName: string, taskId: string, payload: any) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/tasks/${taskId}/terminal/config`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '更新终端配置失败');
+  }
+  return res.json();
+}

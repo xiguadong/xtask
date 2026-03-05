@@ -1,1 +1,2 @@
-{}
+terminal:
+  max_terminals: 3

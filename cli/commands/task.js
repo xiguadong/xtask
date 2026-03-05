@@ -45,7 +45,23 @@ export function createTask(title, options = {}) {
       assigned: false,
       identity: null,
       assigned_at: null,
+      session_id: null,
       status: null
+    },
+    terminal: {
+      enabled: false,
+      mode: null,
+      session_id: null,
+      status: 'stopped',
+      host: null,
+      port: 22,
+      username: null,
+      timeout_days: 3,
+      auto_stop_on_task_done: true,
+      started_at: null,
+      last_active_at: null,
+      stopped_at: null,
+      stop_reason: null
     },
     git: {
       branch: isInWorktree ? currentBranch : null,
@@ -199,6 +215,7 @@ export function assignAgent(id, options = {}) {
     assigned: true,
     identity: options.agent || 'claude-opus-4',
     assigned_at: new Date().toISOString(),
+    session_id: null,
     status: 'pending'
   };
 

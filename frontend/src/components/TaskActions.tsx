@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAgent } from '../hooks/useAgent';
 import { useWorktrees } from '../hooks/useWorktrees';
 import { Task } from '../types';
+import TaskTerminalPanel from './TaskTerminalPanel';
 
 interface TaskActionsProps {
   task: Task;
@@ -187,6 +188,8 @@ export default function TaskActions({ task, projectName, onUpdate }: TaskActions
           {errorMessage}
         </div>
       )}
+
+      <TaskTerminalPanel task={task} projectName={projectName} onTaskRefresh={onUpdate} />
     </section>
   );
 }

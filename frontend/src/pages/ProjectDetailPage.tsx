@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import TaskList from '../components/TaskList';
 import MilestoneList from '../components/MilestoneList';
 import { WorktreeList } from '../components/WorktreeList';
@@ -8,8 +8,9 @@ import TopBar from '../components/layout/TopBar';
 import { useTasks } from '../hooks/useTasks';
 import { useMilestones } from '../hooks/useMilestones';
 import { useWorktrees } from '../hooks/useWorktrees';
+import { useTerminal } from '../hooks/useTerminal';
 import { createMilestone, createTask, deleteMilestone, updateMilestone } from '../utils/api';
-import { Milestone, Task } from '../types';
+import { Milestone, Task, TerminalOverview } from '../types';
 
 export default function ProjectDetailPage() {
   const { projectName } = useParams<{ projectName: string }>();
@@ -18,11 +19,20 @@ export default function ProjectDetailPage() {
   const [selectedLabel, setSelectedLabel] = useState<string>('');
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
+  const [maxTerminalsDraft, setMaxTerminalsDraft] = useState(3);
+  const [terminalConfigSaving, setTerminalConfigSaving] = useState(false);
+  const [terminalConfigError, setTerminalConfigError] = useState<string | null>(null);
+  const [terminalOverview, setTerminalOverview] = useState<TerminalOverview>({
+    config: { max_terminals: 3 },
+    counts: { total: 0, working: 0, waiting: 0, max: 3, available: 3 },
+    items: []
+  });
 
   const filters = activeTab === 'all' ? {} : activeTab === 'uncategorized' ? { milestone: 'null' } : { milestone: activeTab };
   const { tasks, refresh: refreshTasks } = useTasks(projectName!, filters);
   const { milestones, refresh: refreshMilestones } = useMilestones(projectName!);
   const { worktrees, createWorktree, deleteWorktree } = useWorktrees(projectName!);
+  const { getOverview: fetchTerminalOverview, updateProjectConfig } = useTerminal(projectName!);
 
   const allLabels = useMemo(() => Array.from(new Set(tasks.flatMap((task) => task.labels))), [tasks]);
   const filteredTasks = selectedLabel ? tasks.filter((task) => task.labels.includes(selectedLabel)) : tasks;
@@ -86,6 +96,33 @@ export default function ProjectDetailPage() {
       );
   }, [filteredTasks]);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadTerminalOverview = async () => {
+      try {
+        const data = await fetchTerminalOverview();
+        if (!active) return;
+        setTerminalOverview(data);
+        setMaxTerminalsDraft(data?.config?.max_terminals || 3);
+      } catch {
+        if (!active) return;
+        setTerminalOverview({
+          config: { max_terminals: 3 },
+          counts: { total: 0, working: 0, waiting: 0, max: 3, available: 3 },
+          items: []
+        });
+      }
+    };
+
+    void loadTerminalOverview();
+    const timer = setInterval(loadTerminalOverview, 5000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [fetchTerminalOverview]);
+
   async function handleCreateTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -142,6 +179,25 @@ export default function ProjectDetailPage() {
   function refreshAll() {
     refreshTasks();
     refreshMilestones();
+    void fetchTerminalOverview().then(setTerminalOverview).catch(() => undefined);
+  }
+
+  async function handleSaveTerminalConfig() {
+    try {
+      setTerminalConfigSaving(true);
+      setTerminalConfigError(null);
+      await updateProjectConfig({
+        max_terminals: Math.max(1, Math.min(20, maxTerminalsDraft || 1))
+      });
+
+      const data = await fetchTerminalOverview();
+      setTerminalOverview(data);
+      setMaxTerminalsDraft(data?.config?.max_terminals || 3);
+    } catch (err: any) {
+      setTerminalConfigError(err?.message || '保存终端上限失败');
+    } finally {
+      setTerminalConfigSaving(false);
+    }
   }
 
   return (
@@ -380,6 +436,70 @@ export default function ProjectDetailPage() {
         }
         rail={
           <aside className="space-y-3 rounded-lg border border-border bg-surface p-3">
+            <section className="space-y-2 rounded-md border border-border bg-white p-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">TERMINAL OVERVIEW</h3>
+              <div className="rounded border border-border bg-slate-50 p-2">
+                <p className="text-xs text-muted">最大终端数</p>
+                <div className="mt-1 flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={maxTerminalsDraft}
+                    onChange={(event) => setMaxTerminalsDraft(Number(event.target.value) || 1)}
+                    className="w-20 rounded border border-border bg-white px-2 py-1 text-xs text-text"
+                  />
+                  <button
+                    onClick={handleSaveTerminalConfig}
+                    disabled={terminalConfigSaving}
+                    className="rounded border border-border bg-white px-2 py-1 text-xs font-semibold text-muted hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {terminalConfigSaving ? '保存中...' : '保存'}
+                  </button>
+                </div>
+                {terminalConfigError && <p className="mt-1 text-[11px] text-red-600">{terminalConfigError}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded border border-green-100 bg-green-50 p-2">
+                  <p className="text-green-700">工作中</p>
+                  <p className="text-base font-semibold text-green-700">{terminalOverview.counts.working}</p>
+                </div>
+                <div className="rounded border border-amber-100 bg-amber-50 p-2">
+                  <p className="text-amber-700">等待中</p>
+                  <p className="text-base font-semibold text-amber-700">{terminalOverview.counts.waiting}</p>
+                </div>
+              </div>
+              <p className="text-xs text-muted">
+                当前活跃终端总数：{terminalOverview.counts.total} / {terminalOverview.counts.max}（可用 {terminalOverview.counts.available}）
+              </p>
+              {terminalOverview.items.length === 0 ? (
+                <p className="rounded border border-dashed border-border p-3 text-xs text-muted">暂无任务终端在运行</p>
+              ) : (
+                <div className="max-h-56 space-y-2 overflow-y-auto pr-1">
+                  {terminalOverview.items.map((item) => (
+                    <Link
+                      key={item.sessionId}
+                      to={`/projects/${projectName}/tasks/${item.taskId}`}
+                      className="block rounded border border-border bg-slate-50 p-2 transition-colors hover:bg-slate-100"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="line-clamp-1 text-xs font-medium text-text">{item.taskTitle}</p>
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                            item.runtimeStatus === 'working' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          }`}
+                        >
+                          {item.runtimeStatus === 'working' ? '工作中' : '等待'}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-muted">{item.taskId}</p>
+                      <p className="text-[11px] text-muted">{item.mode === 'ssh' ? 'SSH' : '本地'} | 最后活动 {new Date(item.lastActiveAt).toLocaleTimeString()}</p>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </section>
+
             <section className="space-y-2 rounded-md border border-border bg-white p-3">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">SUBTASK STATUS</h3>
               {subtaskProgressList.length === 0 ? (

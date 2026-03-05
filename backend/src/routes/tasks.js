@@ -2,6 +2,7 @@ import express from 'express';
 import { getProjectByName } from '../services/projectService.js';
 import { getTasks, getTaskById, createTask, updateTask, deleteTask, assignAgent, getTaskDescription } from '../services/taskService.js';
 import * as branchTaskService from '../services/branchTaskService.js';
+import * as terminalService from '../services/terminalService.js';
 
 const router = express.Router();
 
@@ -35,8 +36,19 @@ router.put('/:projectName/tasks/:id', (req, res) => {
   const project = getProjectByName(req.params.projectName);
   if (!project) return res.status(404).json({ error: 'Project not found' });
 
+  const previousTask = getTaskById(project.path, req.params.id);
   const task = updateTask(project.path, req.params.id, req.body);
   if (!task) return res.status(404).json({ error: 'Task not found' });
+
+  const completedStatuses = new Set(['done', 'completed']);
+  const becameCompleted =
+    previousTask &&
+    !completedStatuses.has(previousTask.status) &&
+    completedStatuses.has(task.status);
+
+  if (becameCompleted && task.terminal?.auto_stop_on_task_done) {
+    terminalService.stopTaskTerminalSession(project.path, req.params.id, 'task_completed');
+  }
 
   res.json(task);
 });
@@ -45,6 +57,7 @@ router.delete('/:projectName/tasks/:id', (req, res) => {
   const project = getProjectByName(req.params.projectName);
   if (!project) return res.status(404).json({ error: 'Project not found' });
 
+  terminalService.stopTaskTerminalSession(project.path, req.params.id, 'task_deleted');
   const deleted = deleteTask(project.path, req.params.id);
   if (!deleted) return res.status(404).json({ error: 'Task not found' });
 

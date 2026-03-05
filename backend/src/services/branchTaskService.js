@@ -4,6 +4,24 @@ import { readYaml, writeYaml } from '../utils/yamlHelper.js';
 import { fileExists, ensureDir, readDir } from '../utils/fileSystem.js';
 import { getWorktree, updateWorktree } from './worktreeService.js';
 
+function getDefaultTerminal() {
+  return {
+    enabled: false,
+    mode: null,
+    session_id: null,
+    status: 'stopped',
+    host: null,
+    port: 22,
+    username: null,
+    timeout_days: 3,
+    auto_stop_on_task_done: true,
+    started_at: null,
+    last_active_at: null,
+    stopped_at: null,
+    stop_reason: null
+  };
+}
+
 export function assignTaskToBranch(projectPath, taskId, branch) {
   const taskFile = path.join(projectPath, '.xtask', 'tasks', taskId, 'task.yaml');
   if (!fileExists(taskFile)) return null;
@@ -86,8 +104,10 @@ export function createBranchTask(projectPath, branch, taskData) {
       assigned: false,
       identity: null,
       assigned_at: null,
+      session_id: null,
       status: null
     },
+    terminal: getDefaultTerminal(),
     git: {
       branch,
       commits: [],

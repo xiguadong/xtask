@@ -9,6 +9,7 @@ import milestonesRouter from './src/routes/milestones.js';
 import worktreesRouter from './src/routes/worktrees.js';
 import branchesRouter from './src/routes/branches.js';
 import agentRouter from './src/routes/agent.js';
+import terminalRouter from './src/routes/terminal.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -23,6 +24,7 @@ app.use('/api/projects', milestonesRouter);
 app.use('/api/projects', worktreesRouter);
 app.use('/api/projects', branchesRouter);
 app.use('/api/projects', agentRouter);
+app.use('/api/projects', terminalRouter);
 
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 

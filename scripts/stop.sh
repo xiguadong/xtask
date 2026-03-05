@@ -4,17 +4,16 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 LOG_DIR="$ROOT_DIR/logs"
 LOG_FILE="$LOG_DIR/stop.log"
+PID_FILE="$LOG_DIR/server.pid"
+PORT_FILE="$LOG_DIR/server.port"
 CURRENT_USER="$(id -un)"
 
 mkdir -p "$LOG_DIR"
 touch "$LOG_FILE"
-exec > >(tee -a "$LOG_FILE") 2>&1
 
-echo "[$(date '+%F %T')] stopping xtask processes for user: $CURRENT_USER"
-
-declare -a CANDIDATE_PIDS=()
-declare -a TARGET_PIDS=()
-declare -A PID_SEEN=()
+log() {
+  echo "[$(date '+%F %T')] $*" | tee -a "$LOG_FILE"
+}
 
 is_number() {
   [[ "${1:-}" =~ ^[0-9]+$ ]]
@@ -28,101 +27,95 @@ pid_owner() {
   ps -o user= -p "$1" 2>/dev/null | tr -d ' '
 }
 
-add_candidate() {
-  local pid="${1:-}"
-  if ! is_number "$pid"; then
-    return
-  fi
-  if [[ -n "${PID_SEEN[$pid]+x}" ]]; then
-    return
-  fi
-  if ! is_alive "$pid"; then
-    return
-  fi
-  if [[ "$(pid_owner "$pid")" != "$CURRENT_USER" ]]; then
-    return
-  fi
-  PID_SEEN["$pid"]=1
-  CANDIDATE_PIDS+=("$pid")
-}
-
 cmdline_of() {
-  tr '\0' ' ' <"/proc/$1/cmdline" 2>/dev/null || true
+  ps -o command= -p "$1" 2>/dev/null || true
 }
 
-cwd_of() {
-  readlink -f "/proc/$1/cwd" 2>/dev/null || true
-}
-
-is_xtask_related() {
-  local pid="$1"
-  local cmd cwd
-  cmd="$(cmdline_of "$pid")"
-  cwd="$(cwd_of "$pid")"
-
-  if [[ "$cwd" != "$ROOT_DIR"* ]] && [[ "$cmd" != *"$ROOT_DIR"* ]]; then
-    return 1
-  fi
-
-  if [[ "$cwd" == "$ROOT_DIR/backend"* ]] || [[ "$cwd" == "$ROOT_DIR/frontend"* ]]; then
-    return 0
-  fi
-
-  if [[ "$cmd" == *"backend/server.js"* ]] || [[ "$cmd" == *"node server.js"* ]]; then
-    return 0
-  fi
-
-  if [[ "$cmd" == *"vite"* ]] || [[ "$cmd" == *"npm run dev"* ]] || [[ "$cmd" == *"pnpm dev"* ]] || [[ "$cmd" == *"yarn dev"* ]]; then
-    return 0
-  fi
-
-  return 1
-}
-
-collect_candidates() {
+contains_pid() {
+  local target="$1"
+  shift || true
   local pid
-
-  while IFS= read -r pid; do
-    add_candidate "$pid"
-  done < <(pgrep -u "$CURRENT_USER" -f 'node .*backend/server\.js|node server\.js|vite|npm( |$).*dev|pnpm( |$).*dev|yarn( |$).*dev' || true)
-
-  while IFS= read -r pid; do
-    add_candidate "$pid"
-  done < <(ss -ltnp 2>/dev/null | sed -n 's/.*pid=\([0-9]\+\).*/\1/p' | sort -u)
+  for pid in "$@"; do
+    if [[ "$pid" == "$target" ]]; then
+      return 0
+    fi
+  done
+  return 1
 }
 
 stop_pid() {
   local pid="$1"
   local cmd
   cmd="$(cmdline_of "$pid")"
-  echo "stopping pid=$pid cmd=$cmd"
+  log "stopping pid=$pid cmd=$cmd"
   kill "$pid" >/dev/null 2>&1 || true
-  for _ in {1..20}; do
+
+  local i
+  for i in {1..20}; do
     if ! is_alive "$pid"; then
-      echo "stopped pid=$pid"
+      log "stopped pid=$pid"
       return 0
     fi
     sleep 0.2
   done
+
   kill -9 "$pid" >/dev/null 2>&1 || true
   if is_alive "$pid"; then
-    echo "failed to stop pid=$pid"
+    log "failed to stop pid=$pid"
     return 1
   fi
-  echo "force-stopped pid=$pid"
+  log "force-stopped pid=$pid"
 }
 
-collect_candidates
+TARGET_PIDS=()
 
-for pid in "${CANDIDATE_PIDS[@]}"; do
-  if is_xtask_related "$pid"; then
-    TARGET_PIDS+=("$pid")
+log "stopping xtask processes for user: $CURRENT_USER"
+
+# 1) 优先根据 pid 文件停止
+if [[ -f "$PID_FILE" ]]; then
+  PID_FROM_FILE="$(cat "$PID_FILE" 2>/dev/null || true)"
+  if is_number "$PID_FROM_FILE" && is_alive "$PID_FROM_FILE" && [[ "$(pid_owner "$PID_FROM_FILE")" == "$CURRENT_USER" ]]; then
+    TARGET_PIDS+=("$PID_FROM_FILE")
   fi
-done
+fi
+
+# 2) 根据端口文件查找监听进程
+if [[ -f "$PORT_FILE" ]]; then
+  PORT_FROM_FILE="$(cat "$PORT_FILE" 2>/dev/null || true)"
+  if is_number "$PORT_FROM_FILE"; then
+    while IFS= read -r pid; do
+      if is_number "$pid" && is_alive "$pid" && [[ "$(pid_owner "$pid")" == "$CURRENT_USER" ]]; then
+        if ! contains_pid "$pid" "${TARGET_PIDS[@]}"; then
+          TARGET_PIDS+=("$pid")
+        fi
+      fi
+    done < <(lsof -tiTCP:"$PORT_FROM_FILE" -sTCP:LISTEN 2>/dev/null || true)
+  fi
+fi
+
+# 3) 兜底：扫描当前用户下与本项目相关的后端服务
+while IFS= read -r pid; do
+  if ! is_number "$pid"; then
+    continue
+  fi
+  if ! is_alive "$pid"; then
+    continue
+  fi
+  if [[ "$(pid_owner "$pid")" != "$CURRENT_USER" ]]; then
+    continue
+  fi
+
+  cmd="$(cmdline_of "$pid")"
+  if [[ "$cmd" == *"$ROOT_DIR/backend/server.js"* ]] || [[ "$cmd" == *"node server.js"*"$ROOT_DIR/backend"* ]]; then
+    if ! contains_pid "$pid" "${TARGET_PIDS[@]}"; then
+      TARGET_PIDS+=("$pid")
+    fi
+  fi
+done < <(pgrep -u "$CURRENT_USER" -f "node .*server.js" || true)
 
 if [[ "${#TARGET_PIDS[@]}" -eq 0 ]]; then
-  echo "no xtask process found"
-  rm -f "$LOG_DIR/server.pid" "$LOG_DIR/server.port"
+  log "no xtask process found"
+  rm -f "$PID_FILE" "$PORT_FILE"
   exit 0
 fi
 
@@ -130,5 +123,5 @@ for pid in "${TARGET_PIDS[@]}"; do
   stop_pid "$pid"
 done
 
-rm -f "$LOG_DIR/server.pid" "$LOG_DIR/server.port"
-echo "stop complete: ${#TARGET_PIDS[@]} process(es) stopped"
+rm -f "$PID_FILE" "$PORT_FILE"
+log "stop complete: ${#TARGET_PIDS[@]} process(es) stopped"

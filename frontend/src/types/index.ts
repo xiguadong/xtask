@@ -46,6 +46,56 @@ export interface Task {
     commits: string[];
     source_branch?: string | null;
   };
+  terminal: TaskTerminal;
+}
+
+export interface TaskTerminal {
+  enabled: boolean;
+  mode: 'local' | 'ssh' | null;
+  session_id: string | null;
+  status: 'running' | 'working' | 'waiting' | 'stopped';
+  host: string | null;
+  port: number;
+  username: string | null;
+  timeout_days: number;
+  auto_stop_on_task_done: boolean;
+  started_at: string | null;
+  last_active_at: string | null;
+  stopped_at: string | null;
+  stop_reason: string | null;
+}
+
+export interface TerminalSessionSummary {
+  taskId: string;
+  taskTitle: string;
+  sessionId: string;
+  mode: 'local' | 'ssh';
+  runtimeStatus: 'working' | 'waiting';
+  startedAt: string;
+  lastActiveAt: string;
+  timeoutDays: number;
+  autoStopOnTaskDone: boolean;
+  ssh: {
+    host: string;
+    port: number;
+    username: string;
+  } | null;
+}
+
+export interface TerminalOverview {
+  config: TerminalConfig;
+  counts: {
+    total: number;
+    working: number;
+    waiting: number;
+    max: number;
+    available: number;
+  };
+  items: TerminalSessionSummary[];
+}
+
+export interface TerminalConfig {
+  max_terminals: number;
 }
 
 export interface Worktree {
