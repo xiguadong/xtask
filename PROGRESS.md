@@ -18,7 +18,9 @@
 ### CLI 工具
 - ✅ 项目管理命令（init, register, list, delete）
 - ✅ 里程碑管理命令（create, list, update）
-- ✅ 任务管理命令（create, list, show, update, assign）
+- ✅ 任务管理命令（create, list, show, update, assign, merge）
+- ✅ Worktree 管理命令（create, list, info, delete, rename）
+- ✅ 分支任务自动检测和隔离存储
 - ✅ 服务器启动命令
 
 ### 后端服务
@@ -27,6 +29,8 @@
 - ✅ 项目管理 API
 - ✅ 里程碑管理 API
 - ✅ 任务管理 API
+- ✅ Worktree 管理 API
+- ✅ 分支任务管理服务
 
 ### 前端应用
 - ✅ React + TypeScript + Tailwind CSS 框架
@@ -39,12 +43,13 @@
 - ✅ 启动脚本（start.sh）
 - ✅ 停止脚本（stop.sh）
 - ✅ 构建脚本（build.sh）
+- ✅ CLI 测试脚本（test-cli.sh）
 
 ## 待办事项
 
 ### 短期目标
 - [ ] 完成前端编译和测试
-- [ ] 验证 CLI 命令功能
+- [x] 验证 CLI 命令功能
 - [ ] 测试后端 API 接口
 - [ ] 编写使用文档
 
@@ -61,6 +66,14 @@
 - [ ] 支持插件系统
 
 ## 版本历史
+
+### v0.2.0 (2026-03-05)
+- 修复 CLI 命令以符合数据结构文档
+- 添加 worktree 管理功能（create, list, info, delete, rename）
+- 实现分支任务自动检测和隔离存储
+- 添加任务合并命令（task merge）
+- 创建完整的 CLI 测试脚本（15 项测试）
+- 完善数据结构文档和实现文档
 
 ### v0.1.0 (2026-03-05)
 - 初始化项目结构
