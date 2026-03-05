@@ -25,6 +25,7 @@ export interface Task {
   id: string;
   title: string;
   description: string;
+  description_file: string | null;
   status: 'todo' | 'in_progress' | 'done' | 'blocked';
   priority: 'low' | 'medium' | 'high' | 'critical';
   milestone_id: string | null;
@@ -42,5 +43,19 @@ export interface Task {
   git: {
     branch: string | null;
     commits: string[];
+    source_branch?: string | null;
   };
+}
+
+export interface Worktree {
+  branch: string;
+  worktree_path: string;
+  created_at: string;
+  agent: {
+    identity: string | null;
+    model: string | null;
+  };
+  status: 'active' | 'merged' | 'deleted';
+  tasks: string[];
+  last_commit: string | null;
 }

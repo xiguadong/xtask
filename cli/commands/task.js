@@ -1,29 +1,42 @@
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 import { readYaml, writeYaml, ensureDir } from '../utils/yaml.js';
 import { generateTaskId } from '../utils/idGenerator.js';
 
-export function createTask(title, options = {}) {
-  const projectPath = process.cwd();
-  const tasksDir = path.join(projectPath, '.xtask', 'tasks');
-
-  if (!fs.existsSync(tasksDir)) {
-    console.log('Error: Not in an xtask project');
-    return;
+function getCurrentBranch() {
+  try {
+    return execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
+  } catch {
+    return null;
   }
+}
+
+function getProjectRoot() {
+  let dir = process.cwd();
+  while (dir !== '/') {
+    if (fs.existsSync(path.join(dir, '.xtask'))) return dir;
+    dir = path.dirname(dir);
+  }
+  return process.cwd();
+}
+
+export function createTask(title, options = {}) {
+  const projectRoot = getProjectRoot();
+  const currentBranch = getCurrentBranch();
+  const worktreeFile = currentBranch ? path.join(projectRoot, '.xtask', 'worktrees', `${currentBranch}.yaml`) : null;
+  const isInWorktree = worktreeFile && fs.existsSync(worktreeFile);
 
   const id = generateTaskId(title);
-  const taskDir = path.join(tasksDir, id);
-  ensureDir(taskDir);
-
   const task = {
     id,
     title,
     description: options.description || '',
+    description_file: options.descriptionFile ? `tasks/${id}/description.md` : null,
     status: 'todo',
     priority: options.priority || 'medium',
     milestone_id: options.milestone || null,
-    parent_tasks: [],
+    parent_tasks: options.parent ? [options.parent] : [],
     labels: options.labels ? options.labels.split(',') : [],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -35,13 +48,33 @@ export function createTask(title, options = {}) {
       status: null
     },
     git: {
-      branch: null,
-      commits: []
+      branch: isInWorktree ? currentBranch : null,
+      commits: [],
+      source_branch: isInWorktree ? 'master' : null
     }
   };
 
-  writeYaml(path.join(taskDir, 'task.yaml'), task);
-  console.log(`Created task: ${id}`);
+  if (isInWorktree) {
+    const branchDir = path.join(projectRoot, '.xtask', 'branches', currentBranch);
+    ensureDir(branchDir);
+    writeYaml(path.join(branchDir, `${id}.yaml`), task);
+
+    const worktree = readYaml(worktreeFile);
+    if (!worktree.tasks.includes(id)) {
+      worktree.tasks.push(id);
+      writeYaml(worktreeFile, worktree);
+    }
+  } else {
+    const taskDir = path.join(projectRoot, '.xtask', 'tasks', id);
+    ensureDir(taskDir);
+    writeYaml(path.join(taskDir, 'task.yaml'), task);
+
+    if (options.descriptionFile) {
+      fs.writeFileSync(path.join(taskDir, 'description.md'), '# 任务描述\n\n');
+    }
+  }
+
+  console.log(`Created task: ${id}${isInWorktree ? ` (branch: ${currentBranch})` : ''}`);
 }
 
 export function listTasks(options = {}) {
@@ -124,8 +157,8 @@ export function updateTask(id, options = {}) {
 }
 
 export function assignAgent(id, options = {}) {
-  const projectPath = process.cwd();
-  const taskFile = path.join(projectPath, '.xtask', 'tasks', id, 'task.yaml');
+  const projectRoot = getProjectRoot();
+  const taskFile = path.join(projectRoot, '.xtask', 'tasks', id, 'task.yaml');
 
   if (!fs.existsSync(taskFile)) {
     console.log('Task not found');
@@ -143,8 +176,55 @@ export function assignAgent(id, options = {}) {
 
   if (options.branch) {
     task.git.branch = options.branch;
+    task.git.source_branch = 'master';
+
+    const branchDir = path.join(projectRoot, '.xtask', 'branches', options.branch);
+    ensureDir(branchDir);
+    writeYaml(path.join(branchDir, `${id}.yaml`), task);
+
+    const worktreeFile = path.join(projectRoot, '.xtask', 'worktrees', `${options.branch}.yaml`);
+    if (fs.existsSync(worktreeFile)) {
+      const worktree = readYaml(worktreeFile);
+      if (!worktree.tasks.includes(id)) {
+        worktree.tasks.push(id);
+        writeYaml(worktreeFile, worktree);
+      }
+    }
+  } else {
+    writeYaml(taskFile, task);
   }
 
-  writeYaml(taskFile, task);
   console.log(`Assigned agent to task: ${id}`);
+}
+
+export function mergeTask(id, options = {}) {
+  const projectRoot = getProjectRoot();
+  const branch = options.fromBranch;
+
+  if (!branch) {
+    console.log('Error: --from-branch required');
+    return;
+  }
+
+  const branchFile = path.join(projectRoot, '.xtask', 'branches', branch, `${id}.yaml`);
+  if (!fs.existsSync(branchFile)) {
+    console.log('Task not found in branch');
+    return;
+  }
+
+  const task = readYaml(branchFile);
+  const mainDir = path.join(projectRoot, '.xtask', 'tasks', id);
+  ensureDir(mainDir);
+  writeYaml(path.join(mainDir, 'task.yaml'), task);
+
+  fs.unlinkSync(branchFile);
+
+  const worktreeFile = path.join(projectRoot, '.xtask', 'worktrees', `${branch}.yaml`);
+  if (fs.existsSync(worktreeFile)) {
+    const worktree = readYaml(worktreeFile);
+    worktree.tasks = worktree.tasks.filter(tid => tid !== id);
+    writeYaml(worktreeFile, worktree);
+  }
+
+  console.log(`Merged task ${id} from branch ${branch}`);
 }

@@ -22,6 +22,9 @@ export function getTasks(projectPath, filters = {}) {
   if (filters.label) {
     tasks = tasks.filter(t => t.labels.includes(filters.label));
   }
+  if (filters.branch) {
+    tasks = tasks.filter(t => t.git?.branch === filters.branch);
+  }
 
   return tasks;
 }
@@ -44,10 +47,11 @@ export function createTask(projectPath, task) {
     id,
     title: task.title,
     description: task.description || '',
+    description_file: task.description_file || null,
     status: task.status || 'todo',
     priority: task.priority || 'medium',
     milestone_id: task.milestone_id || null,
-    parent_tasks: [],
+    parent_tasks: task.parent_tasks || [],
     labels: task.labels || [],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -63,6 +67,12 @@ export function createTask(projectPath, task) {
       commits: []
     }
   };
+
+  if (task.create_description_file) {
+    const descFile = path.join(taskDir, 'description.md');
+    fs.writeFileSync(descFile, task.description || '# 任务描述\n\n');
+    newTask.description_file = `tasks/${id}/description.md`;
+  }
 
   writeYaml(path.join(taskDir, 'task.yaml'), newTask);
   return newTask;
@@ -106,4 +116,10 @@ export function assignAgent(projectPath, id, agentInfo) {
 
   writeYaml(taskFile, task);
   return task;
+}
+
+export function getTaskDescription(projectPath, taskId) {
+  const descFile = path.join(projectPath, '.xtask', 'tasks', taskId, 'description.md');
+  if (!fileExists(descFile)) return null;
+  return fs.readFileSync(descFile, 'utf-8');
 }

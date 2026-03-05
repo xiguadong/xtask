@@ -1,0 +1,2 @@
+.xtask/branches/** merge=ours
+.xtask/worktrees/** merge=ours

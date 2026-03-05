@@ -2,16 +2,19 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import TaskList from '../components/TaskList';
 import MilestoneList from '../components/MilestoneList';
+import { WorktreeList } from '../components/WorktreeList';
 import Shell from '../components/layout/Shell';
 import TopBar from '../components/layout/TopBar';
 import { useTasks } from '../hooks/useTasks';
 import { useMilestones } from '../hooks/useMilestones';
+import { useWorktrees } from '../hooks/useWorktrees';
 import { createMilestone, createTask, deleteMilestone, updateMilestone } from '../utils/api';
 import { Milestone, Task } from '../types';
 
 export default function ProjectDetailPage() {
   const { projectName } = useParams<{ projectName: string }>();
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'tasks' | 'worktrees'>('tasks');
   const [selectedLabel, setSelectedLabel] = useState<string>('');
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
@@ -19,6 +22,7 @@ export default function ProjectDetailPage() {
   const filters = activeTab === 'all' ? {} : activeTab === 'uncategorized' ? { milestone: 'null' } : { milestone: activeTab };
   const { tasks, refresh: refreshTasks } = useTasks(projectName!, filters);
   const { milestones, refresh: refreshMilestones } = useMilestones(projectName!);
+  const { worktrees, createWorktree, deleteWorktree } = useWorktrees(projectName!);
 
   const allLabels = useMemo(() => Array.from(new Set(tasks.flatMap((task) => task.labels))), [tasks]);
   const filteredTasks = selectedLabel ? tasks.filter((task) => task.labels.includes(selectedLabel)) : tasks;
@@ -148,9 +152,23 @@ export default function ProjectDetailPage() {
         backLabel="首页"
         searchPlaceholder="搜索任务"
         rightSlot={
-          <button onClick={refreshAll} className="rounded-md bg-primary px-2 py-1 text-xs font-semibold text-white hover:bg-primary-hover">
-            刷新
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('tasks')}
+              className={`px-3 py-1 text-xs rounded ${viewMode === 'tasks' ? 'bg-primary text-white' : 'bg-gray-200'}`}
+            >
+              任务
+            </button>
+            <button
+              onClick={() => setViewMode('worktrees')}
+              className={`px-3 py-1 text-xs rounded ${viewMode === 'worktrees' ? 'bg-primary text-white' : 'bg-gray-200'}`}
+            >
+              Worktrees
+            </button>
+            <button onClick={refreshAll} className="rounded-md bg-primary px-2 py-1 text-xs font-semibold text-white hover:bg-primary-hover">
+              刷新
+            </button>
+          </div>
         }
       />
 
@@ -243,6 +261,11 @@ export default function ProjectDetailPage() {
           </aside>
         }
         main={
+          viewMode === 'worktrees' ? (
+            <section className="space-y-3 rounded-lg border border-border bg-surface p-4">
+              <WorktreeList worktrees={worktrees} onDelete={deleteWorktree} onCreate={createWorktree} />
+            </section>
+          ) : (
           <section className="space-y-3" data-testid="project-detail-board">
             <section className="space-y-3 rounded-lg border border-border bg-surface p-4">
               <header className="flex items-center justify-between">
@@ -353,6 +376,7 @@ export default function ProjectDetailPage() {
 
             <TaskList tasks={filteredTasks} projectName={projectName!} />
           </section>
+          )
         }
         rail={
           <aside className="space-y-3 rounded-lg border border-border bg-surface p-3">

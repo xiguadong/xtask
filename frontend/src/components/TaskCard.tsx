@@ -29,11 +29,17 @@ export default function TaskCard({ task, projectName }: { task: Task; projectNam
       </div>
       <div className="flex items-center gap-3 text-sm">
         <span className={`font-medium ${priorityColors[task.priority]}`}>{task.priority}</span>
+        {task.git.branch && (
+          <span className="text-xs text-green-600">🌿 {task.git.branch}</span>
+        )}
         {task.labels.map(label => (
           <span key={label} className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
             {label}
           </span>
         ))}
+        {task.parent_tasks.length > 0 && (
+          <span className="text-xs text-slate-400">子任务</span>
+        )}
         {task.created_by === 'cli' && <span className="text-xs text-slate-400">CLI</span>}
       </div>
     </Link>
