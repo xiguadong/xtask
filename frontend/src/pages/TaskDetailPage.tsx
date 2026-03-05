@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Shell from '../components/layout/Shell';
 import TopBar from '../components/layout/TopBar';
+import TaskActions from '../components/TaskActions';
 import { Task } from '../types';
 import { assignAgent, fetchTask, updateTask } from '../utils/api';
 
@@ -10,10 +11,32 @@ export default function TaskDetailPage() {
   const [task, setTask] = useState<Task | null>(null);
   const [editing, setEditing] = useState(false);
   const [newLabel, setNewLabel] = useState('');
+  const [agentOutput, setAgentOutput] = useState<string[]>([]);
 
   useEffect(() => {
     void loadTask();
   }, [projectName, taskId]);
+
+  useEffect(() => {
+    if (!task?.agent.assigned || task.agent.status !== 'running') {
+      setAgentOutput([]);
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectName}/tasks/${taskId}/agent/status`);
+        if (res.ok) {
+          const data = await res.json();
+          setAgentOutput(data.output || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch agent status:', err);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [task?.agent.status, projectName, taskId]);
 
   async function loadTask() {
     const data = await fetchTask(projectName!, taskId!);
@@ -176,6 +199,18 @@ export default function TaskDetailPage() {
                   <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Description</h3>
                   <p className="text-text">{task.description || 'No description'}</p>
                 </div>
+
+                {agentOutput.length > 0 && (
+                  <div>
+                    <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Agent 回复</h3>
+                    <div className="max-h-96 overflow-y-auto rounded border border-border bg-slate-50 p-3">
+                      <pre className="whitespace-pre-wrap font-mono text-xs text-slate-800">
+                        {agentOutput.join('')}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Labels</h3>
                   <div className="flex flex-wrap gap-2">
@@ -208,6 +243,8 @@ export default function TaskDetailPage() {
                 </button>
               </form>
             </section>
+
+            <TaskActions task={task} projectName={projectName!} onUpdate={loadTask} />
           </section>
         }
       />

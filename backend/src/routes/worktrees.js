@@ -1,6 +1,7 @@
 import express from 'express';
 import { getProjectByName } from '../services/projectService.js';
 import * as worktreeService from '../services/worktreeService.js';
+import * as branchTaskService from '../services/branchTaskService.js';
 
 const router = express.Router();
 
@@ -19,8 +20,8 @@ router.post('/:projectName/worktrees', (req, res) => {
   try {
     const project = getProjectByName(req.params.projectName);
     if (!project) return res.status(404).json({ error: 'Project not found' });
-    const { branch, worktree_path, agent } = req.body;
-    const worktree = worktreeService.createWorktree(project.path, branch, worktree_path, agent);
+    const { branch, worktree_path, agent, source_branch } = req.body;
+    const worktree = worktreeService.createWorktree(project.path, branch, worktree_path, agent, source_branch);
     res.json(worktree);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -71,7 +72,6 @@ router.post('/:projectName/worktrees/:oldBranch/rename', (req, res) => {
     const worktree = worktreeService.renameWorktree(project.path, req.params.oldBranch, newBranch);
     if (!worktree) return res.status(404).json({ error: 'Worktree not found' });
 
-    const branchTaskService = await import('../services/branchTaskService.js');
     branchTaskService.renameBranchTasks(project.path, req.params.oldBranch, newBranch);
 
     res.json(worktree);
