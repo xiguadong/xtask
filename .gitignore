@@ -29,3 +29,7 @@ Thumbs.db
 # 临时文件
 *.tmp
 tmp/
+
+# Python 缓存
+__pycache__/
+*.pyc
