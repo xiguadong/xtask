@@ -16,6 +16,14 @@
 - [x] 脚本修复 - start.sh 端口检测兼容 macOS/Linux，写入 server.pid/server.port (2026-03-06)
 - [x] 脚本修复 - stop.sh 移除 Linux 专有实现，改为 pid/port 优先 + 兜底扫描 (2026-03-06)
 
+### Task 详情页 UI 改善（1772729825689-ui）
+
+- [x] Task 详情页 - Description 支持编辑（大文本框） (2026-03-06)
+- [x] Task 详情页 - 移除 Agent 相关入口（Assignment/启动停止） (2026-03-06)
+- [x] Worktree - 分支名/工作目录必填，默认分支=task-id，默认目录=cache/worktrees/<task-id> (2026-03-06)
+- [x] Terminal - 启动前强制要求已配置 Worktree，并在 worktree 目录启动本地 Shell (2026-03-06)
+- [x] Terminal UI - 终端窗口加高并优化观感 (2026-03-06)
+
 ## 2026-03-05
 
 ### 任务终端会话（1772725932588-task-ssh-agent）
