@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { readYaml, writeYaml } from '../utils/yamlHelper.js';
 import { fileExists } from '../utils/fileSystem.js';
+import { getWorktree } from './worktreeService.js';
 
 const sessions = new Map();
 
@@ -147,20 +148,20 @@ function finalizeSession(session, reason, exitCode = null, signal = null) {
   writeTask(session.projectPath, session.taskId, task);
 }
 
-function spawnCommand(projectPath, commandArgs) {
+function spawnCommand(cwd, commandArgs) {
   const env = {
     ...process.env,
     TERM: process.env.TERM || 'xterm-256color'
   };
 
   return spawn(commandArgs[0], commandArgs.slice(1), {
-    cwd: projectPath,
+    cwd,
     env,
     stdio: ['pipe', 'pipe', 'pipe']
   });
 }
 
-function createProcess(projectPath, mode, sshOptions = {}) {
+function createProcess(spawnCwd, mode, sshOptions = {}) {
 
   if (mode === 'ssh') {
     const host = `${sshOptions.host || ''}`.trim();
@@ -173,12 +174,12 @@ function createProcess(projectPath, mode, sshOptions = {}) {
 
     const target = `${username}@${host}`;
     const args = ['ssh', '-tt', '-p', `${port}`, target];
-    const childProcess = spawnCommand(projectPath, args);
+    const childProcess = spawnCommand(spawnCwd, args);
     return { process: childProcess, host, username, port };
   }
 
   const shell = process.env.SHELL || '/bin/bash';
-  const childProcess = spawnCommand(projectPath, [shell, '-il']);
+  const childProcess = spawnCommand(spawnCwd, [shell, '-il']);
   return { process: childProcess, host: null, username: null, port: null };
 }
 
@@ -230,6 +231,24 @@ export function startTaskTerminalSession(projectPath, taskId, options = {}) {
     throw new Error('Task not found');
   }
 
+  const branch = task.git?.branch;
+  if (!branch) {
+    throw new Error('启动终端前请先配置 Worktree（分支名 + 工作目录）');
+  }
+
+  const worktree = getWorktree(normalizedProjectPath, branch);
+  if (!worktree?.worktree_path) {
+    throw new Error('未找到对应 Worktree，请先创建 Worktree');
+  }
+
+  const resolvedWorkdir = path.isAbsolute(worktree.worktree_path)
+    ? worktree.worktree_path
+    : path.resolve(normalizedProjectPath, worktree.worktree_path);
+
+  if (!fileExists(resolvedWorkdir)) {
+    throw new Error(`Worktree 目录不存在: ${resolvedWorkdir}`);
+  }
+
   const terminalConfig = getProjectTerminalConfig(normalizedProjectPath);
   const activeSessionCount = getProjectActiveSessionCount(normalizedProjectPath);
   if (activeSessionCount >= terminalConfig.max_terminals) {
@@ -241,7 +260,7 @@ export function startTaskTerminalSession(projectPath, taskId, options = {}) {
   const timeoutDays = normalizeTimeoutDays(options.timeout_days ?? terminal.timeout_days);
   const autoStopOnTaskDone = options.auto_stop_on_task_done ?? terminal.auto_stop_on_task_done;
 
-  const { process: terminalProcess, host, username, port } = createProcess(normalizedProjectPath, mode, options.ssh || {});
+  const { process: terminalProcess, host, username, port } = createProcess(resolvedWorkdir, mode, options.ssh || {});
   const now = new Date().toISOString();
   const sessionId = `${taskId}-terminal-${Date.now()}`;
 

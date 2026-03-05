@@ -200,6 +200,10 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
 
   async function handleStart() {
     setError(null);
+    if (!task.git.branch) {
+      setError('启动终端前请先配置 Worktree（分支名 + 工作目录）');
+      return;
+    }
     if (mode === 'ssh' && (!host.trim() || !username.trim())) {
       setError('SSH 模式必须填写服务器地址和用户名');
       return;
@@ -262,6 +266,7 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
 
   const runtimeStatus = runtime?.runtimeStatus || (runtime?.terminal?.status as 'working' | 'waiting' | undefined);
   const active = Boolean(runtime?.active);
+  const hasWorktree = Boolean(task.git.branch);
 
   return (
     <section className="space-y-3 rounded-lg border border-border bg-surface p-4">
@@ -350,10 +355,10 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
           <button
             type="button"
             onClick={handleStart}
-            disabled={loading}
+            disabled={loading || !hasWorktree}
             className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? '启动中...' : '启动终端'}
+            {!hasWorktree ? '请先配置 Worktree' : loading ? '启动中...' : '启动终端'}
           </button>
         ) : (
           <button
@@ -402,10 +407,10 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
         </div>
       )}
 
-      <div className="overflow-hidden rounded border border-slate-800 bg-slate-950">
+      <div className="overflow-hidden rounded border border-slate-800 bg-gradient-to-b from-slate-950 to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
         <div
           ref={terminalHostRef}
-          className="h-80 w-full p-2"
+          className="h-[28rem] w-full p-2 md:h-[32rem] lg:h-[36rem]"
           onClick={() => terminalRef.current?.focus()}
         />
       </div>
