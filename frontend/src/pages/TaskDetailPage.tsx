@@ -4,39 +4,17 @@ import Shell from '../components/layout/Shell';
 import TopBar from '../components/layout/TopBar';
 import TaskActions from '../components/TaskActions';
 import { Task } from '../types';
-import { assignAgent, fetchTask, updateTask } from '../utils/api';
+import { fetchTask, updateTask } from '../utils/api';
 
 export default function TaskDetailPage() {
   const { projectName, taskId } = useParams<{ projectName: string; taskId: string }>();
   const [task, setTask] = useState<Task | null>(null);
   const [editing, setEditing] = useState(false);
   const [newLabel, setNewLabel] = useState('');
-  const [agentOutput, setAgentOutput] = useState<string[]>([]);
 
   useEffect(() => {
     void loadTask();
   }, [projectName, taskId]);
-
-  useEffect(() => {
-    if (!task?.agent.assigned || task.agent.status !== 'running') {
-      setAgentOutput([]);
-      return;
-    }
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/projects/${projectName}/tasks/${taskId}/agent/status`);
-        if (res.ok) {
-          const data = await res.json();
-          setAgentOutput(data.output || []);
-        }
-      } catch (err) {
-        console.error('Failed to fetch agent status:', err);
-      }
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [task?.agent.status, projectName, taskId]);
 
   async function loadTask() {
     const data = await fetchTask(projectName!, taskId!);
@@ -50,6 +28,7 @@ export default function TaskDetailPage() {
     await updateTask(projectName!, taskId!, {
       status: data.get('status'),
       priority: data.get('priority'),
+      description: data.get('description'),
       milestone_id: data.get('milestone') || null,
       labels: task!.labels
     });
@@ -71,17 +50,6 @@ export default function TaskDetailPage() {
   function handleRemoveLabel(label: string) {
     if (!task) return;
     setTask({ ...task, labels: task.labels.filter((l) => l !== label) });
-  }
-
-  async function handleAssignAgent(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    await assignAgent(projectName!, taskId!, {
-      identity: data.get('agent'),
-      branch: data.get('branch')
-    });
-    loadTask();
   }
 
   if (!task) {
@@ -111,18 +79,6 @@ export default function TaskDetailPage() {
               <p>
                 <span className="text-muted">Creator:</span> {task.created_by}
               </p>
-            </div>
-            <div className="space-y-2 rounded-md border border-border bg-white p-3 text-xs">
-              <h3 className="font-semibold text-text">Agent</h3>
-              {task.agent.assigned ? (
-                <>
-                  <p>{task.agent.identity}</p>
-                  <p className="text-muted">{task.agent.status}</p>
-                  <p>{task.git.branch || 'No branch'}</p>
-                </>
-              ) : (
-                <p className="text-muted">No agent assigned</p>
-              )}
             </div>
           </aside>
         }
@@ -189,6 +145,16 @@ export default function TaskDetailPage() {
                     </button>
                   </div>
                 </div>
+                <div>
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Description</h3>
+                  <textarea
+                    name="description"
+                    defaultValue={task.description}
+                    placeholder="请输入任务描述..."
+                    rows={10}
+                    className="w-full resize-y rounded border border-border bg-white p-3 text-sm leading-relaxed text-text"
+                  />
+                </div>
                 <button type="submit" className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-hover">
                   Save
                 </button>
@@ -199,17 +165,6 @@ export default function TaskDetailPage() {
                   <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Description</h3>
                   <p className="text-text">{task.description || 'No description'}</p>
                 </div>
-
-                {agentOutput.length > 0 && (
-                  <div>
-                    <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Agent 回复</h3>
-                    <div className="max-h-96 overflow-y-auto rounded border border-border bg-slate-50 p-3">
-                      <pre className="whitespace-pre-wrap font-mono text-xs text-slate-800">
-                        {agentOutput.join('')}
-                      </pre>
-                    </div>
-                  </div>
-                )}
 
                 <div>
                   <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Labels</h3>
@@ -227,22 +182,6 @@ export default function TaskDetailPage() {
                 </div>
               </article>
             )}
-
-            <section className="space-y-3 border-t border-border pt-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">Agent Assignment</h3>
-              <form onSubmit={handleAssignAgent} className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
-                <input
-                  name="agent"
-                  placeholder="Agent identity"
-                  defaultValue={task.agent.identity || 'claude-opus-4'}
-                  className="rounded border border-border bg-white p-2 text-sm"
-                />
-                <input name="branch" placeholder="Git branch" className="rounded border border-border bg-white p-2 text-sm" />
-                <button type="submit" className="rounded bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-hover">
-                  Assign
-                </button>
-              </form>
-            </section>
 
             <TaskActions task={task} projectName={projectName!} onUpdate={loadTask} />
           </section>
