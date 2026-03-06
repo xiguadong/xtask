@@ -72,13 +72,15 @@ export function listDir(repoPath, relDir = '') {
 }
 
 function createIndexFile(repoPath) {
-  const gitDir = runGit(repoPath, ['rev-parse', '--git-common-dir']).trim();
+  const gitDirRaw = runGit(repoPath, ['rev-parse', '--git-common-dir']).trim();
+  const gitDir = path.isAbsolute(gitDirRaw) ? gitDirRaw : path.join(repoPath, gitDirRaw);
   const filename = `xtask-index-${process.pid}-${Date.now()}`;
   return path.join(gitDir, filename);
 }
 
 function createTempContentFile(repoPath, content) {
-  const gitDir = runGit(repoPath, ['rev-parse', '--git-common-dir']).trim();
+  const gitDirRaw = runGit(repoPath, ['rev-parse', '--git-common-dir']).trim();
+  const gitDir = path.isAbsolute(gitDirRaw) ? gitDirRaw : path.join(repoPath, gitDirRaw);
   const filename = `xtask-content-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const filePath = path.join(gitDir, filename);
   fs.writeFileSync(filePath, content ?? '', 'utf-8');
