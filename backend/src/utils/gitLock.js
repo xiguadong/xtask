@@ -15,16 +15,18 @@ function sleep(ms) {
 
 function getGitCommonDir(repoPath) {
   try {
-    return execFileSync('git', ['rev-parse', '--git-common-dir'], {
+    const raw = execFileSync('git', ['rev-parse', '--git-common-dir'], {
       cwd: repoPath,
       encoding: 'utf-8'
     }).trim();
+    return path.isAbsolute(raw) ? raw : path.join(repoPath, raw);
   } catch (error) {
     const stdout = typeof error.stdout === 'string'
       ? error.stdout
       : error.stdout?.toString('utf-8');
     if (error.code === 'EPERM' && stdout) {
-      return stdout.trim();
+      const raw = stdout.trim();
+      return path.isAbsolute(raw) ? raw : path.join(repoPath, raw);
     }
     throw error;
   }

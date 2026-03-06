@@ -7,11 +7,14 @@ import { withGitLock } from './gitLock.js';
 const DATA_REF = 'refs/xtask-data';
 
 function runGit(repoPath, args, options = {}) {
+  const { suppressStderr, ...execOptions } = options;
+  const stdio = suppressStderr ? ['ignore', 'pipe', 'ignore'] : undefined;
   try {
     return execFileSync('git', args, {
       cwd: repoPath,
       encoding: 'utf-8',
-      ...options
+      stdio,
+      ...execOptions
     });
   } catch (error) {
     const stdout = typeof error.stdout === 'string'
@@ -45,7 +48,7 @@ export function readFile(repoPath, relPath) {
   if (!commit) return null;
   const normalized = normalizeRelPath(relPath);
   try {
-    return runGit(repoPath, ['show', `${DATA_REF}:${normalized}`]);
+    return runGit(repoPath, ['show', `${DATA_REF}:${normalized}`], { suppressStderr: true });
   } catch {
     return null;
   }
@@ -63,7 +66,7 @@ export function listDir(repoPath, relDir = '') {
   const normalized = relDir ? normalizeRelPath(relDir) : '';
   const target = normalized ? `${DATA_REF}:${normalized}` : DATA_REF;
   try {
-    const output = runGit(repoPath, ['ls-tree', '--name-only', target]).trim();
+    const output = runGit(repoPath, ['ls-tree', '--name-only', target], { suppressStderr: true }).trim();
     if (!output) return [];
     return output.split('\n').filter(Boolean);
   } catch {
