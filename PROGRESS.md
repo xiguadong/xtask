@@ -45,12 +45,14 @@
 - ✅ 项目主页终端上限配置（最大并发终端数）
 - ✅ Terminal Overview 悬浮窗口（项目/任务页，支持放大缩小）
 - ✅ 首页终端概览看板（跨项目汇总）
+- ✅ 首页项目卡片内嵌 Terminal Overview（3 分钟增量刷新）
 - ✅ 终端输入重复字符修复（输入去重）
 
 ### 脚本工具
 - ✅ 启动脚本（start.sh）
 - ✅ 停止脚本（stop.sh）
 - ✅ 构建脚本（build.sh）
+- ✅ tmux 启动脚本（start-tmux.sh / attach-tmux.sh，session-id 全局记录）
 - ✅ CLI 测试脚本（test-cli.sh）
 - ✅ 启停脚本跨平台兼容修复（macOS/Linux）
 - ✅ 构建脚本依赖完整性校验（`npm ls`）
