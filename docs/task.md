@@ -40,6 +40,7 @@
 
 - [x] Project/Task 页面 - Terminal Overview 改为悬浮窗口，支持放大缩小 (2026-03-06)
 - [x] 首页看板 - 展示所有项目的 Terminal Overview (2026-03-06)
+- [x] 首页看板 - Terminal Overview 下沉到项目卡片，3 分钟自动刷新并按项目增量更新 (2026-03-06)
 - [x] 缺陷修复 - 终端输入重复字符（前端输入去重） (2026-03-06)
 - [x] 缺陷修复 - 终端输入重复字符（后端输入去重） (2026-03-06)
 
@@ -48,6 +49,7 @@
 - [x] 脚本校验 - start/stop 冒烟检查（接口与脚本链路） (2026-03-06)
 - [x] 脚本修复 - start.sh 端口检测兼容 macOS/Linux，写入 server.pid/server.port (2026-03-06)
 - [x] 脚本修复 - stop.sh 移除 Linux 专有实现，改为 pid/port 优先 + 兜底扫描 (2026-03-06)
+- [x] 脚本增强 - start-tmux/attach-tmux：Web 以 tmux 会话常驻，并将 session-id 写入 `~/.xtask/projects.yaml` (2026-03-06)
 
 ### Task 详情页 UI 改善（1772729825689-ui）
 

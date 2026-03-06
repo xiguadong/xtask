@@ -79,11 +79,19 @@ export async function deleteMilestone(projectName: string, id: string) {
 
 export async function fetchTerminalOverview(projectName: string) {
   const res = await fetch(`${API_BASE}/projects/${projectName}/terminals/overview`);
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '加载终端概览失败');
+  }
   return res.json();
 }
 
 export async function fetchTerminalConfig(projectName: string) {
   const res = await fetch(`${API_BASE}/projects/${projectName}/terminals/config`);
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '加载终端配置失败');
+  }
   return res.json();
 }
 
