@@ -4,7 +4,7 @@ description: |-
   1. terminal 展示，首页的terminal 需要放在项目下面
   2. 首页terminal状态每2秒刷新一次，做成每3分钟自动刷新一次，并且只更新每个项目框的状态，不是所有项目都更新；
 description_file: null
-status: todo
+status: done
 priority: high
 milestone_id: m1
 parent_tasks: []
@@ -12,7 +12,7 @@ labels:
   - ui
   - terminal
 created_at: '2026-03-06T08:38:28.647Z'
-updated_at: '2026-03-06T08:39:09.097Z'
+updated_at: '2026-03-06T09:10:45.450Z'
 created_by: web
 agent:
   assigned: false
