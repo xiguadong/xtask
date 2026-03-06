@@ -4,7 +4,7 @@ description: |-
   1. 创建terminal时应当保活，一直在后台允许
   2. terminal没有去重机制，按键输入有很多重复的，基本没法使用
 description_file: null
-status: todo
+status: done
 priority: high
 milestone_id: m1
 parent_tasks: []
@@ -12,7 +12,7 @@ labels:
   - ui
   - terminal
 created_at: '2026-03-06T08:41:30.728Z'
-updated_at: '2026-03-06T08:41:59.013Z'
+updated_at: '2026-03-06T09:20:14.589Z'
 created_by: web
 agent:
   assigned: false
