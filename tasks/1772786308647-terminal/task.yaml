@@ -1,0 +1,39 @@
+id: 1772786308647-terminal
+title: terminal修改
+description: |-
+  1. terminal 展示，首页的terminal 需要放在项目下面
+  2. 首页terminal状态每2秒刷新一次，做成每3分钟自动刷新一次，并且只更新每个项目框的状态，不是所有项目都更新；
+description_file: null
+status: todo
+priority: high
+milestone_id: m1
+parent_tasks: []
+labels:
+  - ui
+  - terminal
+created_at: '2026-03-06T08:38:28.647Z'
+updated_at: '2026-03-06T08:38:28.647Z'
+created_by: web
+agent:
+  assigned: false
+  identity: null
+  assigned_at: null
+  session_id: null
+  status: null
+terminal:
+  enabled: false
+  mode: null
+  session_id: null
+  status: stopped
+  host: null
+  port: 22
+  username: null
+  timeout_days: 3
+  auto_stop_on_task_done: true
+  started_at: null
+  last_active_at: null
+  stopped_at: null
+  stop_reason: null
+git:
+  branch: null
+  commits: []
