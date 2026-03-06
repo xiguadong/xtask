@@ -12,6 +12,7 @@ interface TaskActionsProps {
 export default function TaskActions({ task, projectName, onUpdate }: TaskActionsProps) {
   const { worktrees, createWorktree } = useWorktrees(projectName);
   const [showWorktreeForm, setShowWorktreeForm] = useState(false);
+  const [sourceBranch, setSourceBranch] = useState(task.git.source_branch || '');
   const [branchName, setBranchName] = useState('');
   const [worktreePath, setWorktreePath] = useState('');
   const [workingAction, setWorkingAction] = useState<'worktree' | null>(null);
@@ -25,6 +26,7 @@ export default function TaskActions({ task, projectName, onUpdate }: TaskActions
 
   const handleCreateWorktree = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const normalizedSourceBranch = sourceBranch.trim();
     const normalizedBranch = branchName.trim();
     const normalizedPath = worktreePath.trim();
     if (!normalizedBranch || !normalizedPath) return;
@@ -34,18 +36,20 @@ export default function TaskActions({ task, projectName, onUpdate }: TaskActions
     try {
       await createWorktree({
         branch: normalizedBranch,
-        worktree_path: normalizedPath
+        worktree_path: normalizedPath,
+        source_branch: normalizedSourceBranch || undefined
       });
       const res = await fetch(`/api/projects/${projectName}/tasks/${task.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ git: { branch: normalizedBranch } })
+        body: JSON.stringify({ git: { branch: normalizedBranch, source_branch: normalizedSourceBranch || null } })
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.error || '关联任务分支失败');
       }
       setShowWorktreeForm(false);
+      setSourceBranch(normalizedSourceBranch);
       setBranchName('');
       setWorktreePath('');
       onUpdate?.();
@@ -80,6 +84,8 @@ export default function TaskActions({ task, projectName, onUpdate }: TaskActions
             <div className="rounded border border-border bg-slate-50 p-2">
               <p className="text-xs text-muted">当前分支</p>
               <p className="mt-1 font-mono text-xs text-slate-700">{task.git.branch}</p>
+              <p className="mt-2 text-xs text-muted">从哪个分支创建</p>
+              <p className="mt-1 font-mono text-xs text-slate-700">{task.git.source_branch || '自动检测'}</p>
               <p className="mt-2 text-xs text-muted">工作目录</p>
               <p className="mt-1 font-mono text-xs text-slate-700">{currentWorktree?.worktree_path || '未找到 worktree 记录'}</p>
             </div>
@@ -87,6 +93,7 @@ export default function TaskActions({ task, projectName, onUpdate }: TaskActions
             <button
               onClick={() => {
                 setShowWorktreeForm(true);
+                setSourceBranch(task.git.source_branch || '');
                 setBranchName(task.id);
                 setWorktreePath(`cache/worktrees/${task.id}`);
               }}
@@ -96,20 +103,36 @@ export default function TaskActions({ task, projectName, onUpdate }: TaskActions
             </button>
           ) : (
             <form onSubmit={handleCreateWorktree} className="space-y-2">
-              <input
-                type="text"
-                value={branchName}
-                onChange={(event) => setBranchName(event.target.value)}
-                placeholder={`默认: ${task.id}`}
-                className="w-full rounded border border-border bg-white p-2 text-sm"
-              />
-              <input
-                type="text"
-                value={worktreePath}
-                onChange={(event) => setWorktreePath(event.target.value)}
-                placeholder={`默认: cache/worktrees/${task.id}`}
-                className="w-full rounded border border-border bg-white p-2 text-sm"
-              />
+              <label className="space-y-1 text-xs text-muted">
+                从哪个分支创建
+                <input
+                  type="text"
+                  value={sourceBranch}
+                  onChange={(event) => setSourceBranch(event.target.value)}
+                  placeholder="留空自动检测（推荐，例如 main）"
+                  className="w-full rounded border border-border bg-white p-2 text-sm text-text"
+                />
+              </label>
+              <label className="space-y-1 text-xs text-muted">
+                Worktree 分支
+                <input
+                  type="text"
+                  value={branchName}
+                  onChange={(event) => setBranchName(event.target.value)}
+                  placeholder={`默认: ${task.id}`}
+                  className="w-full rounded border border-border bg-white p-2 text-sm text-text"
+                />
+              </label>
+              <label className="space-y-1 text-xs text-muted">
+                Worktree 路径
+                <input
+                  type="text"
+                  value={worktreePath}
+                  onChange={(event) => setWorktreePath(event.target.value)}
+                  placeholder={`默认: cache/worktrees/${task.id}`}
+                  className="w-full rounded border border-border bg-white p-2 text-sm text-text"
+                />
+              </label>
               <div className="flex gap-2">
                 <button
                   type="submit"
@@ -121,6 +144,7 @@ export default function TaskActions({ task, projectName, onUpdate }: TaskActions
                 <button
                   type="button"
                   onClick={() => {
+                    setSourceBranch(task.git.source_branch || '');
                     setBranchName(task.id);
                     setWorktreePath(`cache/worktrees/${task.id}`);
                   }}
@@ -133,6 +157,7 @@ export default function TaskActions({ task, projectName, onUpdate }: TaskActions
                   type="button"
                   onClick={() => {
                     setShowWorktreeForm(false);
+                    setSourceBranch('');
                     setBranchName('');
                     setWorktreePath('');
                   }}

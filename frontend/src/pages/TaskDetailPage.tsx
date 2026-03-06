@@ -3,18 +3,28 @@ import { useParams } from 'react-router-dom';
 import Shell from '../components/layout/Shell';
 import TopBar from '../components/layout/TopBar';
 import TaskActions from '../components/TaskActions';
+import MarkdownEditor from '../components/MarkdownEditor';
+import MarkdownPreview from '../components/MarkdownPreview';
+import { useMilestones } from '../hooks/useMilestones';
 import { Task } from '../types';
 import { fetchTask, updateTask } from '../utils/api';
 
 export default function TaskDetailPage() {
   const { projectName, taskId } = useParams<{ projectName: string; taskId: string }>();
+  const { milestones, loading: milestonesLoading } = useMilestones(projectName!);
   const [task, setTask] = useState<Task | null>(null);
   const [editing, setEditing] = useState(false);
   const [newLabel, setNewLabel] = useState('');
+  const [descriptionDraft, setDescriptionDraft] = useState('');
 
   useEffect(() => {
     void loadTask();
   }, [projectName, taskId]);
+
+  useEffect(() => {
+    if (!task || !editing) return;
+    setDescriptionDraft(task.description || '');
+  }, [editing, task]);
 
   async function loadTask() {
     const data = await fetchTask(projectName!, taskId!);
@@ -99,7 +109,7 @@ export default function TaskDetailPage() {
 
             {editing ? (
               <form onSubmit={handleUpdate} className="space-y-3">
-                <div className="grid gap-2 md:grid-cols-2">
+                <div className="grid gap-2 md:grid-cols-3">
                   <select name="status" defaultValue={task.status} className="w-full rounded border border-border bg-white p-2 text-sm">
                     <option value="todo">todo</option>
                     <option value="in_progress">in_progress</option>
@@ -111,6 +121,19 @@ export default function TaskDetailPage() {
                     <option value="medium">medium</option>
                     <option value="high">high</option>
                     <option value="critical">critical</option>
+                  </select>
+                  <select
+                    name="milestone"
+                    defaultValue={task.milestone_id || ''}
+                    className="w-full rounded border border-border bg-white p-2 text-sm"
+                    disabled={milestonesLoading}
+                  >
+                    <option value="">无里程碑</option>
+                    {milestones.map((milestone) => (
+                      <option key={milestone.id} value={milestone.id}>
+                        {milestone.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -147,12 +170,11 @@ export default function TaskDetailPage() {
                 </div>
                 <div>
                   <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Description</h3>
-                  <textarea
+                  <MarkdownEditor
                     name="description"
-                    defaultValue={task.description}
-                    placeholder="请输入任务描述..."
-                    rows={10}
-                    className="w-full resize-y rounded border border-border bg-white p-3 text-sm leading-relaxed text-text"
+                    value={descriptionDraft}
+                    onChange={setDescriptionDraft}
+                    placeholder="支持 Markdown：标题、列表、代码块、链接、引用..."
                   />
                 </div>
                 <button type="submit" className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-hover">
@@ -163,7 +185,11 @@ export default function TaskDetailPage() {
               <article className="space-y-4 text-sm">
                 <div>
                   <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Description</h3>
-                  <p className="text-text">{task.description || 'No description'}</p>
+                  {task.description?.trim() ? (
+                    <MarkdownPreview value={task.description} className="text-sm" />
+                  ) : (
+                    <p className="text-muted text-sm">暂无描述</p>
+                  )}
                 </div>
 
                 <div>

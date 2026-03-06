@@ -40,6 +40,34 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
   const pendingInputRef = useRef('');
   const inputFlushTimerRef = useRef<number | null>(null);
   const terminalDataDisposeRef = useRef<{ dispose: () => void } | null>(null);
+  const sendInputRef = useRef(sendInput);
+  const taskIdRef = useRef(task.id);
+  const runtimeRef = useRef<RuntimeStatus | null>(null);
+
+  useEffect(() => {
+    sendInputRef.current = sendInput;
+  }, [sendInput]);
+
+  useEffect(() => {
+    taskIdRef.current = task.id;
+  }, [task.id]);
+
+  useEffect(() => {
+    runtimeRef.current = runtime;
+  }, [runtime]);
+
+  function queueInput(data: string) {
+    pendingInputRef.current += data;
+    if (inputFlushTimerRef.current !== null) return;
+
+    inputFlushTimerRef.current = window.setTimeout(() => {
+      const payload = pendingInputRef.current;
+      pendingInputRef.current = '';
+      inputFlushTimerRef.current = null;
+      if (!payload) return;
+      void sendInputRef.current(taskIdRef.current, payload).catch(() => undefined);
+    }, 25);
+  }
 
   useEffect(() => {
     setMode(task.terminal.mode === 'ssh' ? 'ssh' : 'local');
@@ -61,8 +89,10 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
       convertEol: true,
       scrollback: 3000,
       theme: {
-        background: '#0f172a',
-        foreground: '#e2e8f0'
+        background: '#0b1220',
+        foreground: '#e5e7eb',
+        cursor: '#93c5fd',
+        selectionBackground: '#1d4ed84d'
       }
     });
 
@@ -71,6 +101,30 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
     terminal.open(terminalHostRef.current);
     fitAddon.fit();
     terminal.writeln('终端就绪。启动后可直接输入命令。');
+
+    terminal.attachCustomKeyEventHandler((event) => {
+      if (event.ctrlKey && event.shiftKey && event.code === 'KeyC') {
+        if (!terminal.hasSelection()) return false;
+        const selection = terminal.getSelection();
+        void navigator.clipboard?.writeText(selection).catch(() => undefined);
+        terminal.clearSelection();
+        return false;
+      }
+
+      if (event.ctrlKey && event.shiftKey && event.code === 'KeyV') {
+        if (!runtimeRef.current?.active) return false;
+        void navigator.clipboard
+          ?.readText()
+          .then((text) => {
+            if (!text) return;
+            queueInput(text);
+          })
+          .catch(() => undefined);
+        return false;
+      }
+
+      return true;
+    });
 
     const handleWindowResize = () => fitAddon.fit();
     window.addEventListener('resize', handleWindowResize);
@@ -144,7 +198,7 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
     };
 
     void pullOutput();
-    const timer = setInterval(pullOutput, 180);
+    const timer = setInterval(pullOutput, 90);
     return () => {
       active = false;
       clearInterval(timer);
@@ -156,28 +210,7 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
 
     terminalDataDisposeRef.current?.dispose();
     terminalDataDisposeRef.current = terminalRef.current.onData((data) => {
-      if (runtime.mode === 'local') {
-        if (data === '\r') {
-          terminalRef.current?.write('\r\n');
-        } else if (data === '\u007f') {
-          terminalRef.current?.write('\b \b');
-        } else if (data === '\u0003') {
-          terminalRef.current?.write('^C\r\n');
-        } else if (data === '\t' || (data >= ' ' && data <= '~')) {
-          terminalRef.current?.write(data);
-        }
-      }
-
-      pendingInputRef.current += data;
-      if (inputFlushTimerRef.current !== null) return;
-
-      inputFlushTimerRef.current = window.setTimeout(() => {
-        const payload = pendingInputRef.current;
-        pendingInputRef.current = '';
-        inputFlushTimerRef.current = null;
-        if (!payload) return;
-        void sendInput(task.id, payload).catch(() => undefined);
-      }, 25);
+      queueInput(data);
     });
 
     return () => {

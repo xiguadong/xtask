@@ -1,5 +1,7 @@
-import { spawn } from 'child_process';
 import path from 'path';
+import fs from 'fs';
+import { createRequire } from 'module';
+import * as pty from 'node-pty';
 import { readYaml, writeYaml } from '../utils/yamlHelper.js';
 import { fileExists } from '../utils/fileSystem.js';
 import { getWorktree } from './worktreeService.js';
@@ -14,6 +16,8 @@ const MIN_MAX_TERMINALS = 1;
 const MAX_MAX_TERMINALS = 20;
 const WAITING_THRESHOLD_MS = 3 * 60 * 1000;
 const OUTPUT_LIMIT = 500000;
+
+const require = createRequire(import.meta.url);
 
 function normalizeProjectPath(projectPath) {
   return path.resolve(projectPath);
@@ -148,20 +152,16 @@ function finalizeSession(session, reason, exitCode = null, signal = null) {
   writeTask(session.projectPath, session.taskId, task);
 }
 
-function spawnCommand(cwd, commandArgs) {
+function createProcess(spawnCwd, mode, sshOptions = {}) {
+  ensurePtyHelperExecutable();
+
   const env = {
     ...process.env,
     TERM: process.env.TERM || 'xterm-256color'
   };
 
-  return spawn(commandArgs[0], commandArgs.slice(1), {
-    cwd,
-    env,
-    stdio: ['pipe', 'pipe', 'pipe']
-  });
-}
-
-function createProcess(spawnCwd, mode, sshOptions = {}) {
+  const cols = 120;
+  const rows = 36;
 
   if (mode === 'ssh') {
     const host = `${sshOptions.host || ''}`.trim();
@@ -173,14 +173,41 @@ function createProcess(spawnCwd, mode, sshOptions = {}) {
     }
 
     const target = `${username}@${host}`;
-    const args = ['ssh', '-tt', '-p', `${port}`, target];
-    const childProcess = spawnCommand(spawnCwd, args);
+    const args = ['-tt', '-p', `${port}`, target];
+    const childProcess = pty.spawn('ssh', args, {
+      name: env.TERM,
+      cols,
+      rows,
+      cwd: spawnCwd,
+      env
+    });
     return { process: childProcess, host, username, port };
   }
 
   const shell = process.env.SHELL || '/bin/bash';
-  const childProcess = spawnCommand(spawnCwd, [shell, '-il']);
+  const childProcess = pty.spawn(shell, ['-l'], {
+    name: env.TERM,
+    cols,
+    rows,
+    cwd: spawnCwd,
+    env
+  });
   return { process: childProcess, host: null, username: null, port: null };
+}
+
+function ensurePtyHelperExecutable() {
+  if (process.platform === 'win32') return;
+  try {
+    const packageJsonPath = require.resolve('node-pty/package.json');
+    const nodePtyRoot = path.dirname(packageJsonPath);
+    const helperPath = path.join(nodePtyRoot, 'prebuilds', `${process.platform}-${process.arch}`, 'spawn-helper');
+    if (!fs.existsSync(helperPath)) return;
+    const stat = fs.statSync(helperPath);
+    if ((stat.mode & 0o111) !== 0) return;
+    fs.chmodSync(helperPath, stat.mode | 0o111);
+  } catch {
+    // chmod 失败不阻断，后续 spawn 会返回明确错误
+  }
 }
 
 function getProjectActiveSessionCount(projectPath) {
@@ -286,17 +313,16 @@ export function startTaskTerminalSession(projectPath, taskId, options = {}) {
 
   sessions.set(key, session);
 
-  appendOutput(session, `[系统] 终端已启动 (${mode === 'ssh' ? `SSH ${username}@${host}:${port}` : '本地 Shell'})\r\n`);
+  appendOutput(
+    session,
+    `[系统] 终端已启动 (${mode === 'ssh' ? `SSH ${username}@${host}:${port}` : '本地 Shell'})\r\n[系统] 工作目录: ${resolvedWorkdir}\r\n`
+  );
 
-  terminalProcess.stdout.on('data', (data) => {
-    appendOutput(session, data.toString());
+  terminalProcess.onData((data) => {
+    appendOutput(session, data);
   });
 
-  terminalProcess.stderr.on('data', (data) => {
-    appendOutput(session, data.toString());
-  });
-
-  terminalProcess.on('close', (exitCode, signal) => {
+  terminalProcess.onExit(({ exitCode, signal }) => {
     const reason = session.stopReason || 'process_exit';
     finalizeSession(session, reason, exitCode, signal);
   });
@@ -361,8 +387,8 @@ export function sendTerminalInput(projectPath, taskId, input) {
     throw new Error('终端会话不存在或已退出');
   }
 
-  const payload = `${input ?? ''}`.replace(/\r/g, '\n');
-  session.process.stdin.write(payload);
+  const payload = `${input ?? ''}`;
+  session.process.write(payload);
   touchSession(session);
   return buildSessionSummary(session);
 }
@@ -375,8 +401,11 @@ export function resizeTaskTerminal(projectPath, taskId, cols, rows) {
 
   const safeCols = Math.max(40, Math.min(400, Number(cols) || 120));
   const safeRows = Math.max(10, Math.min(160, Number(rows) || 36));
-  void safeCols;
-  void safeRows;
+  try {
+    session.process.resize(safeCols, safeRows);
+  } catch {
+    // resize 失败不阻断会话
+  }
   touchSession(session);
   return true;
 }

@@ -24,6 +24,15 @@
 - [x] Terminal - 启动前强制要求已配置 Worktree，并在 worktree 目录启动本地 Shell (2026-03-06)
 - [x] Terminal UI - 终端窗口加高并优化观感 (2026-03-06)
 
+### Task 页面 UI 继续修复（1772736104102-ui）
+
+- [x] Worktree - 新增“从哪个分支创建 / Worktree 分支 / Worktree 路径”三字段与中文标签 (2026-03-06)
+- [x] Description - Markdown 编辑器（工具栏 + 分屏预览）与渲染预览 (2026-03-06)
+- [x] Worktree/Terminal - 创建 Worktree 使用 `git worktree add -b`，终端在 Worktree 目录启动 (2026-03-06)
+- [x] Terminal UI - 后端改为 PTY，支持 Tab/Ctrl/Shift 快捷键并优化主题 (2026-03-06)
+- [x] Task 编辑 - 支持修改 Milestone (2026-03-06)
+- [x] 测试 - `frontend` 构建通过 + 终端 PTY 冒烟（启动->pwd->停止）通过 (2026-03-06)
+
 ## 2026-03-05
 
 ### 任务终端会话（1772725932588-task-ssh-agent）

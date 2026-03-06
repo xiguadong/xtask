@@ -14,7 +14,7 @@ export function useWorktrees(projectName: string) {
       .finally(() => setLoading(false));
   }, [projectName]);
 
-  const createWorktree = async (data: { branch: string; worktree_path: string; agent?: any }) => {
+  const createWorktree = async (data: { branch: string; worktree_path: string; source_branch?: string; agent?: any }) => {
     const res = await fetch(`${API_BASE}/projects/${projectName}/worktrees`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
