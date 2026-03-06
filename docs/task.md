@@ -16,6 +16,10 @@
 - [x] 清理脚本 - `cleanup-empty-tasks.sh` 清理缺失 task.yaml 的残留目录 (2026-03-06)
 - [x] CLI 清理 - 新增 `xtask project delete-path` 便于测试后移除注册 (2026-03-06)
 
+### CLI 命令增强
+
+- [x] Worktree 任务列表 - 新增 `xtask worktree tasks` 列出当前分支/worktree 的任务 (2026-03-06)
+
 ### 启动链路稳定性修复
 
 - [x] 依赖修复 - 补装 `backend` 缺失依赖 `node-pty`，修复后端启动 `ERR_MODULE_NOT_FOUND` (2026-03-06)

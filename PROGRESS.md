@@ -2,7 +2,7 @@
 
 ## 当前版本
 
-**v0.4.0** - xtask 数据改为 Git 专用分支存储
+**v0.4.1** - 新增当前分支/worktree 任务列表命令
 
 ## 项目状态
 
@@ -20,6 +20,7 @@
 - ✅ 里程碑管理命令（create, list, update）
 - ✅ 任务管理命令（create, list, show, update, assign, merge）
 - ✅ Worktree 管理命令（create, list, info, delete, rename）
+- ✅ Worktree 分支任务列表命令（worktree tasks）
 - ✅ 分支任务自动检测和隔离存储
 - ✅ 服务器启动命令
 
@@ -77,6 +78,9 @@
 - [ ] 支持插件系统
 
 ## 版本历史
+
+### v0.4.1 (2026-03-06)
+- CLI 新增 `xtask worktree tasks`：列出当前分支/worktree 的任务（支持可选 branch 参数与过滤条件）
 
 ### v0.4.0 (2026-03-06)
 - xtask 数据从工作目录 `.xtask/` 迁移到 Git 专用分支 `refs/xtask-data`

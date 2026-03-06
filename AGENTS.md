@@ -82,6 +82,8 @@ xtask init                    # 初始化项目
 xtask project register        # 注册项目
 xtask milestone create <name> # 创建里程碑
 xtask task create <title>     # 创建任务
+xtask worktree tasks          # 列出当前分支/worktree 的任务
+xtask worktree tasks <branch> # 列出指定 worktree 分支的任务
 ```
 
 ### 脚本

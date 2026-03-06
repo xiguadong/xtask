@@ -82,6 +82,8 @@ xtask init                    # 初始化项目
 xtask project register        # 注册项目
 xtask milestone create <name> # 创建里程碑
 xtask task create <title>     # 创建任务
+xtask worktree tasks          # 列出当前分支/worktree 的任务
+xtask worktree tasks <branch> # 列出指定 worktree 分支的任务
 ```
 
 ### 脚本
@@ -97,6 +99,9 @@ xtask task create <title>     # 创建任务
 
 1. **开始新任务前**
    ```bash
+   # 查看当前分支/worktree 任务列表
+   xtask worktree tasks
+
    # 创建任务并记录到系统
    xtask task create "任务标题" --milestone <里程碑ID> --labels <标签>
    ```
