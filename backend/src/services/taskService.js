@@ -1,7 +1,5 @@
-import path from 'path';
-import fs from 'fs';
-import { readYaml, writeYaml } from '../utils/yamlHelper.js';
-import { fileExists, readDir, ensureDir } from '../utils/fileSystem.js';
+import yaml from 'js-yaml';
+import { readYaml, writeFiles, listDir, readFile } from '../utils/gitDataStore.js';
 
 function getDefaultTerminal() {
   return {
@@ -55,13 +53,10 @@ function normalizeTask(task) {
 }
 
 export function getTasks(projectPath, filters = {}) {
-  const tasksDir = path.join(projectPath, '.xtask', 'tasks');
-  if (!fileExists(tasksDir)) return [];
-
-  const taskDirs = readDir(tasksDir);
+  const taskDirs = listDir(projectPath, 'tasks');
   let tasks = taskDirs.map(dir => {
-    const taskFile = path.join(tasksDir, dir, 'task.yaml');
-    return fileExists(taskFile) ? normalizeTask(readYaml(taskFile)) : null;
+    const task = readYaml(projectPath, `tasks/${dir}/task.yaml`);
+    return task ? normalizeTask(task) : null;
   }).filter(Boolean);
 
   if (filters.milestone) {
@@ -81,18 +76,15 @@ export function getTasks(projectPath, filters = {}) {
 }
 
 export function getTaskById(projectPath, id) {
-  const taskFile = path.join(projectPath, '.xtask', 'tasks', id, 'task.yaml');
-  if (!fileExists(taskFile)) return null;
-  return normalizeTask(readYaml(taskFile));
+  const task = readYaml(projectPath, `tasks/${id}/task.yaml`);
+  if (!task) return null;
+  return normalizeTask(task);
 }
 
 export function createTask(projectPath, task) {
   const timestamp = Date.now();
   const slug = task.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const id = `${timestamp}-${slug}`;
-
-  const taskDir = path.join(projectPath, '.xtask', 'tasks', id);
-  ensureDir(taskDir);
 
   const newTask = {
     id,
@@ -122,20 +114,31 @@ export function createTask(projectPath, task) {
   };
 
   if (task.create_description_file) {
-    const descFile = path.join(taskDir, 'description.md');
-    fs.writeFileSync(descFile, task.description || '# 任务描述\n\n');
     newTask.description_file = `tasks/${id}/description.md`;
   }
 
-  writeYaml(path.join(taskDir, 'task.yaml'), newTask);
+  const changes = [
+    {
+      path: `tasks/${id}/task.yaml`,
+      content: yaml.dump(newTask)
+    }
+  ];
+
+  if (task.create_description_file) {
+    changes.push({
+      path: `tasks/${id}/description.md`,
+      content: task.description || '# 任务描述\n\n'
+    });
+  }
+
+  writeFiles(projectPath, changes, 'xtask create task');
   return normalizeTask(newTask);
 }
 
 export function updateTask(projectPath, id, updates) {
-  const taskFile = path.join(projectPath, '.xtask', 'tasks', id, 'task.yaml');
-  if (!fileExists(taskFile)) return null;
-
-  const task = normalizeTask(readYaml(taskFile));
+  const task = readYaml(projectPath, `tasks/${id}/task.yaml`);
+  if (!task) return null;
+  normalizeTask(task);
   const { terminal, agent, git, ...restUpdates } = updates || {};
 
   Object.assign(task, restUpdates);
@@ -160,24 +163,29 @@ export function updateTask(projectPath, id, updates) {
     };
   }
   task.updated_at = new Date().toISOString();
-
-  writeYaml(taskFile, task);
+  writeFiles(projectPath, [
+    { path: `tasks/${id}/task.yaml`, content: yaml.dump(task) }
+  ], 'xtask update task');
   return normalizeTask(task);
 }
 
 export function deleteTask(projectPath, id) {
-  const taskDir = path.join(projectPath, '.xtask', 'tasks', id);
-  if (!fileExists(taskDir)) return false;
+  const task = readYaml(projectPath, `tasks/${id}/task.yaml`);
+  if (!task) return false;
 
-  fs.rmSync(taskDir, { recursive: true });
+  const changes = [
+    { path: `tasks/${id}/task.yaml`, delete: true }
+  ];
+  const descPath = task.description_file || `tasks/${id}/description.md`;
+  changes.push({ path: descPath, delete: true });
+  writeFiles(projectPath, changes, 'xtask delete task');
   return true;
 }
 
 export function assignAgent(projectPath, id, agentInfo) {
-  const taskFile = path.join(projectPath, '.xtask', 'tasks', id, 'task.yaml');
-  if (!fileExists(taskFile)) return null;
-
-  const task = normalizeTask(readYaml(taskFile));
+  const task = readYaml(projectPath, `tasks/${id}/task.yaml`);
+  if (!task) return null;
+  normalizeTask(task);
   task.agent = {
     assigned: true,
     identity: agentInfo.identity || 'claude-opus-4',
@@ -190,12 +198,14 @@ export function assignAgent(projectPath, id, agentInfo) {
     task.git.branch = agentInfo.branch;
   }
 
-  writeYaml(taskFile, task);
+  writeFiles(projectPath, [
+    { path: `tasks/${id}/task.yaml`, content: yaml.dump(task) }
+  ], 'xtask assign agent');
   return normalizeTask(task);
 }
 
 export function getTaskDescription(projectPath, taskId) {
-  const descFile = path.join(projectPath, '.xtask', 'tasks', taskId, 'description.md');
-  if (!fileExists(descFile)) return null;
-  return fs.readFileSync(descFile, 'utf-8');
+  const task = readYaml(projectPath, `tasks/${taskId}/task.yaml`);
+  const descPath = task?.description_file || `tasks/${taskId}/description.md`;
+  return readFile(projectPath, descPath);
 }

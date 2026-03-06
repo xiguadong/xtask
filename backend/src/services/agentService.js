@@ -1,21 +1,22 @@
 import { spawn } from 'child_process';
-import path from 'path';
-import fs from 'fs';
-import { readYaml, writeYaml } from '../utils/yamlHelper.js';
-import { fileExists } from '../utils/fileSystem.js';
+import yaml from 'js-yaml';
+import { readYaml, writeFiles } from '../utils/gitDataStore.js';
 
 const runningAgents = new Map();
 
 export function startAgent(projectPath, taskId, branch = null) {
-  const taskFile = branch
-    ? path.join(projectPath, '.xtask', 'branches', branch, `${taskId}.yaml`)
-    : path.join(projectPath, '.xtask', 'tasks', taskId, 'task.yaml');
+  const taskPath = branch
+    ? `branches/${branch}/${taskId}.yaml`
+    : `tasks/${taskId}/task.yaml`;
 
-  if (!fileExists(taskFile)) {
+  const task = readYaml(projectPath, taskPath);
+  if (!task) {
+    runningAgents.delete(taskId);
+    return;
+  }
+  if (!task) {
     throw new Error('Task not found');
   }
-
-  const task = readYaml(taskFile);
 
   if (runningAgents.has(taskId)) {
     throw new Error('Agent already running for this task');
@@ -70,7 +71,9 @@ export function startAgent(projectPath, taskId, branch = null) {
   task.agent.assigned_at = agentData.startedAt;
   task.agent.session_id = sessionId;
   task.updated_at = new Date().toISOString();
-  writeYaml(taskFile, task);
+  writeFiles(projectPath, [
+    { path: taskPath, content: yaml.dump(task) }
+  ], 'xtask agent start');
 
   return {
     taskId,
@@ -81,25 +84,23 @@ export function startAgent(projectPath, taskId, branch = null) {
 }
 
 function updateTaskWithAgentResult(projectPath, taskId, branch, agentData) {
-  const taskFile = branch
-    ? path.join(projectPath, '.xtask', 'branches', branch, `${taskId}.yaml`)
-    : path.join(projectPath, '.xtask', 'tasks', taskId, 'task.yaml');
+  const taskPath = branch
+    ? `branches/${branch}/${taskId}.yaml`
+    : `tasks/${taskId}/task.yaml`;
 
-  const task = readYaml(taskFile);
+  const task = readYaml(projectPath, taskPath);
 
   task.agent.status = agentData.status;
   task.status = agentData.status === 'completed' ? 'completed' : 'in_progress';
   task.updated_at = new Date().toISOString();
 
-  const descFile = path.join(projectPath, '.xtask', 'tasks', taskId, 'description.md');
   const output = agentData.output.join('\n');
   const content = `# ${task.title}\n\n## Agent 执行结果\n\n**状态**: ${agentData.status}\n**开始时间**: ${agentData.startedAt}\n**完成时间**: ${agentData.completedAt}\n**退出码**: ${agentData.exitCode}\n\n## 输出\n\n\`\`\`\n${output}\n\`\`\`\n`;
-
-  fs.mkdirSync(path.dirname(descFile), { recursive: true });
-  fs.writeFileSync(descFile, content);
   task.description_file = `tasks/${taskId}/description.md`;
-
-  writeYaml(taskFile, task);
+  writeFiles(projectPath, [
+    { path: `tasks/${taskId}/description.md`, content },
+    { path: taskPath, content: yaml.dump(task) }
+  ], 'xtask agent complete');
   runningAgents.delete(taskId);
 }
 

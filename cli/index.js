@@ -2,7 +2,7 @@
 
 import { Command } from 'commander';
 import { initCommand } from './commands/init.js';
-import { registerProject, listProjects, deleteProject } from './commands/project.js';
+import { registerProject, listProjects, deleteProject, migrateProjectToGit } from './commands/project.js';
 import { createTask, listTasks, showTask, updateTask, assignAgent, mergeTask } from './commands/task.js';
 import { createMilestone, listMilestones, updateMilestone } from './commands/milestone.js';
 import { startServer } from './commands/start.js';
@@ -17,7 +17,7 @@ program
 
 program
   .command('init')
-  .description('Initialize .xtask in current project')
+  .description('Initialize xtask data in Git')
   .action(initCommand);
 
 program
@@ -42,6 +42,11 @@ project
   .command('delete <name>')
   .description('Delete project')
   .action(deleteProject);
+
+project
+  .command('migrate-to-git')
+  .description('Migrate local .xtask data to Git data branch')
+  .action(migrateProjectToGit);
 
 const task = program.command('task').description('Manage tasks');
 

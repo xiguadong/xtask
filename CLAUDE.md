@@ -70,7 +70,7 @@ xtask/
 ## 数据存储
 
 - 全局配置: `~/.xtask/projects.yaml`
-- 项目数据: `<project>/.xtask/`
+- 项目数据: `refs/xtask-data` (Git 专用分支)
   - `milestones.yaml` - 里程碑
   - `tasks/<id>/task.yaml` - 任务详情
 

@@ -1,22 +1,23 @@
-import fs from 'fs';
-import path from 'path';
-import { ensureDir, writeYaml } from '../utils/yaml.js';
+import yaml from 'js-yaml';
+import { getRepoRoot } from '../utils/gitRepo.js';
+import { getRefCommit, writeFiles } from '../utils/gitDataStore.js';
 
 export function initCommand() {
-  const projectPath = process.cwd();
-  const xtaskDir = path.join(projectPath, '.xtask');
-  const tasksDir = path.join(xtaskDir, 'tasks');
-
-  if (fs.existsSync(xtaskDir)) {
-    console.log('Project already initialized');
+  const projectPath = getRepoRoot();
+  const existing = getRefCommit(projectPath);
+  if (existing) {
+    console.log('xtask 数据已初始化');
     return;
   }
 
-  ensureDir(tasksDir);
-  ensureDir(path.join(xtaskDir, 'branches'));
-  ensureDir(path.join(xtaskDir, 'worktrees'));
-  writeYaml(path.join(xtaskDir, 'config.yaml'), {});
-  writeYaml(path.join(xtaskDir, 'milestones.yaml'), { milestones: [] });
+  writeFiles(
+    projectPath,
+    [
+      { path: 'config.yaml', content: yaml.dump({}) },
+      { path: 'milestones.yaml', content: yaml.dump({ milestones: [] }) }
+    ],
+    'xtask init'
+  );
 
-  console.log('Initialized .xtask directory');
+  console.log('已初始化 xtask Git 数据分支');
 }

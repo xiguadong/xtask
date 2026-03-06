@@ -1,0 +1,152 @@
+import { execFileSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import yaml from 'js-yaml';
+import { withGitLock } from './gitLock.js';
+
+const DATA_REF = 'refs/xtask-data';
+
+function runGit(repoPath, args, options = {}) {
+  return execFileSync('git', args, {
+    cwd: repoPath,
+    encoding: 'utf-8',
+    ...options
+  });
+}
+
+function normalizeRelPath(relPath) {
+  return relPath.replace(/^\/+/, '').replace(/\\/g, '/');
+}
+
+export function getDataRef() {
+  return DATA_REF;
+}
+
+export function getRefCommit(repoPath) {
+  try {
+    return runGit(repoPath, ['rev-parse', '--verify', DATA_REF]).trim();
+  } catch {
+    return null;
+  }
+}
+
+export function readFile(repoPath, relPath) {
+  const commit = getRefCommit(repoPath);
+  if (!commit) return null;
+  const normalized = normalizeRelPath(relPath);
+  try {
+    return runGit(repoPath, ['show', `${DATA_REF}:${normalized}`]);
+  } catch {
+    return null;
+  }
+}
+
+export function readYaml(repoPath, relPath) {
+  const content = readFile(repoPath, relPath);
+  if (!content) return null;
+  return yaml.load(content);
+}
+
+export function listDir(repoPath, relDir = '') {
+  const commit = getRefCommit(repoPath);
+  if (!commit) return [];
+  const normalized = relDir ? normalizeRelPath(relDir) : '';
+  const target = normalized ? `${DATA_REF}:${normalized}` : DATA_REF;
+  try {
+    const output = runGit(repoPath, ['ls-tree', '--name-only', target]).trim();
+    if (!output) return [];
+    return output.split('\n').filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function createIndexFile(repoPath) {
+  const gitDir = runGit(repoPath, ['rev-parse', '--git-common-dir']).trim();
+  const filename = `xtask-index-${process.pid}-${Date.now()}`;
+  return path.join(gitDir, filename);
+}
+
+export function writeFiles(repoPath, changes, message = 'xtask data update') {
+  if (!Array.isArray(changes) || changes.length === 0) return null;
+
+  return withGitLock(repoPath, () => {
+    const oldCommit = getRefCommit(repoPath);
+    const indexFile = createIndexFile(repoPath);
+    const env = {
+      ...process.env,
+      GIT_INDEX_FILE: indexFile,
+      GIT_AUTHOR_NAME: 'xtask',
+      GIT_AUTHOR_EMAIL: 'xtask@local',
+      GIT_COMMITTER_NAME: 'xtask',
+      GIT_COMMITTER_EMAIL: 'xtask@local'
+    };
+
+    try {
+      if (oldCommit) {
+        runGit(repoPath, ['read-tree', `${oldCommit}^{tree}`], { env });
+      } else {
+        runGit(repoPath, ['read-tree', '--empty'], { env });
+      }
+
+      changes.forEach((change) => {
+        const targetPath = normalizeRelPath(change.path || '');
+        if (!targetPath) return;
+        if (change.delete) {
+          try {
+            runGit(repoPath, ['update-index', '--remove', '--', targetPath], { env });
+          } catch {
+            // ignore missing paths
+          }
+          return;
+        }
+
+        const content = change.content ?? '';
+        const blob = runGit(repoPath, ['hash-object', '-w', '--stdin'], {
+          env,
+          input: content
+        }).trim();
+        runGit(repoPath, ['update-index', '--add', '--cacheinfo', '100644', blob, targetPath], { env });
+      });
+
+      const tree = runGit(repoPath, ['write-tree'], { env }).trim();
+      const commitArgs = ['commit-tree', tree, '-m', message];
+      if (oldCommit) {
+        commitArgs.push('-p', oldCommit);
+      }
+      const newCommit = runGit(repoPath, commitArgs, { env }).trim();
+
+      if (oldCommit) {
+        runGit(repoPath, ['update-ref', DATA_REF, newCommit, oldCommit], { env });
+      } else {
+        runGit(repoPath, ['update-ref', DATA_REF, newCommit], { env });
+      }
+
+      return newCommit;
+    } finally {
+      try {
+        fs.unlinkSync(indexFile);
+      } catch {
+        // ignore
+      }
+    }
+  });
+}
+
+export function writeYaml(repoPath, relPath, data, message) {
+  return writeFiles(repoPath, [
+    {
+      path: relPath,
+      content: yaml.dump(data)
+    }
+  ], message);
+}
+
+export function deletePath(repoPath, relPath, message) {
+  return writeFiles(repoPath, [
+    {
+      path: relPath,
+      delete: true
+    }
+  ], message);
+}

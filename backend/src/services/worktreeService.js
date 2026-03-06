@@ -1,13 +1,10 @@
 import path from 'path';
-import fs from 'fs';
 import { execFileSync, execSync } from 'child_process';
-import { readYaml, writeYaml } from '../utils/yamlHelper.js';
-import { fileExists, ensureDir, readDir } from '../utils/fileSystem.js';
+import yaml from 'js-yaml';
+import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
+import { ensureDir } from '../utils/fileSystem.js';
 
 export function createWorktree(projectPath, branch, worktreePath, agent, sourceBranch) {
-  const worktreesDir = path.join(projectPath, '.xtask', 'worktrees');
-  ensureDir(worktreesDir);
-
   const resolvedWorktreePath = path.isAbsolute(worktreePath)
     ? worktreePath
     : path.resolve(projectPath, worktreePath);
@@ -62,61 +59,51 @@ export function createWorktree(projectPath, branch, worktreePath, agent, sourceB
     last_commit: null
   };
 
-  const branchDir = path.join(projectPath, '.xtask', 'branches', branch);
-  ensureDir(branchDir);
-
-  writeYaml(path.join(worktreesDir, `${branch}.yaml`), worktree);
+  writeFiles(projectPath, [
+    { path: `worktrees/${branch}.yaml`, content: yaml.dump(worktree) }
+  ], 'xtask create worktree');
   return worktree;
 }
 
 export function getWorktrees(projectPath) {
-  const worktreesDir = path.join(projectPath, '.xtask', 'worktrees');
-  if (!fileExists(worktreesDir)) return [];
-
-  const files = readDir(worktreesDir).filter(f => f.endsWith('.yaml'));
-  return files.map(f => readYaml(path.join(worktreesDir, f)));
+  const files = listDir(projectPath, 'worktrees').filter(f => f.endsWith('.yaml'));
+  return files.map(f => readYaml(projectPath, `worktrees/${f}`)).filter(Boolean);
 }
 
 export function getWorktree(projectPath, branch) {
-  const file = path.join(projectPath, '.xtask', 'worktrees', `${branch}.yaml`);
-  return fileExists(file) ? readYaml(file) : null;
+  return readYaml(projectPath, `worktrees/${branch}.yaml`);
 }
 
 export function updateWorktree(projectPath, branch, updates) {
-  const file = path.join(projectPath, '.xtask', 'worktrees', `${branch}.yaml`);
-  if (!fileExists(file)) return null;
-
-  const worktree = readYaml(file);
+  const worktree = readYaml(projectPath, `worktrees/${branch}.yaml`);
+  if (!worktree) return null;
   Object.assign(worktree, updates);
-  writeYaml(file, worktree);
+  writeFiles(projectPath, [
+    { path: `worktrees/${branch}.yaml`, content: yaml.dump(worktree) }
+  ], 'xtask update worktree');
   return worktree;
 }
 
 export function deleteWorktree(projectPath, branch) {
-  const file = path.join(projectPath, '.xtask', 'worktrees', `${branch}.yaml`);
-  if (!fileExists(file)) return false;
-
-  fs.unlinkSync(file);
+  const worktree = readYaml(projectPath, `worktrees/${branch}.yaml`);
+  if (!worktree) return false;
+  writeFiles(projectPath, [
+    { path: `worktrees/${branch}.yaml`, delete: true }
+  ], 'xtask delete worktree');
   return true;
 }
 
 export function renameWorktree(projectPath, oldBranch, newBranch) {
-  const oldFile = path.join(projectPath, '.xtask', 'worktrees', `${oldBranch}.yaml`);
-  const newFile = path.join(projectPath, '.xtask', 'worktrees', `${newBranch}.yaml`);
+  const worktree = readYaml(projectPath, `worktrees/${oldBranch}.yaml`);
+  if (!worktree) return null;
+  const existing = readYaml(projectPath, `worktrees/${newBranch}.yaml`);
+  if (existing) throw new Error('Target branch already exists');
 
-  if (!fileExists(oldFile)) return null;
-  if (fileExists(newFile)) throw new Error('Target branch already exists');
-
-  const worktree = readYaml(oldFile);
   worktree.branch = newBranch;
-  writeYaml(newFile, worktree);
-  fs.unlinkSync(oldFile);
-
-  const oldBranchDir = path.join(projectPath, '.xtask', 'branches', oldBranch);
-  const newBranchDir = path.join(projectPath, '.xtask', 'branches', newBranch);
-  if (fileExists(oldBranchDir)) {
-    fs.renameSync(oldBranchDir, newBranchDir);
-  }
+  writeFiles(projectPath, [
+    { path: `worktrees/${newBranch}.yaml`, content: yaml.dump(worktree) },
+    { path: `worktrees/${oldBranch}.yaml`, delete: true }
+  ], 'xtask rename worktree');
 
   return worktree;
 }

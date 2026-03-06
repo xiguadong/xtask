@@ -1,8 +1,6 @@
-import path from 'path';
-import fs from 'fs';
-import { readYaml, writeYaml } from '../utils/yamlHelper.js';
-import { fileExists, ensureDir, readDir } from '../utils/fileSystem.js';
-import { getWorktree, updateWorktree } from './worktreeService.js';
+import yaml from 'js-yaml';
+import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
+import { getWorktree } from './worktreeService.js';
 
 function getDefaultTerminal() {
   return {
@@ -23,61 +21,73 @@ function getDefaultTerminal() {
 }
 
 export function assignTaskToBranch(projectPath, taskId, branch) {
-  const taskFile = path.join(projectPath, '.xtask', 'tasks', taskId, 'task.yaml');
-  if (!fileExists(taskFile)) return null;
-
-  const task = readYaml(taskFile);
+  const task = readYaml(projectPath, `tasks/${taskId}/task.yaml`);
+  if (!task) return null;
+  task.git = task.git || { branch: null, commits: [], source_branch: null };
   task.git.branch = branch;
   task.git.source_branch = 'master';
 
-  const branchDir = path.join(projectPath, '.xtask', 'branches', branch);
-  ensureDir(branchDir);
-  writeYaml(path.join(branchDir, `${taskId}.yaml`), task);
-
+  const changes = [
+    {
+      path: `branches/${branch}/${taskId}.yaml`,
+      content: yaml.dump(task)
+    }
+  ];
   const worktree = getWorktree(projectPath, branch);
-  if (worktree && !worktree.tasks.includes(taskId)) {
-    worktree.tasks.push(taskId);
-    updateWorktree(projectPath, branch, worktree);
+  if (worktree) {
+    if (!Array.isArray(worktree.tasks)) {
+      worktree.tasks = [];
+    }
+    if (!worktree.tasks.includes(taskId)) {
+      worktree.tasks.push(taskId);
+    }
+    changes.push({
+      path: `worktrees/${branch}.yaml`,
+      content: yaml.dump(worktree)
+    });
   }
+
+  writeFiles(projectPath, changes, 'xtask assign task to branch');
 
   return task;
 }
 
 export function getBranchTasks(projectPath, branch) {
-  const branchDir = path.join(projectPath, '.xtask', 'branches', branch);
-  if (!fileExists(branchDir)) return [];
-
-  const files = readDir(branchDir).filter(f => f.endsWith('.yaml'));
-  return files.map(f => readYaml(path.join(branchDir, f)));
+  const files = listDir(projectPath, `branches/${branch}`).filter(f => f.endsWith('.yaml'));
+  return files.map(f => readYaml(projectPath, `branches/${branch}/${f}`)).filter(Boolean);
 }
 
 export function updateBranchTask(projectPath, branch, taskId, updates) {
-  const taskFile = path.join(projectPath, '.xtask', 'branches', branch, `${taskId}.yaml`);
-  if (!fileExists(taskFile)) return null;
-
-  const task = readYaml(taskFile);
+  const task = readYaml(projectPath, `branches/${branch}/${taskId}.yaml`);
+  if (!task) return null;
   Object.assign(task, updates);
   task.updated_at = new Date().toISOString();
-  writeYaml(taskFile, task);
+  writeFiles(projectPath, [
+    { path: `branches/${branch}/${taskId}.yaml`, content: yaml.dump(task) }
+  ], 'xtask update branch task');
   return task;
 }
 
 export function mergeTaskToMain(projectPath, branch, taskId) {
-  const branchFile = path.join(projectPath, '.xtask', 'branches', branch, `${taskId}.yaml`);
-  if (!fileExists(branchFile)) return null;
+  const task = readYaml(projectPath, `branches/${branch}/${taskId}.yaml`);
+  if (!task) return null;
 
-  const task = readYaml(branchFile);
-  const mainDir = path.join(projectPath, '.xtask', 'tasks', taskId);
-  ensureDir(mainDir);
-  writeYaml(path.join(mainDir, 'task.yaml'), task);
-
-  fs.unlinkSync(branchFile);
-
+  const changes = [
+    { path: `tasks/${taskId}/task.yaml`, content: yaml.dump(task) },
+    { path: `branches/${branch}/${taskId}.yaml`, delete: true }
+  ];
   const worktree = getWorktree(projectPath, branch);
   if (worktree) {
+    if (!Array.isArray(worktree.tasks)) {
+      worktree.tasks = [];
+    }
     worktree.tasks = worktree.tasks.filter(id => id !== taskId);
-    updateWorktree(projectPath, branch, worktree);
+    changes.push({
+      path: `worktrees/${branch}.yaml`,
+      content: yaml.dump(worktree)
+    });
   }
+  writeFiles(projectPath, changes, 'xtask merge task');
 
   return task;
 }
@@ -115,33 +125,51 @@ export function createBranchTask(projectPath, branch, taskData) {
     }
   };
 
-  const branchDir = path.join(projectPath, '.xtask', 'branches', branch);
-  ensureDir(branchDir);
-  writeYaml(path.join(branchDir, `${id}.yaml`), task);
-
+  const changes = [
+    { path: `branches/${branch}/${id}.yaml`, content: yaml.dump(task) }
+  ];
   const worktree = getWorktree(projectPath, branch);
-  if (worktree && !worktree.tasks.includes(id)) {
-    worktree.tasks.push(id);
-    updateWorktree(projectPath, branch, worktree);
+  if (worktree) {
+    if (!Array.isArray(worktree.tasks)) {
+      worktree.tasks = [];
+    }
+    if (!worktree.tasks.includes(id)) {
+      worktree.tasks.push(id);
+    }
+    changes.push({
+      path: `worktrees/${branch}.yaml`,
+      content: yaml.dump(worktree)
+    });
   }
+
+  writeFiles(projectPath, changes, 'xtask create branch task');
 
   return task;
 }
 
 export function renameBranchTasks(projectPath, oldBranch, newBranch) {
-  const branchDir = path.join(projectPath, '.xtask', 'branches', newBranch);
-  if (!fileExists(branchDir)) return [];
+  const files = listDir(projectPath, `branches/${oldBranch}`).filter(f => f.endsWith('.yaml'));
+  if (files.length === 0) return [];
 
-  const files = readDir(branchDir).filter(f => f.endsWith('.yaml'));
+  const changes = [];
   const updatedTasks = [];
 
-  files.forEach(file => {
-    const taskFile = path.join(branchDir, file);
-    const task = readYaml(taskFile);
+  files.forEach((file) => {
+    const task = readYaml(projectPath, `branches/${oldBranch}/${file}`);
+    if (!task) return;
+    task.git = task.git || {};
     task.git.branch = newBranch;
-    writeYaml(taskFile, task);
+    changes.push({
+      path: `branches/${newBranch}/${file}`,
+      content: yaml.dump(task)
+    });
+    changes.push({
+      path: `branches/${oldBranch}/${file}`,
+      delete: true
+    });
     updatedTasks.push(task);
   });
 
+  writeFiles(projectPath, changes, 'xtask rename branch tasks');
   return updatedTasks;
 }

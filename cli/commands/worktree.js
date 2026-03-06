@@ -1,26 +1,13 @@
 import { Command } from 'commander';
 import path from 'path';
-import fs from 'fs';
 import yaml from 'js-yaml';
-import { execSync } from 'child_process';
+import { getRepoRoot } from '../utils/gitRepo.js';
+import { listDir, readYaml as readGitYaml, writeFiles } from '../utils/gitDataStore.js';
 
 const program = new Command();
 
 function getProjectRoot() {
-  let dir = process.cwd();
-  while (dir !== '/') {
-    if (fs.existsSync(path.join(dir, '.xtask'))) return dir;
-    dir = path.dirname(dir);
-  }
-  throw new Error('Not in an xtask project');
-}
-
-function getCurrentBranch() {
-  try {
-    return execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
-  } catch {
-    return null;
-  }
+  return getRepoRoot();
 }
 
 program
@@ -35,20 +22,26 @@ program
   .action((branch, options) => {
     const projectRoot = getProjectRoot();
     const worktreePath = options.path || process.cwd();
+    const resolvedWorktreePath = path.isAbsolute(worktreePath)
+      ? worktreePath
+      : path.resolve(projectRoot, worktreePath);
 
-    const worktreesDir = path.join(projectRoot, '.xtask', 'worktrees');
-    if (!fs.existsSync(worktreesDir)) {
-      fs.mkdirSync(worktreesDir, { recursive: true });
+    if (resolvedWorktreePath === '/tmp' || resolvedWorktreePath.startsWith('/tmp/')) {
+      console.error('禁止使用 /tmp 作为 worktree 目录，请使用项目内的 cache/worktrees 等路径');
+      process.exit(1);
     }
 
-    const branchDir = path.join(projectRoot, '.xtask', 'branches', branch);
-    if (!fs.existsSync(branchDir)) {
-      fs.mkdirSync(branchDir, { recursive: true });
-    }
+    const storedWorktreePath = (() => {
+      const relative = path.relative(projectRoot, resolvedWorktreePath);
+      if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+        return relative;
+      }
+      return resolvedWorktreePath;
+    })();
 
     const worktree = {
       branch,
-      worktree_path: worktreePath,
+      worktree_path: storedWorktreePath,
       created_at: new Date().toISOString(),
       agent: {
         identity: options.agent,
@@ -58,11 +51,9 @@ program
       tasks: [],
       last_commit: null
     };
-
-    fs.writeFileSync(
-      path.join(worktreesDir, `${branch}.yaml`),
-      yaml.dump(worktree)
-    );
+    writeFiles(projectRoot, [
+      { path: `worktrees/${branch}.yaml`, content: yaml.dump(worktree) }
+    ], 'xtask create worktree');
 
     console.log(`✓ Worktree created: ${branch}`);
   });
@@ -71,16 +62,13 @@ program
   .command('list')
   .action(() => {
     const projectRoot = getProjectRoot();
-    const worktreesDir = path.join(projectRoot, '.xtask', 'worktrees');
-
-    if (!fs.existsSync(worktreesDir)) {
+    const files = listDir(projectRoot, 'worktrees').filter(f => f.endsWith('.yaml'));
+    if (files.length === 0) {
       console.log('No worktrees found');
       return;
     }
-
-    const files = fs.readdirSync(worktreesDir).filter(f => f.endsWith('.yaml'));
     files.forEach(file => {
-      const worktree = yaml.load(fs.readFileSync(path.join(worktreesDir, file), 'utf-8'));
+      const worktree = readGitYaml(projectRoot, `worktrees/${file}`);
       console.log(`${worktree.branch} (${worktree.status}) - ${worktree.tasks.length} tasks`);
     });
   });
@@ -89,14 +77,12 @@ program
   .command('info <branch>')
   .action((branch) => {
     const projectRoot = getProjectRoot();
-    const file = path.join(projectRoot, '.xtask', 'worktrees', `${branch}.yaml`);
-
-    if (!fs.existsSync(file)) {
+    const worktree = readGitYaml(projectRoot, `worktrees/${branch}.yaml`);
+    if (!worktree) {
       console.error(`Worktree not found: ${branch}`);
       process.exit(1);
     }
 
-    const worktree = yaml.load(fs.readFileSync(file, 'utf-8'));
     console.log(yaml.dump(worktree));
   });
 
@@ -104,14 +90,15 @@ program
   .command('delete <branch>')
   .action((branch) => {
     const projectRoot = getProjectRoot();
-    const file = path.join(projectRoot, '.xtask', 'worktrees', `${branch}.yaml`);
-
-    if (!fs.existsSync(file)) {
+    const worktree = readGitYaml(projectRoot, `worktrees/${branch}.yaml`);
+    if (!worktree) {
       console.error(`Worktree not found: ${branch}`);
       process.exit(1);
     }
 
-    fs.unlinkSync(file);
+    writeFiles(projectRoot, [
+      { path: `worktrees/${branch}.yaml`, delete: true }
+    ], 'xtask delete worktree');
     console.log(`✓ Worktree deleted: ${branch}`);
   });
 
@@ -119,37 +106,38 @@ program
   .command('rename <oldBranch> <newBranch>')
   .action((oldBranch, newBranch) => {
     const projectRoot = getProjectRoot();
-    const oldFile = path.join(projectRoot, '.xtask', 'worktrees', `${oldBranch}.yaml`);
-    const newFile = path.join(projectRoot, '.xtask', 'worktrees', `${newBranch}.yaml`);
-
-    if (!fs.existsSync(oldFile)) {
+    const worktree = readGitYaml(projectRoot, `worktrees/${oldBranch}.yaml`);
+    if (!worktree) {
       console.error(`Worktree not found: ${oldBranch}`);
       process.exit(1);
     }
-
-    if (fs.existsSync(newFile)) {
+    const existing = readGitYaml(projectRoot, `worktrees/${newBranch}.yaml`);
+    if (existing) {
       console.error(`Target worktree already exists: ${newBranch}`);
       process.exit(1);
     }
 
-    const worktree = yaml.load(fs.readFileSync(oldFile, 'utf-8'));
     worktree.branch = newBranch;
-    fs.writeFileSync(newFile, yaml.dump(worktree));
-    fs.unlinkSync(oldFile);
-
-    const oldBranchDir = path.join(projectRoot, '.xtask', 'branches', oldBranch);
-    const newBranchDir = path.join(projectRoot, '.xtask', 'branches', newBranch);
-    if (fs.existsSync(oldBranchDir)) {
-      fs.renameSync(oldBranchDir, newBranchDir);
-
-      const files = fs.readdirSync(newBranchDir).filter(f => f.endsWith('.yaml'));
-      files.forEach(file => {
-        const taskFile = path.join(newBranchDir, file);
-        const task = yaml.load(fs.readFileSync(taskFile, 'utf-8'));
-        task.git.branch = newBranch;
-        fs.writeFileSync(taskFile, yaml.dump(task));
+    const changes = [
+      { path: `worktrees/${newBranch}.yaml`, content: yaml.dump(worktree) },
+      { path: `worktrees/${oldBranch}.yaml`, delete: true }
+    ];
+    const branchFiles = listDir(projectRoot, `branches/${oldBranch}`).filter(f => f.endsWith('.yaml'));
+    branchFiles.forEach((file) => {
+      const task = readGitYaml(projectRoot, `branches/${oldBranch}/${file}`);
+      if (!task) return;
+      task.git = task.git || {};
+      task.git.branch = newBranch;
+      changes.push({
+        path: `branches/${newBranch}/${file}`,
+        content: yaml.dump(task)
       });
-    }
+      changes.push({
+        path: `branches/${oldBranch}/${file}`,
+        delete: true
+      });
+    });
+    writeFiles(projectRoot, changes, 'xtask rename worktree');
 
     console.log(`✓ Worktree renamed: ${oldBranch} → ${newBranch}`);
   });

@@ -3,6 +3,7 @@
 cache/
 logs/
 *.log
+.xtask/
 
 # 依赖
 node_modules/

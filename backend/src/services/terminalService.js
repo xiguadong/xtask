@@ -2,7 +2,8 @@ import path from 'path';
 import fs from 'fs';
 import { createRequire } from 'module';
 import * as pty from 'node-pty';
-import { readYaml, writeYaml } from '../utils/yamlHelper.js';
+import yaml from 'js-yaml';
+import { readYaml, writeFiles } from '../utils/gitDataStore.js';
 import { fileExists } from '../utils/fileSystem.js';
 import { getWorktree } from './worktreeService.js';
 
@@ -23,12 +24,8 @@ function normalizeProjectPath(projectPath) {
   return path.resolve(projectPath);
 }
 
-function getTaskFile(projectPath, taskId) {
-  return path.join(projectPath, '.xtask', 'tasks', taskId, 'task.yaml');
-}
-
-function getProjectConfigFile(projectPath) {
-  return path.join(projectPath, '.xtask', 'config.yaml');
+function getTaskPath(taskId) {
+  return `tasks/${taskId}/task.yaml`;
 }
 
 function sessionKey(projectPath, taskId) {
@@ -76,17 +73,17 @@ function ensureTaskTerminal(task) {
 }
 
 function readTask(projectPath, taskId) {
-  const taskFile = getTaskFile(projectPath, taskId);
-  if (!fileExists(taskFile)) return null;
-  const task = readYaml(taskFile);
+  const task = readYaml(projectPath, getTaskPath(taskId));
+  if (!task) return null;
   ensureTaskTerminal(task);
   return task;
 }
 
 function writeTask(projectPath, taskId, task) {
-  const taskFile = getTaskFile(projectPath, taskId);
   task.updated_at = new Date().toISOString();
-  writeYaml(taskFile, task);
+  writeFiles(projectPath, [
+    { path: getTaskPath(taskId), content: yaml.dump(task) }
+  ], 'xtask update task terminal');
 }
 
 function getRuntimeStatus(session) {
@@ -222,8 +219,7 @@ function getProjectActiveSessionCount(projectPath) {
 
 export function getProjectTerminalConfig(projectPath) {
   const normalized = normalizeProjectPath(projectPath);
-  const configFile = getProjectConfigFile(normalized);
-  const config = readYaml(configFile) || {};
+  const config = readYaml(normalized, 'config.yaml') || {};
   const terminalConfig = config.terminal || {};
 
   return {
@@ -233,8 +229,7 @@ export function getProjectTerminalConfig(projectPath) {
 
 export function updateProjectTerminalConfig(projectPath, updates = {}) {
   const normalized = normalizeProjectPath(projectPath);
-  const configFile = getProjectConfigFile(normalized);
-  const config = readYaml(configFile) || {};
+  const config = readYaml(normalized, 'config.yaml') || {};
   const current = getProjectTerminalConfig(normalized);
 
   config.terminal = {
@@ -242,7 +237,9 @@ export function updateProjectTerminalConfig(projectPath, updates = {}) {
     max_terminals: normalizeMaxTerminals(updates.max_terminals ?? current.max_terminals)
   };
 
-  writeYaml(configFile, config);
+  writeFiles(normalized, [
+    { path: 'config.yaml', content: yaml.dump(config) }
+  ], 'xtask update terminal config');
   return getProjectTerminalConfig(normalized);
 }
 

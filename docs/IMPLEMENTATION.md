@@ -4,7 +4,7 @@
 
 ### 1. CLI Tool (✓)
 - **Commands implemented:**
-  - `xtask init` - Initialize .xtask directory
+  - `xtask init` - Initialize Git data branch (`refs/xtask-data`)
   - `xtask project register/list/delete` - Project management
   - `xtask milestone create/list/update` - Milestone management
   - `xtask task create/list/show/update/assign` - Task management
@@ -12,7 +12,7 @@
 
 - **Utilities:**
   - YAML read/write helpers
-  - Config management (~/.xtask/)
+  - Config management (~/.xtask/ + Git data branch)
   - Task ID generation (timestamp-based)
 
 ### 2. Backend API (✓)
@@ -104,6 +104,6 @@ xtask/
 ## Data Storage
 
 - Global: ~/.xtask/projects.yaml
-- Per-project: <project>/.xtask/
+- Per-project: refs/xtask-data
   - milestones.yaml
   - tasks/<timestamp-slug>/task.yaml

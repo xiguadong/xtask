@@ -1,6 +1,5 @@
-import path from 'path';
-import { readYaml, writeYaml } from '../utils/yamlHelper.js';
-import { fileExists } from '../utils/fileSystem.js';
+import yaml from 'js-yaml';
+import { readYaml, writeFiles } from '../utils/gitDataStore.js';
 
 function normalizeGoals(goals) {
   if (!Array.isArray(goals)) return [];
@@ -25,9 +24,7 @@ function normalizeGoals(goals) {
 }
 
 export function getMilestones(projectPath) {
-  const milestonesFile = path.join(projectPath, '.xtask', 'milestones.yaml');
-  if (!fileExists(milestonesFile)) return [];
-  const data = readYaml(milestonesFile);
+  const data = readYaml(projectPath, 'milestones.yaml');
   return (data?.milestones || []).map((milestone) => ({
     ...milestone,
     goals: normalizeGoals(milestone.goals)
@@ -35,7 +32,6 @@ export function getMilestones(projectPath) {
 }
 
 export function createMilestone(projectPath, milestone) {
-  const milestonesFile = path.join(projectPath, '.xtask', 'milestones.yaml');
   const milestones = getMilestones(projectPath);
 
   const id = `m${milestones.length + 1}`;
@@ -49,12 +45,13 @@ export function createMilestone(projectPath, milestone) {
   };
 
   milestones.push(newMilestone);
-  writeYaml(milestonesFile, { milestones });
+  writeFiles(projectPath, [
+    { path: 'milestones.yaml', content: yaml.dump({ milestones }) }
+  ], 'xtask create milestone');
   return newMilestone;
 }
 
 export function updateMilestone(projectPath, id, updates) {
-  const milestonesFile = path.join(projectPath, '.xtask', 'milestones.yaml');
   const milestones = getMilestones(projectPath);
 
   const milestone = milestones.find(m => m.id === id);
@@ -66,15 +63,18 @@ export function updateMilestone(projectPath, id, updates) {
   }
 
   Object.assign(milestone, normalizedUpdates);
-  writeYaml(milestonesFile, { milestones });
+  writeFiles(projectPath, [
+    { path: 'milestones.yaml', content: yaml.dump({ milestones }) }
+  ], 'xtask update milestone');
   return milestone;
 }
 
 export function deleteMilestone(projectPath, id) {
-  const milestonesFile = path.join(projectPath, '.xtask', 'milestones.yaml');
   const milestones = getMilestones(projectPath);
 
   const filtered = milestones.filter(m => m.id !== id);
-  writeYaml(milestonesFile, { milestones: filtered });
+  writeFiles(projectPath, [
+    { path: 'milestones.yaml', content: yaml.dump({ milestones: filtered }) }
+  ], 'xtask delete milestone');
   return filtered.length < milestones.length;
 }

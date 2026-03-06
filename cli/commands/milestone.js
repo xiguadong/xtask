@@ -1,17 +1,10 @@
-import fs from 'fs';
-import path from 'path';
-import { readYaml, writeYaml } from '../utils/yaml.js';
+import yaml from 'js-yaml';
+import { getRepoRoot } from '../utils/gitRepo.js';
+import { readYaml as readGitYaml, writeFiles } from '../utils/gitDataStore.js';
 
 export function createMilestone(name, options = {}) {
-  const projectPath = process.cwd();
-  const milestonesFile = path.join(projectPath, '.xtask', 'milestones.yaml');
-
-  if (!fs.existsSync(milestonesFile)) {
-    console.log('Error: Not in an xtask project');
-    return;
-  }
-
-  const data = readYaml(milestonesFile);
+  const projectPath = getRepoRoot();
+  const data = readGitYaml(projectPath, 'milestones.yaml') || { milestones: [] };
   const milestones = data.milestones || [];
 
   const id = `m${milestones.length + 1}`;
@@ -23,21 +16,16 @@ export function createMilestone(name, options = {}) {
     status: 'active'
   });
 
-  writeYaml(milestonesFile, { milestones });
+  writeFiles(projectPath, [
+    { path: 'milestones.yaml', content: yaml.dump({ milestones }) }
+  ], 'xtask create milestone');
   console.log(`Created milestone: ${id} - ${name}`);
 }
 
 export function listMilestones() {
-  const projectPath = process.cwd();
-  const milestonesFile = path.join(projectPath, '.xtask', 'milestones.yaml');
-
-  if (!fs.existsSync(milestonesFile)) {
-    console.log('Error: Not in an xtask project');
-    return;
-  }
-
-  const data = readYaml(milestonesFile);
-  const milestones = data.milestones || [];
+  const projectPath = getRepoRoot();
+  const data = readGitYaml(projectPath, 'milestones.yaml');
+  const milestones = data?.milestones || [];
 
   if (milestones.length === 0) {
     console.log('No milestones');
@@ -50,15 +38,8 @@ export function listMilestones() {
 }
 
 export function updateMilestone(id, options = {}) {
-  const projectPath = process.cwd();
-  const milestonesFile = path.join(projectPath, '.xtask', 'milestones.yaml');
-
-  if (!fs.existsSync(milestonesFile)) {
-    console.log('Error: Not in an xtask project');
-    return;
-  }
-
-  const data = readYaml(milestonesFile);
+  const projectPath = getRepoRoot();
+  const data = readGitYaml(projectPath, 'milestones.yaml') || { milestones: [] };
   const milestone = data.milestones.find(m => m.id === id);
 
   if (!milestone) {
@@ -70,6 +51,8 @@ export function updateMilestone(id, options = {}) {
   if (options.status) milestone.status = options.status;
   if (options.due) milestone.due_date = options.due;
 
-  writeYaml(milestonesFile, data);
+  writeFiles(projectPath, [
+    { path: 'milestones.yaml', content: yaml.dump(data) }
+  ], 'xtask update milestone');
   console.log(`Updated milestone: ${id}`);
 }

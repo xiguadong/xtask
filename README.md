@@ -51,10 +51,11 @@ xtask start --port 3000
 ## CLI 命令
 
 ### 项目管理
-- `xtask init` - 初始化当前项目
+- `xtask init` - 初始化 Git 数据分支
 - `xtask project register` - 注册当前项目
 - `xtask project list` - 列出所有项目
 - `xtask project delete <name>` - 删除项目
+- `xtask project migrate-to-git` - 迁移旧版 `.xtask` 数据到 Git 分支
 
 ### 里程碑管理
 - `xtask milestone create <name>` - 创建里程碑
@@ -87,12 +88,14 @@ xtask start --port 3000
   projects.yaml        # 所有注册的项目
   config.yaml          # 全局配置
 
-<project>/.xtask/      # 项目数据
+Git refs/xtask-data    # 项目数据（Git 专用分支）
   config.yaml
   milestones.yaml
   tasks/
     <timestamp-slug>/
       task.yaml
+  branches/
+  worktrees/
 ```
 
 ## 开发

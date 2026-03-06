@@ -2,6 +2,13 @@
 
 ## 2026-03-06
 
+### Git 数据分支存储重构
+
+- [x] 数据存储 - xtask 数据迁移到 Git 专用分支 `refs/xtask-data` (2026-03-06)
+- [x] CLI 改造 - 任务/里程碑/Worktree 读写改为 Git 数据分支 (2026-03-06)
+- [x] 后端改造 - 任务/里程碑/Worktree/终端/Agent 读写改为 Git 数据分支 (2026-03-06)
+- [x] 迁移命令 - 新增 `xtask project migrate-to-git` (2026-03-06)
+
 ### 启动链路稳定性修复
 
 - [x] 依赖修复 - 补装 `backend` 缺失依赖 `node-pty`，修复后端启动 `ERR_MODULE_NOT_FOUND` (2026-03-06)
