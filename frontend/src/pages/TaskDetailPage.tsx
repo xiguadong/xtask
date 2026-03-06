@@ -5,6 +5,7 @@ import TopBar from '../components/layout/TopBar';
 import TaskActions from '../components/TaskActions';
 import MarkdownEditor from '../components/MarkdownEditor';
 import MarkdownPreview from '../components/MarkdownPreview';
+import TerminalOverviewFloating from '../components/TerminalOverviewFloating';
 import { useMilestones } from '../hooks/useMilestones';
 import { Task } from '../types';
 import { fetchTask, updateTask } from '../utils/api';
@@ -213,6 +214,7 @@ export default function TaskDetailPage() {
           </section>
         }
       />
+      {projectName && <TerminalOverviewFloating projectName={projectName} showConfig={false} defaultExpanded={false} />}
     </>
   );
 }

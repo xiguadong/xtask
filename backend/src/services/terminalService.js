@@ -16,6 +16,7 @@ const MIN_MAX_TERMINALS = 1;
 const MAX_MAX_TERMINALS = 20;
 const WAITING_THRESHOLD_MS = 3 * 60 * 1000;
 const OUTPUT_LIMIT = 500000;
+const DUPLICATE_INPUT_WINDOW_MS = 8;
 
 const require = createRequire(import.meta.url);
 
@@ -307,6 +308,8 @@ export function startTaskTerminalSession(projectPath, taskId, options = {}) {
     autoStopOnTaskDone,
     output: '',
     outputOffset: 0,
+    lastInput: null,
+    lastInputAt: 0,
     closed: false,
     stopReason: null
   };
@@ -388,6 +391,15 @@ export function sendTerminalInput(projectPath, taskId, input) {
   }
 
   const payload = `${input ?? ''}`;
+  const now = Date.now();
+  if (payload && session.lastInput === payload && now - session.lastInputAt < DUPLICATE_INPUT_WINDOW_MS) {
+    return buildSessionSummary(session);
+  }
+  session.lastInput = payload;
+  session.lastInputAt = now;
+  if (!payload) {
+    return buildSessionSummary(session);
+  }
   session.process.write(payload);
   touchSession(session);
   return buildSessionSummary(session);

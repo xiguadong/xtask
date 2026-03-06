@@ -39,6 +39,7 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
   const sessionRef = useRef<string | null>(null);
   const pendingInputRef = useRef('');
   const inputFlushTimerRef = useRef<number | null>(null);
+  const lastInputRef = useRef<{ value: string; timestamp: number } | null>(null);
   const terminalDataDisposeRef = useRef<{ dispose: () => void } | null>(null);
   const sendInputRef = useRef(sendInput);
   const taskIdRef = useRef(task.id);
@@ -57,6 +58,12 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
   }, [runtime]);
 
   function queueInput(data: string) {
+    const now = performance.now();
+    const last = lastInputRef.current;
+    if (last && last.value === data && now - last.timestamp < 8) {
+      return;
+    }
+    lastInputRef.current = { value: data, timestamp: now };
     pendingInputRef.current += data;
     if (inputFlushTimerRef.current !== null) return;
 
@@ -221,6 +228,7 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
         inputFlushTimerRef.current = null;
       }
       pendingInputRef.current = '';
+      lastInputRef.current = null;
     };
   }, [runtime?.active, runtime?.mode, sendInput, task.id]);
 
