@@ -1,0 +1,53 @@
+id: 1772729825689-ui
+title: ui改善
+description: >-
+  1. 子页面的ui 无法编辑 description， description应当留一个大的框；
+
+  2. 删除子页面的Agent选项
+
+  3.
+  指定worktree时，应当要指定工作目录和分支name；如果选择默认，则应当放在cache/worktrees/task-id-name目录下，分支命名为task-id
+
+  4. 子页面的 终端长度可以再长点，ui弄得再好看一点
+
+  5. 子页面的 branch/agent启动那几个没什么用
+
+
+  6. 创建终端前，需要检测用户是否选择了 worktree工作目录，如果没有则不允许创建，要求用户先选择分支名、worktree目录;
+  然后创建终端时自动进入到这个目录下；
+
+  7 执行完你需要全面复测一遍，交叉验证；
+description_file: null
+status: done
+priority: high
+milestone_id: null
+parent_tasks: []
+labels:
+  - ui
+  - agent
+created_at: '2026-03-05T16:57:05.690Z'
+updated_at: '2026-03-05T17:28:17.769Z'
+created_by: web
+agent:
+  assigned: false
+  identity: null
+  assigned_at: null
+  session_id: null
+  status: null
+terminal:
+  enabled: false
+  mode: null
+  session_id: null
+  status: stopped
+  host: null
+  port: 22
+  username: null
+  timeout_days: 3
+  auto_stop_on_task_done: true
+  started_at: null
+  last_active_at: null
+  stopped_at: null
+  stop_reason: null
+git:
+  branch: null
+  commits: []

@@ -1,0 +1,43 @@
+id: 1772772328222-termninal-overview
+title: Termninal overview 做成悬浮窗口
+description: |-
+  1. terminal overview 做成悬浮窗口，可以点击放大缩小，可以出现在项目页上和任务页上
+  2. 首页面，注意是最前面的首页，增加一个看板，展示所有项目的所有terminal overview;
+  3. terminal 打字后发现非常容易按很多次按键，比如输入 a,但是终端显示 aa
+description_file: null
+status: todo
+priority: low
+milestone_id: null
+parent_tasks: []
+labels:
+  - ui
+  - terminal
+created_at: '2026-03-06T04:45:28.223Z'
+updated_at: '2026-03-06T06:16:33.097Z'
+created_by: web
+agent:
+  assigned: false
+  identity: null
+  assigned_at: null
+  session_id: null
+  status: null
+terminal:
+  enabled: false
+  mode: local
+  session_id: null
+  status: stopped
+  host: null
+  port: 22
+  username: null
+  timeout_days: 3
+  auto_stop_on_task_done: true
+  started_at: '2026-03-06T04:46:31.639Z'
+  last_active_at: '2026-03-06T04:50:48.714Z'
+  stopped_at: '2026-03-06T04:50:50.218Z'
+  stop_reason: manual
+  exit_code: 0
+  exit_signal: 9
+git:
+  branch: 1772772328222-termninal-overview
+  commits: []
+  source_branch: master
