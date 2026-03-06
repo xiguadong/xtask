@@ -7,6 +7,7 @@ LOG_FILE="$LOG_DIR/stop.log"
 PID_FILE="$LOG_DIR/server.pid"
 PORT_FILE="$LOG_DIR/server.port"
 CURRENT_USER="$(id -un)"
+BACKEND_ENTRY="$ROOT_DIR/backend/server.js"
 
 mkdir -p "$LOG_DIR"
 touch "$LOG_FILE"
@@ -15,32 +16,12 @@ log() {
   echo "[$(date '+%F %T')] $*" | tee -a "$LOG_FILE"
 }
 
-is_number() {
-  [[ "${1:-}" =~ ^[0-9]+$ ]]
-}
-
 is_alive() {
   kill -0 "$1" >/dev/null 2>&1
 }
 
-pid_owner() {
-  ps -o user= -p "$1" 2>/dev/null | tr -d ' '
-}
-
 cmdline_of() {
   ps -o command= -p "$1" 2>/dev/null || true
-}
-
-contains_pid() {
-  local target="$1"
-  shift || true
-  local pid
-  for pid in "$@"; do
-    if [[ "$pid" == "$target" ]]; then
-      return 0
-    fi
-  done
-  return 1
 }
 
 stop_pid() {
@@ -67,58 +48,42 @@ stop_pid() {
   log "force-stopped pid=$pid"
 }
 
+add_unique_pid() {
+  local candidate="$1"
+  local existing
+  for existing in "${TARGET_PIDS[@]:-}"; do
+    if [[ "$existing" == "$candidate" ]]; then
+      return 0
+    fi
+  done
+  TARGET_PIDS+=("$candidate")
+}
+
 TARGET_PIDS=()
 
-log "stopping xtask processes for user: $CURRENT_USER"
-
-# 1) 优先根据 pid 文件停止
-if [[ -f "$PID_FILE" ]]; then
-  PID_FROM_FILE="$(cat "$PID_FILE" 2>/dev/null || true)"
-  if is_number "$PID_FROM_FILE" && is_alive "$PID_FROM_FILE" && [[ "$(pid_owner "$PID_FROM_FILE")" == "$CURRENT_USER" ]]; then
-    TARGET_PIDS+=("$PID_FROM_FILE")
-  fi
-fi
-
-# 2) 根据端口文件查找监听进程
-if [[ -f "$PORT_FILE" ]]; then
-  PORT_FROM_FILE="$(cat "$PORT_FILE" 2>/dev/null || true)"
-  if is_number "$PORT_FROM_FILE"; then
-    while IFS= read -r pid; do
-      if is_number "$pid" && is_alive "$pid" && [[ "$(pid_owner "$pid")" == "$CURRENT_USER" ]]; then
-        if ! contains_pid "$pid" "${TARGET_PIDS[@]}"; then
-          TARGET_PIDS+=("$pid")
-        fi
-      fi
-    done < <(lsof -tiTCP:"$PORT_FROM_FILE" -sTCP:LISTEN 2>/dev/null || true)
-  fi
-fi
-
-# 3) 兜底：扫描当前用户下与本项目相关的后端服务
+# 首选：绝对路径启动（新版 start.sh）
 while IFS= read -r pid; do
-  if ! is_number "$pid"; then
-    continue
-  fi
-  if ! is_alive "$pid"; then
-    continue
-  fi
-  if [[ "$(pid_owner "$pid")" != "$CURRENT_USER" ]]; then
-    continue
-  fi
+  [[ -n "${pid:-}" ]] && add_unique_pid "$pid"
+done < <(pgrep -u "$CURRENT_USER" -f "$BACKEND_ENTRY" || true)
 
-  cmd="$(cmdline_of "$pid")"
-  if [[ "$cmd" == *"$ROOT_DIR/backend/server.js"* ]] || [[ "$cmd" == *"node server.js"*"$ROOT_DIR/backend"* ]]; then
-    if ! contains_pid "$pid" "${TARGET_PIDS[@]}"; then
-      TARGET_PIDS+=("$pid")
+# 兼容：旧版以 `node server.js` 启动，使用 cwd 限定到当前项目 backend
+if command -v lsof >/dev/null 2>&1; then
+  while IFS= read -r pid; do
+    [[ -z "${pid:-}" ]] && continue
+    cwd="$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -n 1)"
+    if [[ "$cwd" == "$ROOT_DIR/backend" ]]; then
+      add_unique_pid "$pid"
     fi
-  fi
-done < <(pgrep -u "$CURRENT_USER" -f "node .*server.js" || true)
+  done < <(pgrep -u "$CURRENT_USER" -f "node server.js" || true)
+fi
 
 if [[ "${#TARGET_PIDS[@]}" -eq 0 ]]; then
-  log "no xtask process found"
+  log "no xtask process found for user=$CURRENT_USER"
   rm -f "$PID_FILE" "$PORT_FILE"
   exit 0
 fi
 
+log "found ${#TARGET_PIDS[@]} xtask process(es) for user=$CURRENT_USER"
 for pid in "${TARGET_PIDS[@]}"; do
   stop_pid "$pid"
 done
