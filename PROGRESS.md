@@ -97,6 +97,9 @@
 - CLI 新增任务删除命令，并补充测试覆盖
 - 新增清理脚本：自动清理 Git 数据分支中缺失 task.yaml 的残留目录
 - CLI 新增按路径删除项目注册（测试清理用）
+- 终端 SSH 保活：增加 ServerAliveInterval/CountMax/TCPKeepAlive 参数，降低连接断开概率
+- 终端输出去重：前端输出拉取改为串行轮询，避免网络抖动导致重复渲染
+
 ### v0.3.8 (2026-03-06)
 - Terminal Overview 改为悬浮窗口，可在项目页与任务页放大/缩小
 - 首页新增 Terminal Overview 看板，汇总所有项目终端会话

@@ -171,7 +171,18 @@ function createProcess(spawnCwd, mode, sshOptions = {}) {
     }
 
     const target = `${username}@${host}`;
-    const args = ['-tt', '-p', `${port}`, target];
+    const args = [
+      '-tt',
+      '-o',
+      'ServerAliveInterval=30',
+      '-o',
+      'ServerAliveCountMax=6',
+      '-o',
+      'TCPKeepAlive=yes',
+      '-p',
+      `${port}`,
+      target
+    ];
     const childProcess = pty.spawn('ssh', args, {
       name: env.TERM,
       cols,

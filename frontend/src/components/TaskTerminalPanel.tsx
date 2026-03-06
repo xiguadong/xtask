@@ -188,11 +188,24 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
   useEffect(() => {
     if (!runtime?.active) return undefined;
 
-    let active = true;
+    let cancelled = false;
+    let inFlight = false;
+    let timer: number | null = null;
+
     const pullOutput = async () => {
+      if (cancelled || inFlight) return;
+      inFlight = true;
+      const requestedCursor = cursorRef.current;
+
       try {
-        const data = await getOutput(task.id, cursorRef.current);
-        if (!active) return;
+        const data = await getOutput(task.id, requestedCursor);
+        if (cancelled) return;
+
+        const responseCursor = typeof data?.cursor === 'number' ? data.cursor : requestedCursor;
+        if (responseCursor < cursorRef.current) {
+          return;
+        }
+
         if (data?.output) {
           terminalRef.current?.write(data.output);
         }
@@ -201,14 +214,19 @@ export default function TaskTerminalPanel({ task, projectName, onTaskRefresh }: 
         }
       } catch {
         // 输出拉取失败不阻断交互
+      } finally {
+        inFlight = false;
+        if (cancelled) return;
+        timer = window.setTimeout(pullOutput, 90);
       }
     };
 
     void pullOutput();
-    const timer = setInterval(pullOutput, 90);
     return () => {
-      active = false;
-      clearInterval(timer);
+      cancelled = true;
+      if (timer !== null) {
+        window.clearTimeout(timer);
+      }
     };
   }, [getOutput, runtime?.active, task.id]);
 
