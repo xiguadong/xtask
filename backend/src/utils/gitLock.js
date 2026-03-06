@@ -14,10 +14,20 @@ function sleep(ms) {
 }
 
 function getGitCommonDir(repoPath) {
-  return execFileSync('git', ['rev-parse', '--git-common-dir'], {
-    cwd: repoPath,
-    encoding: 'utf-8'
-  }).trim();
+  try {
+    return execFileSync('git', ['rev-parse', '--git-common-dir'], {
+      cwd: repoPath,
+      encoding: 'utf-8'
+    }).trim();
+  } catch (error) {
+    const stdout = typeof error.stdout === 'string'
+      ? error.stdout
+      : error.stdout?.toString('utf-8');
+    if (error.code === 'EPERM' && stdout) {
+      return stdout.trim();
+    }
+    throw error;
+  }
 }
 
 function readLockMeta(lockPath) {

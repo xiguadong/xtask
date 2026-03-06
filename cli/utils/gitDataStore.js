@@ -7,11 +7,21 @@ import { withGitLock } from './gitLock.js';
 const DATA_REF = 'refs/xtask-data';
 
 function runGit(repoPath, args, options = {}) {
-  return execFileSync('git', args, {
-    cwd: repoPath,
-    encoding: 'utf-8',
-    ...options
-  });
+  try {
+    return execFileSync('git', args, {
+      cwd: repoPath,
+      encoding: 'utf-8',
+      ...options
+    });
+  } catch (error) {
+    const stdout = typeof error.stdout === 'string'
+      ? error.stdout
+      : error.stdout?.toString('utf-8');
+    if (error.code === 'EPERM' && error.status === 0) {
+      return stdout || '';
+    }
+    throw error;
+  }
 }
 
 function normalizeRelPath(relPath) {
@@ -24,7 +34,7 @@ export function getDataRef() {
 
 export function getRefCommit(repoPath) {
   try {
-    return runGit(repoPath, ['rev-parse', '--verify', DATA_REF]).trim();
+    return runGit(repoPath, ['rev-parse', '--verify', '--quiet', DATA_REF]).trim();
   } catch {
     return null;
   }
@@ -67,6 +77,14 @@ function createIndexFile(repoPath) {
   return path.join(gitDir, filename);
 }
 
+function createTempContentFile(repoPath, content) {
+  const gitDir = runGit(repoPath, ['rev-parse', '--git-common-dir']).trim();
+  const filename = `xtask-content-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const filePath = path.join(gitDir, filename);
+  fs.writeFileSync(filePath, content ?? '', 'utf-8');
+  return filePath;
+}
+
 export function writeFiles(repoPath, changes, message = 'xtask data update') {
   if (!Array.isArray(changes) || changes.length === 0) return null;
 
@@ -102,11 +120,17 @@ export function writeFiles(repoPath, changes, message = 'xtask data update') {
         }
 
         const content = change.content ?? '';
-        const blob = runGit(repoPath, ['hash-object', '-w', '--stdin'], {
-          env,
-          input: content
-        }).trim();
-        runGit(repoPath, ['update-index', '--add', '--cacheinfo', '100644', blob, targetPath], { env });
+        const tempFile = createTempContentFile(repoPath, content);
+        try {
+          const blob = runGit(repoPath, ['hash-object', '-w', tempFile], { env }).trim();
+          runGit(repoPath, ['update-index', '--add', '--cacheinfo', '100644', blob, targetPath], { env });
+        } finally {
+          try {
+            fs.unlinkSync(tempFile);
+          } catch {
+            // ignore
+          }
+        }
       });
 
       const tree = runGit(repoPath, ['write-tree'], { env }).trim();

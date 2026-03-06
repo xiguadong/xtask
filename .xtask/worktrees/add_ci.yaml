@@ -1,9 +1,0 @@
-branch: add_ci
-worktree_path: /tmp/worktrees/add_ci
-created_at: '2026-03-05T12:11:28.284Z'
-agent:
-  identity: claude-opus-4
-  model: claude-opus-4-6
-status: active
-tasks: []
-last_commit: null
