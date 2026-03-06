@@ -1,0 +1,39 @@
+id: 1772786490728-terminal
+title: terminal 修改
+description: |-
+  1. 创建terminal时应当保活，一直在后台允许
+  2. terminal没有去重机制，按键输入有很多重复的，基本没法使用
+description_file: null
+status: todo
+priority: high
+milestone_id: m1
+parent_tasks: []
+labels:
+  - ui
+  - terminal
+created_at: '2026-03-06T08:41:30.728Z'
+updated_at: '2026-03-06T08:41:30.728Z'
+created_by: web
+agent:
+  assigned: false
+  identity: null
+  assigned_at: null
+  session_id: null
+  status: null
+terminal:
+  enabled: false
+  mode: null
+  session_id: null
+  status: stopped
+  host: null
+  port: 22
+  username: null
+  timeout_days: 3
+  auto_stop_on_task_done: true
+  started_at: null
+  last_active_at: null
+  stopped_at: null
+  stop_reason: null
+git:
+  branch: null
+  commits: []
