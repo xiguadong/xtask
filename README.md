@@ -55,6 +55,7 @@ xtask start --port 3000
 - `xtask project register` - 注册当前项目
 - `xtask project list` - 列出所有项目
 - `xtask project delete <name>` - 删除项目
+- `xtask project delete-path <path>` - 按路径删除项目注册
 - `xtask project migrate-to-git` - 迁移旧版 `.xtask` 数据到 Git 分支
 
 ### 里程碑管理
@@ -67,6 +68,7 @@ xtask start --port 3000
 - `xtask task list` - 列出任务
 - `xtask task show <id>` - 查看任务详情
 - `xtask task update <id>` - 更新任务
+- `xtask task delete <id>` - 删除任务
 - `xtask task assign <id>` - 分配代理
 
 ### 服务器

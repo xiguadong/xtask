@@ -2,8 +2,8 @@
 
 import { Command } from 'commander';
 import { initCommand } from './commands/init.js';
-import { registerProject, listProjects, deleteProject, migrateProjectToGit } from './commands/project.js';
-import { createTask, listTasks, showTask, updateTask, assignAgent, mergeTask } from './commands/task.js';
+import { registerProject, listProjects, deleteProject, deleteProjectByPath, migrateProjectToGit } from './commands/project.js';
+import { createTask, listTasks, showTask, updateTask, deleteTask, assignAgent, mergeTask } from './commands/task.js';
 import { createMilestone, listMilestones, updateMilestone } from './commands/milestone.js';
 import { startServer } from './commands/start.js';
 import worktreeCommand from './commands/worktree.js';
@@ -44,6 +44,11 @@ project
   .action(deleteProject);
 
 project
+  .command('delete-path <path>')
+  .description('Delete project by path')
+  .action(deleteProjectByPath);
+
+project
   .command('migrate-to-git')
   .description('Migrate local .xtask data to Git data branch')
   .action(migrateProjectToGit);
@@ -80,6 +85,11 @@ task
   .option('-m, --milestone <id>', 'Milestone ID')
   .option('-l, --labels <labels>', 'Comma-separated labels')
   .action((id, options) => updateTask(id, options));
+
+task
+  .command('delete <id>')
+  .description('Delete task')
+  .action((id) => deleteTask(id));
 
 task
   .command('assign <id>')

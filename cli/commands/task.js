@@ -258,3 +258,46 @@ export function mergeTask(id, options = {}) {
 
   console.log(`Merged task ${id} from branch ${branch}`);
 }
+
+export function deleteTask(id) {
+  const projectRoot = getRepoRoot();
+  const currentBranch = getCurrentBranch(projectRoot);
+  const worktree = getWorktree(projectRoot, currentBranch);
+  const isInWorktree = Boolean(worktree);
+
+  if (isInWorktree) {
+    const task = readGitYaml(projectRoot, `branches/${currentBranch}/${id}.yaml`);
+    if (!task) {
+      console.log('Task not found');
+      return;
+    }
+    const changes = [
+      { path: `branches/${currentBranch}/${id}.yaml`, delete: true }
+    ];
+    if (worktree) {
+      if (!Array.isArray(worktree.tasks)) {
+        worktree.tasks = [];
+      }
+      worktree.tasks = worktree.tasks.filter(tid => tid !== id);
+      changes.push({ path: `worktrees/${currentBranch}.yaml`, content: yaml.dump(worktree) });
+    }
+    writeFiles(projectRoot, changes, 'xtask delete task (branch)');
+    console.log(`Deleted task: ${id} (branch: ${currentBranch})`);
+    return;
+  }
+
+  const task = readGitYaml(projectRoot, `tasks/${id}/task.yaml`);
+  if (!task) {
+    console.log('Task not found');
+    return;
+  }
+
+  const changes = [
+    { path: `tasks/${id}/task.yaml`, delete: true }
+  ];
+  const descPath = task.description_file || `tasks/${id}/description.md`;
+  changes.push({ path: descPath, delete: true });
+
+  writeFiles(projectRoot, changes, 'xtask delete task');
+  console.log(`Deleted task: ${id}`);
+}

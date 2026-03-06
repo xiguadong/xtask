@@ -58,6 +58,21 @@ export function deleteProject(name) {
   console.log(`Deleted project: ${name}`);
 }
 
+export function deleteProjectByPath(targetPath) {
+  const absPath = path.resolve(targetPath);
+  const projects = getProjects();
+  const project = projects.find(p => p.path === absPath);
+
+  if (!project) {
+    console.log('Project not found');
+    return;
+  }
+
+  project.hidden = true;
+  saveProjects(projects);
+  console.log(`Deleted project: ${project.name}`);
+}
+
 export function migrateProjectToGit() {
   let repoRoot;
   try {

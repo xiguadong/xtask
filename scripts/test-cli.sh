@@ -35,6 +35,11 @@ else
 fi
 echo ""
 
+# 测试 1.1: register
+echo "【测试 1.1】xtask project register"
+xtask project register >/dev/null 2>&1 || true
+echo ""
+
 # 测试 2: milestone create
 echo "【测试 2】xtask milestone create"
 xtask milestone create "测试里程碑" --description "测试描述" --due "2026-12-31"
@@ -146,10 +151,26 @@ else
 fi
 echo ""
 
-# 测试 15: 数据结构验证
-echo "【测试 15】数据结构验证"
+# 测试 15: task delete
+echo "【测试 15】xtask task delete"
+xtask task delete "$BRANCH_TASK_ID"
+if git show "refs/xtask-data:tasks/$BRANCH_TASK_ID/task.yaml" >/dev/null 2>&1; then
+  echo "✗ 任务删除失败"
+  exit 1
+else
+  echo "✓ 任务删除成功"
+fi
+echo ""
+
+# 测试 16: 数据结构验证
+echo "【测试 16】数据结构验证"
 echo "目录结构:"
 git ls-tree -r --name-only refs/xtask-data | head -20
+echo ""
+
+# 测试 17: project delete-path
+echo "【测试 17】xtask project delete-path"
+xtask project delete-path "$TEST_DIR" >/dev/null 2>&1 || true
 echo ""
 
 echo "=== 所有测试通过 ✓ ==="
