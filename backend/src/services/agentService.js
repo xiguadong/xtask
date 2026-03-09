@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import yaml from 'js-yaml';
 import { readYaml, writeFiles } from '../utils/gitDataStore.js';
+import { normalizeTaskStatus } from '../utils/taskStatus.js';
 
 const runningAgents = new Map();
 
@@ -91,7 +92,7 @@ function updateTaskWithAgentResult(projectPath, taskId, branch, agentData) {
   const task = readYaml(projectPath, taskPath);
 
   task.agent.status = agentData.status;
-  task.status = agentData.status === 'completed' ? 'completed' : 'in_progress';
+  task.status = agentData.status === 'completed' ? 'done' : normalizeTaskStatus(task.status, 'in_progress');
   task.updated_at = new Date().toISOString();
 
   const output = agentData.output.join('\n');

@@ -15,6 +15,11 @@
   - Config management (~/.xtask/ + Git data branch)
   - Task ID generation (timestamp-based)
 
+### 任务状态约束
+- 用户态任务状态仅允许：`todo`、`in_progress`、`done`、`blocked`
+- `POST /api/projects/:name/tasks` 与 `PUT /api/projects/:name/tasks/:id` 的 `status` 字段对外按上述四态解释
+- CLI `xtask task update <id> --status <status>` 也仅使用上述四态
+
 ### 2. Backend API (✓)
 - **Services:**
   - projectService - Project operations

@@ -2,13 +2,18 @@
 
 ## 当前版本
 
-**v0.4.1** - 新增当前分支/worktree 任务列表命令
+**v0.4.2** - 新增 xtask 初始化 skill
 
 ## 项目状态
 
 🚧 开发中
 
 ## 已完成功能
+
+### Codex Skills
+- ✅ 新增 `init-xtask` skill（初始化 `refs/xtask-data`、注册项目、引导首批 milestone）
+- ✅ 新增 xtask 初始化 milestone 预设，支持通用软件 / 遗留项目 / Web / CLI 场景
+- ✅ 统一任务状态枚举为 `todo / in_progress / done / blocked`
 
 ### 核心架构
 - ✅ 项目初始化和 Git 版本控制

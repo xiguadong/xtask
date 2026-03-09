@@ -27,7 +27,7 @@ description: Safe xtask task management with enforced constraints. Use this skil
 ### 更新任务状态
 ```bash
 xtask task update <task-id> --status <new-status>
-# 可用状态: pending | in_progress | completed | blocked
+# 可用状态仅为: todo | in_progress | done | blocked
 ```
 
 ### 创建子任务（完整流程）
@@ -61,7 +61,7 @@ xtask task create "子任务2" --milestone <M> --labels <继承>,parent:<parent-
 
 **场景1：标记任务完成**
 ```bash
-xtask task update T-001 --status completed
+xtask task update T-001 --status done
 ```
 
 **场景2：从父任务创建子任务**

@@ -2,10 +2,17 @@ import yaml from 'js-yaml';
 import { generateTaskId } from '../utils/idGenerator.js';
 import { getRepoRoot, getCurrentBranch } from '../utils/gitRepo.js';
 import { listDir, readYaml as readGitYaml, writeFiles } from '../utils/gitDataStore.js';
+import { normalizeTaskStatus } from '../utils/taskStatus.js';
 
 function getWorktree(projectRoot, branch) {
   if (!branch) return null;
   return readGitYaml(projectRoot, `worktrees/${branch}.yaml`);
+}
+
+function normalizeTask(task) {
+  if (!task) return null;
+  task.status = normalizeTaskStatus(task.status, task.status || 'todo');
+  return task;
 }
 
 export function createTask(title, options = {}) {
@@ -20,7 +27,7 @@ export function createTask(title, options = {}) {
     title,
     description: options.description || '',
     description_file: options.descriptionFile ? `tasks/${id}/description.md` : null,
-    status: 'todo',
+    status: normalizeTaskStatus(options.status),
     priority: options.priority || 'medium',
     milestone_id: options.milestone || null,
     parent_tasks: options.parent ? [options.parent] : [],
@@ -103,10 +110,10 @@ export function listTasks(options = {}) {
 
   if (isInWorktree) {
     const files = listDir(projectRoot, `branches/${currentBranch}`).filter(f => f.endsWith('.yaml'));
-    tasks = files.map(f => readGitYaml(projectRoot, `branches/${currentBranch}/${f}`)).filter(Boolean);
+    tasks = files.map(f => normalizeTask(readGitYaml(projectRoot, `branches/${currentBranch}/${f}`))).filter(Boolean);
   } else {
     const taskDirs = listDir(projectRoot, 'tasks');
-    tasks = taskDirs.map(dir => readGitYaml(projectRoot, `tasks/${dir}/task.yaml`)).filter(Boolean);
+    tasks = taskDirs.map(dir => normalizeTask(readGitYaml(projectRoot, `tasks/${dir}/task.yaml`))).filter(Boolean);
   }
 
   let filtered = tasks;
@@ -114,7 +121,8 @@ export function listTasks(options = {}) {
     filtered = filtered.filter(t => t.milestone_id === options.milestone);
   }
   if (options.status) {
-    filtered = filtered.filter(t => t.status === options.status);
+    const targetStatus = normalizeTaskStatus(options.status, options.status);
+    filtered = filtered.filter(t => t.status === targetStatus);
   }
   if (options.label) {
     filtered = filtered.filter(t => t.labels.includes(options.label));
@@ -136,9 +144,9 @@ export function showTask(id) {
   const worktree = getWorktree(projectRoot, currentBranch);
   const isInWorktree = Boolean(worktree);
 
-  const task = isInWorktree
+  const task = normalizeTask(isInWorktree
     ? readGitYaml(projectRoot, `branches/${currentBranch}/${id}.yaml`)
-    : readGitYaml(projectRoot, `tasks/${id}/task.yaml`);
+    : readGitYaml(projectRoot, `tasks/${id}/task.yaml`));
 
   if (!task) {
     console.log('Task not found');
@@ -165,13 +173,13 @@ export function updateTask(id, options = {}) {
     ? `branches/${currentBranch}/${id}.yaml`
     : `tasks/${id}/task.yaml`;
 
-  const task = readGitYaml(projectRoot, targetPath);
+  const task = normalizeTask(readGitYaml(projectRoot, targetPath));
   if (!task) {
     console.log('Task not found');
     return;
   }
 
-  if (options.status) task.status = options.status;
+  if (options.status) task.status = normalizeTaskStatus(options.status, task.status);
   if (options.priority) task.priority = options.priority;
   if (options.milestone !== undefined) task.milestone_id = options.milestone;
   if (options.labels) task.labels = options.labels.split(',');

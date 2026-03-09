@@ -3,11 +3,18 @@ import path from 'path';
 import yaml from 'js-yaml';
 import { getRepoRoot, getCurrentBranch } from '../utils/gitRepo.js';
 import { listDir, readYaml as readGitYaml, writeFiles } from '../utils/gitDataStore.js';
+import { normalizeTaskStatus } from '../utils/taskStatus.js';
 
 const program = new Command();
 
 function getProjectRoot() {
   return getRepoRoot();
+}
+
+function normalizeTask(task) {
+  if (!task) return null;
+  task.status = normalizeTaskStatus(task.status, task.status || 'todo');
+  return task;
 }
 
 program
@@ -108,7 +115,7 @@ program
     const missing = [];
     let tasks = orderedIds
       .map((id) => {
-        const task = readGitYaml(projectRoot, `branches/${targetBranch}/${id}.yaml`);
+        const task = normalizeTask(readGitYaml(projectRoot, `branches/${targetBranch}/${id}.yaml`));
         if (!task) missing.push(id);
         return task;
       })
@@ -118,7 +125,8 @@ program
       tasks = tasks.filter(t => t.milestone_id === options.milestone);
     }
     if (options.status) {
-      tasks = tasks.filter(t => t.status === options.status);
+      const targetStatus = normalizeTaskStatus(options.status, options.status);
+      tasks = tasks.filter(t => t.status === targetStatus);
     }
     if (options.label) {
       tasks = tasks.filter(t => (t.labels || []).includes(options.label));

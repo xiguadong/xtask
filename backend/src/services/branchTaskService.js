@@ -1,6 +1,13 @@
 import yaml from 'js-yaml';
 import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
 import { getWorktree } from './worktreeService.js';
+import { normalizeTaskStatus } from '../utils/taskStatus.js';
+
+function normalizeTask(task) {
+  if (!task) return null;
+  task.status = normalizeTaskStatus(task.status);
+  return task;
+}
 
 function getDefaultTerminal() {
   return {
@@ -23,6 +30,7 @@ function getDefaultTerminal() {
 export function assignTaskToBranch(projectPath, taskId, branch) {
   const task = readYaml(projectPath, `tasks/${taskId}/task.yaml`);
   if (!task) return null;
+  normalizeTask(task);
   task.git = task.git || { branch: null, commits: [], source_branch: null };
   task.git.branch = branch;
   task.git.source_branch = 'master';
@@ -54,13 +62,14 @@ export function assignTaskToBranch(projectPath, taskId, branch) {
 
 export function getBranchTasks(projectPath, branch) {
   const files = listDir(projectPath, `branches/${branch}`).filter(f => f.endsWith('.yaml'));
-  return files.map(f => readYaml(projectPath, `branches/${branch}/${f}`)).filter(Boolean);
+  return files.map(f => normalizeTask(readYaml(projectPath, `branches/${branch}/${f}`))).filter(Boolean);
 }
 
 export function updateBranchTask(projectPath, branch, taskId, updates) {
-  const task = readYaml(projectPath, `branches/${branch}/${taskId}.yaml`);
+  const task = normalizeTask(readYaml(projectPath, `branches/${branch}/${taskId}.yaml`));
   if (!task) return null;
   Object.assign(task, updates);
+  task.status = normalizeTaskStatus(task.status);
   task.updated_at = new Date().toISOString();
   writeFiles(projectPath, [
     { path: `branches/${branch}/${taskId}.yaml`, content: yaml.dump(task) }
@@ -69,7 +78,7 @@ export function updateBranchTask(projectPath, branch, taskId, updates) {
 }
 
 export function mergeTaskToMain(projectPath, branch, taskId) {
-  const task = readYaml(projectPath, `branches/${branch}/${taskId}.yaml`);
+  const task = normalizeTask(readYaml(projectPath, `branches/${branch}/${taskId}.yaml`));
   if (!task) return null;
 
   const changes = [
@@ -102,7 +111,7 @@ export function createBranchTask(projectPath, branch, taskData) {
     title: taskData.title,
     description: taskData.description || '',
     description_file: taskData.description_file || null,
-    status: taskData.status || 'todo',
+    status: normalizeTaskStatus(taskData.status),
     priority: taskData.priority || 'medium',
     milestone_id: taskData.milestone_id || null,
     parent_tasks: taskData.parent_tasks || [],
@@ -155,7 +164,7 @@ export function renameBranchTasks(projectPath, oldBranch, newBranch) {
   const updatedTasks = [];
 
   files.forEach((file) => {
-    const task = readYaml(projectPath, `branches/${oldBranch}/${file}`);
+    const task = normalizeTask(readYaml(projectPath, `branches/${oldBranch}/${file}`));
     if (!task) return;
     task.git = task.git || {};
     task.git.branch = newBranch;

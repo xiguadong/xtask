@@ -57,6 +57,17 @@ milestones:
       - title: 优化数据库查询
         done: false
 
+### 任务状态枚举
+
+用户态任务状态固定为以下四种：
+
+- `todo`：未开始
+- `in_progress`：进行中
+- `done`：已完成
+- `blocked`：被阻塞
+
+除以上四种外，不应在用户文档、CLI 示例、前端选项中出现其他任务状态。
+
 ### tasks/{task-id}/task.yaml (主分支任务)
 ```yaml
 id: 1741234567890-example-task
