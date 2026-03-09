@@ -23,6 +23,27 @@
 - [x] README - 校正初始化、启动、任务、worktree 等示例命令，避免旧命令误导 (2026-03-09)
 - [x] README - 补充数据存储、目录结构与 Web/CLI 使用路径说明 (2026-03-09)
 
+### 文档更新（1773036631363-refinedoc）
+
+- [x] README - 删除 `node cli/index.js` 直调示例，统一改为 `xtask` 与脚本入口 (2026-03-09)
+- [x] README - 使用方式按“安装环境 / 初始化仓库 / Web 操作”重组说明 (2026-03-09)
+- [x] README - Web 服务启动与停止统一改为 `./scripts/start.sh` / `./scripts/stop.sh` (2026-03-09)
+- [x] AGENTS - 补充 Codex 维护任务时必须优先使用 `xtask-safe` 且禁止直接改 YAML (2026-03-09)
+- [x] Skill - 确认 `xtask-safe` 已保存在项目 `.codex/skills/xtask-safe/SKILL.md` (2026-03-09)
+- [x] init-xtask - 初始化时若已有 `AGENTS.md` 则写入 `xtask-safe` 规则；若不存在需先征求用户同意再创建 (2026-03-09)
+
+### 脚本验证链路修复（1773036415833-scripts）
+
+- [x] CLI 测试脚本 - 临时测试仓库改到项目内 `cache/`，避免使用被禁止的 `/tmp` worktree 路径 (2026-03-09)
+- [x] CLI 测试脚本 - 对齐状态枚举，分支任务更新验证从 `completed` 改为 `done` (2026-03-09)
+- [x] CLI 测试脚本 - 切回初始分支时不再假定默认分支名为 `master` (2026-03-09)
+- [x] 分支任务脚本 - 临时输出写入项目 `cache/`，未安装 `backend` 依赖时给出明确跳过提示 (2026-03-09)
+- [x] Web Worktree 绑定 - 修复任务详情页创建 worktree 后只写入主任务 `git.branch`、未同步 `branches/<branch>/<taskId>.yaml` 与 `worktrees/<branch>.yaml.tasks` 的问题 (2026-03-09)
+- [x] xtask 规则 - 新增“将任务状态改为 `done` 前必须先获得用户明确确认”约束，并同步到 AGENTS、skill 与 README (2026-03-09)
+- [x] 启动脚本 - `scripts/start.sh` 改为 `nohup` 脱离终端后台常驻，关闭终端后服务仍可继续运行 (2026-03-09)
+- [x] 停止脚本 - `scripts/stop.sh` 新增 `--all` / `all` 指令，扫描当前用户全部已监听端口中的 xtask 后端并全部关闭 (2026-03-09)
+- [x] 脚本文档 - 更新 `scripts/README.md`，补充后台常驻与 `stop.sh --all` 用法说明 (2026-03-09)
+
 
 ## 2026-03-06
 

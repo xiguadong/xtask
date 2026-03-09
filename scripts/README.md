@@ -12,7 +12,7 @@ Builds the frontend for production.
 ```bash
 ./scripts/start.sh [port]
 ```
-Builds frontend and starts the server. Default port: 3000
+Builds frontend and starts the server in detached background mode. Default port: 3000
 
 Example:
 ```bash
@@ -39,8 +39,9 @@ Example:
 ### Stop
 ```bash
 ./scripts/stop.sh
+./scripts/stop.sh --all
 ```
-Scans current-user xtask-related ports/processes and stops them. Logs to `logs/stop.log`.
+`./scripts/stop.sh` 仅关闭当前项目的 xtask 后端进程；`./scripts/stop.sh --all` 会扫描当前用户所有已监听端口中的 xtask 相关后端进程并全部关闭。日志写入 `logs/stop.log`。
 
 ## Usage
 
@@ -53,4 +54,7 @@ Scans current-user xtask-related ports/processes and stops them. Logs to `logs/s
 
 # Stop server
 ./scripts/stop.sh
+
+# Stop all xtask servers for current user
+./scripts/stop.sh --all
 ```

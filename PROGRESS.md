@@ -2,7 +2,7 @@
 
 ## 当前版本
 
-**v0.4.2** - 项目页拆分里程碑/任务视图并增强筛选排序；新增 xtask 初始化 skill；补充用户向 README
+**v0.4.2** - 项目页拆分里程碑/任务视图并增强筛选排序；新增 xtask 初始化 skill；细化 README/AGENTS/初始化说明；修复 CLI/分支任务验证脚本与当前约束不一致的问题；修复 Web 创建 worktree 后任务未真正绑定的问题；新增任务完成前需用户确认的规则；修复 start/stop 脚本的后台常驻与全量停止能力
 
 ## 项目状态
 
@@ -14,10 +14,13 @@
 - ✅ 新增 `init-xtask` skill（初始化 `refs/xtask-data`、注册项目、引导首批 milestone）
 - ✅ 新增 xtask 初始化 milestone 预设，支持通用软件 / 遗留项目 / Web / CLI 场景
 - ✅ 统一任务状态枚举为 `todo / in_progress / done / blocked`
+- ✅ `init-xtask` 增补 `AGENTS.md` 处理流程（已有则补规则，无则先征求用户同意）
 
 ### 文档与指引
 - ✅ 重写 `README.md`，按“是什么 / 为什么使用 / 怎么使用”面向用户组织内容
 - ✅ 补充初始化、启动、任务、worktree、数据存储与目录结构说明
+- ✅ README 二次细化为“安装环境 / 初始化仓库 / Web 操作”结构
+- ✅ AGENTS 补充 Codex 任务维护约束与 `xtask-safe` 使用说明
 
 ### 核心架构
 - ✅ 项目初始化和 Git 版本控制
@@ -71,6 +74,8 @@
 - ✅ 启停脚本跨平台兼容修复（macOS/Linux）
 - ✅ 构建脚本依赖完整性校验（`npm ls`）
 - ✅ 启动脚本端口检测增强与冲突自动重试
+- ✅ 启动脚本后台常驻（脱离终端）
+- ✅ 停止脚本 `--all` 全量扫描并关闭当前用户 xtask 进程
 
 ## 待办事项
 
@@ -104,6 +109,15 @@
 - 新增 xtask 初始化 milestone 预设，覆盖通用软件、遗留项目、Web、CLI 场景
 - 统一任务状态枚举为 `todo / in_progress / done / blocked`
 - 重写 `README.md`，面向用户说明 xtask 是什么、为什么使用以及如何开始
+- README 改为“安装环境 / 初始化仓库 / Web 操作”三段式结构，并统一使用 `xtask` 与脚本入口示例
+- AGENTS 补充 Codex 任务维护约束，`init-xtask` skill 增补 `AGENTS.md` 处理流程
+- 修复 `scripts/test-cli.sh`：改用项目内 `cache/` 临时目录，兼容 `done` 状态与非 `master` 默认分支
+- 修复 `scripts/test-branch-tasks.sh`：移除 `/tmp` 临时文件依赖，缺少 `backend` 依赖时改为明确提示并跳过
+- 修复 Web 端创建 worktree 后仅更新主任务 `git.branch`、未同步分支任务文件和 worktree `tasks` 列表的问题
+- 新增 xtask 任务规则：将任务状态改为 `done` 前，必须先获得用户明确确认
+- 修复 `scripts/start.sh`：改为 `nohup` 脱离终端后台运行，不再依赖启动它的终端持续存在
+- 增强 `scripts/stop.sh`：新增 `--all` / `all` 指令，扫描当前用户所有 xtask 监听端口并全部关闭
+- 更新 `scripts/README.md`：补充后台常驻与全量停止示例命令
 
 
 ### v0.4.1 (2026-03-06)

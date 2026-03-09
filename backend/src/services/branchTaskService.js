@@ -27,13 +27,15 @@ function getDefaultTerminal() {
   };
 }
 
-export function assignTaskToBranch(projectPath, taskId, branch) {
+export function assignTaskToBranch(projectPath, taskId, branch, options = {}) {
   const task = readYaml(projectPath, `tasks/${taskId}/task.yaml`);
   if (!task) return null;
   normalizeTask(task);
   task.git = task.git || { branch: null, commits: [], source_branch: null };
   task.git.branch = branch;
-  task.git.source_branch = 'master';
+  if (Object.prototype.hasOwnProperty.call(options, 'sourceBranch')) {
+    task.git.source_branch = options.sourceBranch;
+  }
 
   const changes = [
     {
@@ -130,7 +132,7 @@ export function createBranchTask(projectPath, branch, taskData) {
     git: {
       branch,
       commits: [],
-      source_branch: 'master'
+      source_branch: taskData.source_branch || null
     }
   };
 

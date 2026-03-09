@@ -8,12 +8,22 @@ PID_FILE="$LOG_DIR/server.pid"
 PORT_FILE="$LOG_DIR/server.port"
 CURRENT_USER="$(id -un)"
 BACKEND_ENTRY="$ROOT_DIR/backend/server.js"
+MODE="${1:-current}"
 
 mkdir -p "$LOG_DIR"
 touch "$LOG_FILE"
 
 log() {
   echo "[$(date '+%F %T')] $*" | tee -a "$LOG_FILE"
+}
+
+usage() {
+  cat <<USAGE
+用法:
+  ./scripts/stop.sh           关闭当前项目的 xtask 后端进程
+  ./scripts/stop.sh --all     关闭当前用户的全部 xtask 后端进程
+  ./scripts/stop.sh all       同 --all
+USAGE
 }
 
 is_alive() {
@@ -24,11 +34,38 @@ cmdline_of() {
   ps -o command= -p "$1" 2>/dev/null || true
 }
 
+cwd_of() {
+  if ! command -v lsof >/dev/null 2>&1; then
+    return 0
+  fi
+
+  lsof -a -p "$1" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -n 1
+}
+
+ports_of() {
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -Pan -p "$1" -iTCP -sTCP:LISTEN -Fn 2>/dev/null | sed -n 's/^n.*://p' | paste -sd ',' -
+    return 0
+  fi
+
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltnp 2>/dev/null | awk -v pid="$1" '$0 ~ ("pid=" pid ",") {split($4, parts, ":"); print parts[length(parts)]}' | paste -sd ',' -
+  fi
+}
+
 stop_pid() {
   local pid="$1"
   local cmd
+  local ports
+
   cmd="$(cmdline_of "$pid")"
-  log "stopping pid=$pid cmd=$cmd"
+  ports="$(ports_of "$pid")"
+  if [[ -n "$ports" ]]; then
+    log "stopping pid=$pid ports=$ports cmd=$cmd"
+  else
+    log "stopping pid=$pid cmd=$cmd"
+  fi
+
   kill "$pid" >/dev/null 2>&1 || true
 
   local i
@@ -51,6 +88,8 @@ stop_pid() {
 add_unique_pid() {
   local candidate="$1"
   local existing
+
+  [[ -z "${candidate:-}" ]] && return 0
   for existing in "${TARGET_PIDS[@]:-}"; do
     if [[ "$existing" == "$candidate" ]]; then
       return 0
@@ -59,31 +98,99 @@ add_unique_pid() {
   TARGET_PIDS+=("$candidate")
 }
 
-TARGET_PIDS=()
+is_current_project_pid() {
+  local pid="$1"
+  local cmd
+  local cwd
 
-# 首选：绝对路径启动（新版 start.sh）
-while IFS= read -r pid; do
-  [[ -n "${pid:-}" ]] && add_unique_pid "$pid"
-done < <(pgrep -u "$CURRENT_USER" -f "$BACKEND_ENTRY" || true)
+  cmd="$(cmdline_of "$pid")"
+  [[ "$cmd" == *"$BACKEND_ENTRY"* ]] && return 0
 
-# 兼容：旧版以 `node server.js` 启动，使用 cwd 限定到当前项目 backend
-if command -v lsof >/dev/null 2>&1; then
+  cwd="$(cwd_of "$pid")"
+  [[ "$cmd" == *"node server.js"* && "$cwd" == "$ROOT_DIR/backend" ]]
+}
+
+is_global_xtask_pid() {
+  local pid="$1"
+  local cmd
+  local cwd
+
+  cmd="$(cmdline_of "$pid")"
+  cwd="$(cwd_of "$pid")"
+
+  if [[ "$cmd" == *"/backend/server.js"* && "$cmd" == *"xtask"* ]]; then
+    return 0
+  fi
+
+  if [[ "$cmd" == *"node server.js"* && "$cwd" == */backend && "$cwd" == *"xtask"* ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
+collect_current_project_pids() {
+  local pid
+
+  while IFS= read -r pid; do
+    add_unique_pid "$pid"
+  done < <(pgrep -u "$CURRENT_USER" -f "$BACKEND_ENTRY" || true)
+
   while IFS= read -r pid; do
     [[ -z "${pid:-}" ]] && continue
-    cwd="$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -n 1)"
-    if [[ "$cwd" == "$ROOT_DIR/backend" ]]; then
+    if is_current_project_pid "$pid"; then
       add_unique_pid "$pid"
     fi
   done < <(pgrep -u "$CURRENT_USER" -f "node server.js" || true)
-fi
+}
+
+collect_all_xtask_pids() {
+  local pid
+
+  while IFS= read -r pid; do
+    [[ -z "${pid:-}" ]] && continue
+    if is_global_xtask_pid "$pid"; then
+      add_unique_pid "$pid"
+    fi
+  done < <(pgrep -u "$CURRENT_USER" -f "node .*server.js|node server.js" || true)
+}
+
+TARGET_PIDS=()
+
+case "$MODE" in
+  current|"")
+    collect_current_project_pids
+    ;;
+  --all|all)
+    collect_all_xtask_pids
+    ;;
+  -h|--help|help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "未知参数: $MODE" >&2
+    usage >&2
+    exit 1
+    ;;
+esac
 
 if [[ "${#TARGET_PIDS[@]}" -eq 0 ]]; then
-  log "no xtask process found for user=$CURRENT_USER"
+  if [[ "$MODE" == "--all" || "$MODE" == "all" ]]; then
+    log "no xtask process found for user=$CURRENT_USER in all ports"
+  else
+    log "no xtask process found for user=$CURRENT_USER in current project"
+  fi
   rm -f "$PID_FILE" "$PORT_FILE"
   exit 0
 fi
 
-log "found ${#TARGET_PIDS[@]} xtask process(es) for user=$CURRENT_USER"
+if [[ "$MODE" == "--all" || "$MODE" == "all" ]]; then
+  log "found ${#TARGET_PIDS[@]} xtask process(es) for user=$CURRENT_USER across all ports"
+else
+  log "found ${#TARGET_PIDS[@]} xtask process(es) for user=$CURRENT_USER in current project"
+fi
+
 for pid in "${TARGET_PIDS[@]}"; do
   stop_pid "$pid"
 done

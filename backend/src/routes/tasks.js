@@ -41,6 +41,12 @@ router.put('/:projectName/tasks/:id', (req, res) => {
   const task = updateTask(project.path, req.params.id, req.body);
   if (!task) return res.status(404).json({ error: 'Task not found' });
 
+  if (task.git?.branch) {
+    branchTaskService.assignTaskToBranch(project.path, req.params.id, task.git.branch, {
+      sourceBranch: task.git.source_branch ?? null
+    });
+  }
+
   const becameCompleted =
     previousTask &&
     !isTaskDone(previousTask.status) &&

@@ -16,11 +16,12 @@ description: Safe xtask task management with enforced constraints. Use this skil
 - 修改任务属性
 - 任何涉及 xtask 任务维护的操作
 
-## 三条强制规则
+## 四条强制规则
 
 1. **仅用 CLI**：任务变更必须走 `xtask` 命令，严禁直接编辑 YAML
 2. **子任务继承**：创建子任务必须继承父任务 milestone 和 labels，并追加 `parent:<父ID>` 和 `agent:codex` 标签
 3. **禁止删除**：严禁执行任何 `xtask delete` 命令
+4. **完成需确认**：将任务状态改为 `done` 前，必须先获得用户明确确认
 
 ## 工作流程
 
@@ -29,6 +30,8 @@ description: Safe xtask task management with enforced constraints. Use this skil
 xtask task update <task-id> --status <new-status>
 # 可用状态仅为: todo | in_progress | done | blocked
 ```
+
+当目标状态为 `done` 时，先向用户确认，再执行命令。
 
 ### 创建子任务（完整流程）
 
@@ -61,6 +64,7 @@ xtask task create "子任务2" --milestone <M> --labels <继承>,parent:<parent-
 
 **场景1：标记任务完成**
 ```bash
+# 先得到用户明确确认，再执行：
 xtask task update T-001 --status done
 ```
 
