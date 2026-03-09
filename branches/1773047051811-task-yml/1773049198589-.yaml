@@ -1,0 +1,43 @@
+id: 1773049198589-
+title: 优化前端构建包体积告警
+description: |-
+  处理 frontend 构建时 Vite 提示主包超过 500 kB 的告警。
+  目标：评估是否通过动态导入、manualChunks 或其他方式降低主包体积。
+description_file: null
+summary_file: null
+status: todo
+priority: medium
+milestone_id: m2
+parent_tasks: []
+labels:
+  - ui
+  - terminal
+  - parent:1773047051811-task-yml
+  - agent:codex
+created_at: '2026-03-09T09:39:58.589Z'
+updated_at: '2026-03-09T09:39:58.589Z'
+created_by: cli
+agent:
+  assigned: false
+  identity: null
+  assigned_at: null
+  session_id: null
+  status: null
+terminal:
+  enabled: false
+  mode: null
+  session_id: null
+  status: stopped
+  host: null
+  port: 22
+  username: null
+  timeout_days: 3
+  auto_stop_on_task_done: true
+  started_at: null
+  last_active_at: null
+  stopped_at: null
+  stop_reason: null
+git:
+  branch: 1773047051811-task-yml
+  commits: []
+  source_branch: master
