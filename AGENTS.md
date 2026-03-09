@@ -97,6 +97,7 @@ xtask worktree tasks <branch> # 列出指定 worktree 分支的任务
 
 - `xtask-safe`: `.codex/skills/xtask-safe/SKILL.md`
 - `ui-ux-pro-max`: `.codex/skills/ui-ux-pro-max/SKILL.md`
+- `init-xtask`: `.codex/skills/init-xtask/SKILL.md`
 
 ### xtask 使用规范
 
@@ -104,6 +105,8 @@ xtask worktree tasks <branch> # 列出指定 worktree 分支的任务
 - 所有变更通过 xtask CLI 命令执行
 - 子任务正确继承父任务属性
 - 禁止删除操作
+
+初始化仓库的 xtask 任务体系时优先使用 `init-xtask`，先建立 `refs/xtask-data`，再引导用户确认初始 milestone。
 
 详见：`.codex/skills/xtask-safe/SKILL.md`
 

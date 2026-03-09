@@ -1,0 +1,4 @@
+interface:
+  display_name: "初始化 xtask"
+  short_description: "初始化 xtask 数据分支、注册项目并引导首批 milestone"
+  default_prompt: "使用该 skill 初始化当前仓库的 xtask 任务体系，先创建 xtask 数据分支，再补齐注册信息并给出初始 milestone 建议"

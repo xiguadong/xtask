@@ -2,13 +2,18 @@
 
 ## 当前版本
 
-**v0.4.2** - 项目页拆分里程碑/任务视图并增强筛选排序
+**v0.4.2** - 项目页拆分里程碑/任务视图并增强筛选排序；新增 xtask 初始化 skill
 
 ## 项目状态
 
 🚧 开发中
 
 ## 已完成功能
+
+### Codex Skills
+- ✅ 新增 `init-xtask` skill（初始化 `refs/xtask-data`、注册项目、引导首批 milestone）
+- ✅ 新增 xtask 初始化 milestone 预设，支持通用软件 / 遗留项目 / Web / CLI 场景
+- ✅ 统一任务状态枚举为 `todo / in_progress / done / blocked`
 
 ### 核心架构
 - ✅ 项目初始化和 Git 版本控制
@@ -91,6 +96,9 @@
 - 里程碑卡片新增所属任务总进度与按优先级聚合的完成进度展示
 - 任务卡片与详情页显示 `name-timestamp` 任务标识，并兼容 `completed` 状态显示
 - `frontend` 构建验证通过
+- 新增 `init-xtask` skill：支持初始化 `refs/xtask-data`、注册项目并引导首批 milestone
+- 新增 xtask 初始化 milestone 预设，覆盖通用软件、遗留项目、Web、CLI 场景
+- 统一任务状态枚举为 `todo / in_progress / done / blocked`
 
 
 ### v0.4.1 (2026-03-06)

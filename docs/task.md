@@ -10,6 +10,13 @@
 - [x] Task 展示 - 任务卡片与详情页显示 `name-timestamp` 格式任务标识，并兼容 `completed` 状态 (2026-03-09)
 - [x] 验证 - `frontend npm run build` 构建通过 (2026-03-09)
 
+### 初始化 xtask Skill（1773027787026-skill）
+
+- [x] 新增 `init-xtask` skill：聚焦 xtask 数据分支初始化、项目注册与 milestone 引导 (2026-03-09)
+- [x] 补充 milestone 预设：按通用软件、遗留项目、Web、CLI 等场景给出初始化建议 (2026-03-09)
+- [x] 文档更新：在 `AGENTS.md` 注册 `init-xtask` skill，并记录任务完成情况 (2026-03-09)
+- [x] 状态规范 - 统一任务状态为 `todo / in_progress / done / blocked` (2026-03-09)
+
 
 ## 2026-03-06
 

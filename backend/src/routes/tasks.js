@@ -3,6 +3,7 @@ import { getProjectByName } from '../services/projectService.js';
 import { getTasks, getTaskById, createTask, updateTask, deleteTask, assignAgent, getTaskDescription } from '../services/taskService.js';
 import * as branchTaskService from '../services/branchTaskService.js';
 import * as terminalService from '../services/terminalService.js';
+import { isTaskDone } from '../utils/taskStatus.js';
 
 const router = express.Router();
 
@@ -40,11 +41,10 @@ router.put('/:projectName/tasks/:id', (req, res) => {
   const task = updateTask(project.path, req.params.id, req.body);
   if (!task) return res.status(404).json({ error: 'Task not found' });
 
-  const completedStatuses = new Set(['done', 'completed']);
   const becameCompleted =
     previousTask &&
-    !completedStatuses.has(previousTask.status) &&
-    completedStatuses.has(task.status);
+    !isTaskDone(previousTask.status) &&
+    isTaskDone(task.status);
 
   if (becameCompleted && task.terminal?.auto_stop_on_task_done) {
     terminalService.stopTaskTerminalSession(project.path, req.params.id, 'task_completed');

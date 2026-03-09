@@ -1,5 +1,6 @@
 import yaml from 'js-yaml';
 import { readYaml, writeFiles, listDir, readFile } from '../utils/gitDataStore.js';
+import { normalizeTaskStatus } from '../utils/taskStatus.js';
 
 function getDefaultTerminal() {
   return {
@@ -42,6 +43,8 @@ function normalizeTask(task) {
     ...task.git
   };
 
+  task.status = normalizeTaskStatus(task.status);
+
   task.terminal = {
     ...getDefaultTerminal(),
     ...(task.terminal || {})
@@ -63,7 +66,8 @@ export function getTasks(projectPath, filters = {}) {
     tasks = tasks.filter(t => t.milestone_id === filters.milestone);
   }
   if (filters.status) {
-    tasks = tasks.filter(t => t.status === filters.status);
+    const targetStatus = normalizeTaskStatus(filters.status, filters.status);
+    tasks = tasks.filter(t => t.status === targetStatus);
   }
   if (filters.label) {
     tasks = tasks.filter(t => t.labels.includes(filters.label));
@@ -91,7 +95,7 @@ export function createTask(projectPath, task) {
     title: task.title,
     description: task.description || '',
     description_file: task.description_file || null,
-    status: task.status || 'todo',
+    status: normalizeTaskStatus(task.status),
     priority: task.priority || 'medium',
     milestone_id: task.milestone_id || null,
     parent_tasks: task.parent_tasks || [],
@@ -142,6 +146,7 @@ export function updateTask(projectPath, id, updates) {
   const { terminal, agent, git, ...restUpdates } = updates || {};
 
   Object.assign(task, restUpdates);
+  task.status = normalizeTaskStatus(task.status);
   if (terminal) {
     task.terminal = {
       ...task.terminal,

@@ -71,6 +71,13 @@ xtask start --port 3000
 - `xtask task delete <id>` - 删除任务
 - `xtask task assign <id>` - 分配代理
 
+### 任务状态
+- `todo` - 未开始
+- `in_progress` - 进行中
+- `done` - 已完成
+- `blocked` - 被阻塞
+
+
 ### 服务器
 - `xtask start` - 启动 Web 服务器
 

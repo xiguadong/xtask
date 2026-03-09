@@ -139,6 +139,16 @@ tasks:
 last_commit: null
 ```
 
+### 任务状态枚举
+
+分支任务与主分支任务的 `status` 字段在用户态仅允许以下四种：
+
+- `todo`
+- `in_progress`
+- `done`
+- `blocked`
+
+
 ### 分支任务格式
 
 **文件**: `.xtask/branches/{branch}/{task-id}.yaml`
