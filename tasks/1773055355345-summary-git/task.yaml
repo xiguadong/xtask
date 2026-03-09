@@ -10,7 +10,7 @@ parent_tasks: []
 labels:
   - terminal
 created_at: '2026-03-09T11:22:35.345Z'
-updated_at: '2026-03-09T11:22:44.504Z'
+updated_at: '2026-03-09T11:53:13.707Z'
 created_by: web
 agent:
   assigned: false
@@ -21,15 +21,15 @@ agent:
 terminal:
   enabled: true
   mode: local
-  session_id: 1773055355345-summary-git-terminal-1773055364504
+  session_id: 1773055355345-summary-git-terminal-1773057193707
   status: running
   host: null
   port: 22
   username: null
   timeout_days: 3
   auto_stop_on_task_done: true
-  started_at: '2026-03-09T11:22:44.504Z'
-  last_active_at: '2026-03-09T11:22:44.504Z'
+  started_at: '2026-03-09T11:53:13.707Z'
+  last_active_at: '2026-03-09T11:53:13.707Z'
   stopped_at: null
   stop_reason: null
 git:
