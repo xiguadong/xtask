@@ -1,125 +1,104 @@
 # xtask
 
-基于文件的本地项目管理系统，用于跟踪任务、里程碑和代理分配。
+`xtask` 是一个基于文件和 Git 数据分支的本地项目管理系统，用来管理里程碑、任务、worktree 和代理协作。
 
-## 特性
+## 这是什么
 
-- 📋 任务管理：创建、更新、分配任务
-- 🎯 里程碑跟踪：组织任务到里程碑
-- 🤖 代理分配：支持多代理协作
-- 📁 文件存储：所有数据存储在 YAML 文件中
-- 🌐 Web 界面：React 前端 + Express 后端
-- 💻 CLI 工具：命令行快速操作
+`xtask` 把项目管理直接放进仓库里：
 
-## 技术栈
+- 用 **CLI** 管理任务、里程碑和 worktree
+- 用 **Web UI** 查看项目、任务和终端状态
+- 用 `refs/xtask-data` 保存项目数据
 
-- **CLI**: Node.js + Commander.js
-- **后端**: Express + YAML 文件存储
-- **前端**: React 18 + TypeScript + Tailwind CSS
+## 为什么用
 
-## 安装
-
-```bash
-# 安装 CLI 依赖
-cd cli && npm install && npm link
-
-# 安装后端依赖
-cd ../backend && npm install
-
-# 安装前端依赖并编译
-cd ../frontend && npm install && npm run build
-```
+- **本地优先**：不依赖外部任务平台
+- **跟 Git 走**：任务和开发分支/worktree 可以一起管理
+- **结构简单**：YAML 存储，方便排查和扩展
+- **适合多任务开发**：一个分支 / worktree 对应一组任务
 
 ## 快速开始
 
+先安装依赖：
+
 ```bash
-# 初始化项目
-cd /path/to/your/project
+cd cli && npm install
+cd ../backend && npm install
+cd ../frontend && npm install
+cd ..
+```
+
+然后在仓库根目录执行：
+
+```bash
+node cli/index.js init
+node cli/index.js project register
+node cli/index.js milestone create "MVP"
+node cli/index.js task create "我的第一个任务" --milestone m1 --labels demo
+./scripts/start.sh 3000
+```
+
+启动后访问：`http://localhost:3000`
+
+如果你已经把 CLI 安装成全局命令，也可以直接写成：
+
+```bash
 xtask init
 xtask project register
-
-# 创建里程碑
-xtask milestone create "MVP Release" --due 2026-04-01
-
-# 创建任务
-xtask task create "实现认证功能" --milestone m1 --labels backend,security
-
-# 启动 Web 服务器
-xtask start --port 3000
+xtask milestone create "MVP"
+xtask task create "我的第一个任务" --milestone m1 --labels demo
 ```
 
-## CLI 命令
-
-### 项目管理
-- `xtask init` - 初始化 Git 数据分支
-- `xtask project register` - 注册当前项目
-- `xtask project list` - 列出所有项目
-- `xtask project delete <name>` - 删除项目
-- `xtask project delete-path <path>` - 按路径删除项目注册
-- `xtask project migrate-to-git` - 迁移旧版 `.xtask` 数据到 Git 分支
-
-### 里程碑管理
-- `xtask milestone create <name>` - 创建里程碑
-- `xtask milestone list` - 列出里程碑
-- `xtask milestone update <id>` - 更新里程碑
-
-### 任务管理
-- `xtask task create <title>` - 创建任务
-- `xtask task list` - 列出任务
-- `xtask task show <id>` - 查看任务详情
-- `xtask task update <id>` - 更新任务
-- `xtask task delete <id>` - 删除任务
-- `xtask task assign <id>` - 分配代理
-
-### 任务状态
-- `todo` - 未开始
-- `in_progress` - 进行中
-- `done` - 已完成
-- `blocked` - 被阻塞
-
-
-### 服务器
-- `xtask start` - 启动 Web 服务器
-
-## Web 界面
-
-启动服务器后访问 `http://localhost:3000`
-
-三级导航结构：
-1. 项目列表 - 查看所有项目
-2. 项目详情 - 管理里程碑和任务
-3. 任务详情 - 查看/编辑任务，分配代理
-
-## 数据结构
-
-```
-~/.xtask/              # 全局注册表
-  projects.yaml        # 所有注册的项目
-  config.yaml          # 全局配置
-
-Git refs/xtask-data    # 项目数据（Git 专用分支）
-  config.yaml
-  milestones.yaml
-  tasks/
-    <timestamp-slug>/
-      task.yaml
-  branches/
-  worktrees/
-```
-
-## 开发
+## 常用命令
 
 ```bash
-# 运行后端
-cd backend && npm start
-
-# 运行前端开发服务器
-cd frontend && npm run dev
-
-# 编译前端
-cd frontend && npm run build
+xtask init
+xtask project register
+xtask milestone list
+xtask task list
+xtask task show <id>
+xtask task update <id> --status done
+xtask worktree list
+xtask worktree tasks
 ```
 
-## 许可证
+任务状态统一使用：
 
-MIT
+- `todo`
+- `in_progress`
+- `done`
+- `blocked`
+
+## Codex / Skill 用法
+
+如果你是通过 Codex 维护任务，遵循这两条：
+
+- 涉及任务状态更新、建子任务、拆分任务时，优先使用 `xtask-safe` skill
+- 所有任务变更通过 `xtask` CLI 完成，不直接修改 YAML
+
+## 数据位置
+
+- 全局项目注册：`~/.xtask/projects.yaml`
+- 项目数据分支：`refs/xtask-data`
+
+典型结构：
+
+```text
+milestones.yaml
+tasks/<task-id>/task.yaml
+branches/<branch>/<task-id>.yaml
+worktrees/<branch>.yaml
+```
+
+## 目录结构
+
+```text
+xtask/
+├── cli/
+├── backend/
+├── frontend/
+├── scripts/
+├── docs/
+├── cache/
+└── logs/
+```

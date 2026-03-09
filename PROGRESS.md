@@ -2,7 +2,7 @@
 
 ## 当前版本
 
-**v0.4.2** - 项目页拆分里程碑/任务视图并增强筛选排序；新增 xtask 初始化 skill
+**v0.4.2** - 项目页拆分里程碑/任务视图并增强筛选排序；新增 xtask 初始化 skill；补充用户向 README
 
 ## 项目状态
 
@@ -14,6 +14,10 @@
 - ✅ 新增 `init-xtask` skill（初始化 `refs/xtask-data`、注册项目、引导首批 milestone）
 - ✅ 新增 xtask 初始化 milestone 预设，支持通用软件 / 遗留项目 / Web / CLI 场景
 - ✅ 统一任务状态枚举为 `todo / in_progress / done / blocked`
+
+### 文档与指引
+- ✅ 重写 `README.md`，按“是什么 / 为什么使用 / 怎么使用”面向用户组织内容
+- ✅ 补充初始化、启动、任务、worktree、数据存储与目录结构说明
 
 ### 核心架构
 - ✅ 项目初始化和 Git 版本控制
@@ -74,7 +78,7 @@
 - [ ] 完成前端编译和测试
 - [x] 验证 CLI 命令功能
 - [ ] 测试后端 API 接口
-- [ ] 编写使用文档
+- [x] 编写使用文档
 
 ### 中期目标
 - [x] 添加代理集成功能
@@ -99,6 +103,7 @@
 - 新增 `init-xtask` skill：支持初始化 `refs/xtask-data`、注册项目并引导首批 milestone
 - 新增 xtask 初始化 milestone 预设，覆盖通用软件、遗留项目、Web、CLI 场景
 - 统一任务状态枚举为 `todo / in_progress / done / blocked`
+- 重写 `README.md`，面向用户说明 xtask 是什么、为什么使用以及如何开始
 
 
 ### v0.4.1 (2026-03-06)
