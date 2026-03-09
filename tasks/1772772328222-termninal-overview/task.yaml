@@ -5,7 +5,7 @@ description: |-
   2. 首页面，注意是最前面的首页，增加一个看板，展示所有项目的所有terminal overview;
   3. terminal 打字后发现非常容易按很多次按键，比如输入 a,但是终端显示 aa
 description_file: null
-status: todo
+status: done
 priority: low
 milestone_id: null
 parent_tasks: []
@@ -13,7 +13,7 @@ labels:
   - ui
   - terminal
 created_at: '2026-03-06T04:45:28.223Z'
-updated_at: '2026-03-06T06:16:33.097Z'
+updated_at: '2026-03-09T04:49:24.849Z'
 created_by: web
 agent:
   assigned: false
