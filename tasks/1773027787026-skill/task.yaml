@@ -2,13 +2,13 @@ id: 1773027787026-skill
 title: 创建初始化仓库的 skill
 description: 新建一个初始化仓库的skill
 description_file: null
-status: completed
+status: done
 priority: medium
 milestone_id: m1
 parent_tasks: []
 labels: []
 created_at: '2026-03-09T03:43:07.026Z'
-updated_at: '2026-03-09T04:33:08.956Z'
+updated_at: '2026-03-09T04:51:25.810Z'
 created_by: web
 agent:
   assigned: false
