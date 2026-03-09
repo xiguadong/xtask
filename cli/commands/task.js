@@ -3,6 +3,7 @@ import { generateTaskId } from '../utils/idGenerator.js';
 import { getRepoRoot, getCurrentBranch } from '../utils/gitRepo.js';
 import { listDir, readYaml as readGitYaml, writeFiles } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
+import { prepareTaskDescription } from '../utils/taskContent.js';
 
 function getWorktree(projectRoot, branch) {
   if (!branch) return null;
@@ -12,6 +13,7 @@ function getWorktree(projectRoot, branch) {
 function normalizeTask(task) {
   if (!task) return null;
   task.status = normalizeTaskStatus(task.status, task.status || 'todo');
+  task.summary_file = task.summary_file || null;
   return task;
 }
 
@@ -25,8 +27,9 @@ export function createTask(title, options = {}) {
   const task = {
     id,
     title,
-    description: options.description || '',
-    description_file: options.descriptionFile ? `tasks/${id}/description.md` : null,
+    description: '',
+    description_file: null,
+    summary_file: null,
     status: normalizeTaskStatus(options.status),
     priority: options.priority || 'medium',
     milestone_id: options.milestone || null,
@@ -64,7 +67,13 @@ export function createTask(title, options = {}) {
     }
   };
 
-  const changes = [];
+  const preparedDescription = prepareTaskDescription(id, options.description || '', {
+    forceFile: options.descriptionFile === true
+  });
+  task.description = preparedDescription.description;
+  task.description_file = preparedDescription.description_file;
+
+  const changes = [...preparedDescription.changes];
   if (isInWorktree) {
     changes.push({
       path: `branches/${currentBranch}/${id}.yaml`,
@@ -87,12 +96,6 @@ export function createTask(title, options = {}) {
       path: `tasks/${id}/task.yaml`,
       content: yaml.dump(task)
     });
-    if (options.descriptionFile) {
-      changes.push({
-        path: `tasks/${id}/description.md`,
-        content: '# 任务描述\n\n'
-      });
-    }
   }
 
   writeFiles(projectRoot, changes, 'xtask create task');
@@ -158,6 +161,9 @@ export function showTask(id) {
   console.log(`Priority: ${task.priority}`);
   console.log(`Milestone: ${task.milestone_id || 'None'}`);
   console.log(`Labels: ${task.labels.join(', ') || 'None'}`);
+  if (task.summary_file) {
+    console.log(`Summary file: ${task.summary_file}`);
+  }
   if (task.agent.assigned) {
     console.log(`Agent: ${task.agent.identity} [${task.agent.status}]`);
     console.log(`Branch: ${task.git.branch || 'None'}`);
@@ -185,8 +191,19 @@ export function updateTask(id, options = {}) {
   if (options.labels) task.labels = options.labels.split(',');
   task.updated_at = new Date().toISOString();
 
+  const descriptionChanges = [];
+  if (Object.prototype.hasOwnProperty.call(options, 'description')) {
+    const preparedDescription = prepareTaskDescription(id, options.description, {
+      existingPath: task.description_file || null
+    });
+    task.description = preparedDescription.description;
+    task.description_file = preparedDescription.description_file;
+    descriptionChanges.push(...preparedDescription.changes);
+  }
+
   writeFiles(projectRoot, [
-    { path: targetPath, content: yaml.dump(task) }
+    { path: targetPath, content: yaml.dump(task) },
+    ...descriptionChanges
   ], 'xtask update task');
   console.log(`Updated task: ${id}${isInWorktree ? ` (branch: ${currentBranch})` : ''}`);
 }
@@ -282,6 +299,12 @@ export function deleteTask(id) {
     const changes = [
       { path: `branches/${currentBranch}/${id}.yaml`, delete: true }
     ];
+    if (task.description_file) {
+      changes.push({ path: task.description_file, delete: true });
+    }
+    if (task.summary_file) {
+      changes.push({ path: task.summary_file, delete: true });
+    }
     if (worktree) {
       if (!Array.isArray(worktree.tasks)) {
         worktree.tasks = [];
@@ -305,6 +328,9 @@ export function deleteTask(id) {
   ];
   const descPath = task.description_file || `tasks/${id}/description.md`;
   changes.push({ path: descPath, delete: true });
+  if (task.summary_file) {
+    changes.push({ path: task.summary_file, delete: true });
+  }
 
   writeFiles(projectRoot, changes, 'xtask delete task');
   console.log(`Deleted task: ${id}`);

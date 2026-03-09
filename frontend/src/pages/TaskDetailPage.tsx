@@ -25,8 +25,17 @@ export default function TaskDetailPage() {
 
   useEffect(() => {
     if (!task || !editing) return;
-    setDescriptionDraft(task.description || '');
+    setDescriptionDraft(task.description_content || task.description || '');
   }, [editing, task]);
+
+  useEffect(() => {
+    if (!projectName || !taskId || editing) return;
+    const timer = window.setInterval(() => {
+      void loadTask();
+    }, 180000);
+
+    return () => window.clearInterval(timer);
+  }, [editing, projectName, taskId]);
 
   async function loadTask() {
     const data = await fetchTask(projectName!, taskId!);
@@ -45,7 +54,7 @@ export default function TaskDetailPage() {
       labels: task!.labels
     });
     setEditing(false);
-    loadTask();
+    void loadTask();
   }
 
   function handleAddLabel(event: React.FormEvent) {
@@ -73,6 +82,8 @@ export default function TaskDetailPage() {
     );
   }
 
+  const descriptionContent = task.description_content || task.description;
+
   return (
     <>
       <TopBar title={task.title} backTo={`/projects/${projectName}`} backLabel="Back to project" searchPlaceholder="Search task" />
@@ -95,7 +106,7 @@ export default function TaskDetailPage() {
           </aside>
         }
         main={
-          <section className="space-y-3 rounded-lg border border-border bg-surface p-4">
+          <section className="space-y-4 rounded-lg border border-border bg-surface p-4">
             <header className="flex items-center justify-between border-b border-border pb-3">
               <div>
                 <h2 className="text-sm font-semibold text-text">任务详情</h2>
@@ -142,7 +153,7 @@ export default function TaskDetailPage() {
                 </div>
                 <div>
                   <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Labels</h3>
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="mb-2 flex flex-wrap gap-2">
                     {task.labels.map((label) => (
                       <span key={label} className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs text-slate-700">
                         {label}
@@ -186,34 +197,63 @@ export default function TaskDetailPage() {
                 </button>
               </form>
             ) : (
-              <article className="space-y-4 text-sm">
-                <div>
-                  <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Description</h3>
-                  {task.description?.trim() ? (
-                    <MarkdownPreview value={task.description} className="text-sm" />
-                  ) : (
-                    <p className="text-muted text-sm">暂无描述</p>
-                  )}
-                </div>
-
-                <div>
-                  <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Labels</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {task.labels.length > 0 ? (
-                      task.labels.map((label) => (
-                        <span key={label} className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-700">
-                          {label}
-                        </span>
-                      ))
+              <>
+                <article className="space-y-4 text-sm">
+                  <div className="rounded-lg border border-border bg-white p-4">
+                    <div className="mb-3 border-b border-border pb-3">
+                      <h3 className="text-sm font-semibold text-text">任务描述</h3>
+                      {task.description_file ? (
+                        <p className="mt-1 text-xs text-muted">
+                          长描述已自动收纳到 <code>{task.description_file}</code>
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-xs text-muted">任务正文按统一紧凑 Markdown 规则渲染。</p>
+                      )}
+                    </div>
+                    {descriptionContent?.trim() ? (
+                      <MarkdownPreview value={descriptionContent} className="text-sm" compact />
                     ) : (
-                      <span className="text-muted">No labels</span>
+                      <p className="text-sm text-muted">暂无描述</p>
                     )}
                   </div>
-                </div>
-              </article>
-            )}
 
-            <TaskActions task={task} projectName={projectName!} onUpdate={loadTask} />
+                  <div className="rounded-lg border border-border bg-white p-4">
+                    <div className="mb-3 border-b border-border pb-3">
+                      <h3 className="text-sm font-semibold text-text">标签</h3>
+                      <p className="mt-1 text-xs text-muted">任务附加属性与分类标识。</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {task.labels.length > 0 ? (
+                        task.labels.map((label) => (
+                          <span key={label} className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                            {label}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-muted">No labels</span>
+                      )}
+                    </div>
+                  </div>
+                </article>
+
+                <TaskActions task={task} projectName={projectName!} onUpdate={loadTask} />
+
+                {task.summary_content?.trim() ? (
+                  <section className="rounded-lg border border-border bg-white p-4 shadow-sm">
+                    <div className="mb-3 border-b border-border pb-3">
+                      <h3 className="text-sm font-semibold text-text">任务总结</h3>
+                      <p className="mt-1 text-xs text-muted">与任务描述相同，按统一紧凑 Markdown 规则渲染。</p>
+                      {task.summary_file ? (
+                        <p className="mt-1 text-xs text-muted">
+                          总结文件：<code>{task.summary_file}</code>
+                        </p>
+                      ) : null}
+                    </div>
+                    <MarkdownPreview value={task.summary_content} className="text-sm" compact />
+                  </section>
+                ) : null}
+              </>
+            )}
           </section>
         }
       />

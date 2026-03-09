@@ -8,6 +8,14 @@
 
 🚧 开发中
 
+## 2026-03-09
+
+- ✅ 任务详情接口优先读取分支任务版本，修复分支任务已有 `summary_file`/`summary_content` 但页面仍显示主任务旧数据的问题
+- ✅ `build.sh` 兼容共享依赖目录：前端构建改用 `vite --configLoader runner`，避免复用外部 `node_modules` 时写 `.vite-temp` 失败
+- ✅ `task.yaml` 新增 `summary_file` 字段，Agent 完成任务后自动写入 `tasks/<id>/summary.md`
+- ✅ 长描述自动切换为文件存储：超过阈值时写入 `description_file`，详情页读取完整内容，卡片保留摘要预览
+- ✅ Task 详情页支持展示总结文档，并增加 3 分钟静态轮询刷新以感知 Agent 新写入的总结
+
 ## 已完成功能
 
 ### Codex Skills

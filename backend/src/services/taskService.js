@@ -1,6 +1,7 @@
 import yaml from 'js-yaml';
-import { readYaml, writeFiles, listDir, readFile } from '../utils/gitDataStore.js';
+import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
+import { prepareTaskDescription, readTaskDescriptionContent, readTaskSummaryContent } from '../utils/taskContent.js';
 
 function getDefaultTerminal() {
   return {
@@ -44,6 +45,7 @@ function normalizeTask(task) {
   };
 
   task.status = normalizeTaskStatus(task.status);
+  task.summary_file = task.summary_file || null;
 
   task.terminal = {
     ...getDefaultTerminal(),
@@ -55,11 +57,26 @@ function normalizeTask(task) {
   return task;
 }
 
+function hydrateTaskContent(projectPath, task, options = {}) {
+  if (!task) return null;
+  const hydrated = normalizeTask(task);
+
+  if (options.includeDescriptionContent) {
+    hydrated.description_content = readTaskDescriptionContent(projectPath, hydrated);
+  }
+
+  if (options.includeSummaryContent) {
+    hydrated.summary_content = readTaskSummaryContent(projectPath, hydrated);
+  }
+
+  return hydrated;
+}
+
 export function getTasks(projectPath, filters = {}) {
   const taskDirs = listDir(projectPath, 'tasks');
   let tasks = taskDirs.map(dir => {
     const task = readYaml(projectPath, `tasks/${dir}/task.yaml`);
-    return task ? normalizeTask(task) : null;
+    return task ? hydrateTaskContent(projectPath, task) : null;
   }).filter(Boolean);
 
   if (filters.milestone) {
@@ -82,7 +99,10 @@ export function getTasks(projectPath, filters = {}) {
 export function getTaskById(projectPath, id) {
   const task = readYaml(projectPath, `tasks/${id}/task.yaml`);
   if (!task) return null;
-  return normalizeTask(task);
+  return hydrateTaskContent(projectPath, task, {
+    includeDescriptionContent: true,
+    includeSummaryContent: true
+  });
 }
 
 export function createTask(projectPath, task) {
@@ -93,8 +113,9 @@ export function createTask(projectPath, task) {
   const newTask = {
     id,
     title: task.title,
-    description: task.description || '',
-    description_file: task.description_file || null,
+    description: '',
+    description_file: null,
+    summary_file: task.summary_file || null,
     status: normalizeTaskStatus(task.status),
     priority: task.priority || 'medium',
     milestone_id: task.milestone_id || null,
@@ -117,23 +138,20 @@ export function createTask(projectPath, task) {
     }
   };
 
-  if (task.create_description_file) {
-    newTask.description_file = `tasks/${id}/description.md`;
-  }
+  const preparedDescription = prepareTaskDescription(id, task.description || '', {
+    forceFile: task.create_description_file === true,
+    existingPath: task.description_file || null
+  });
+  newTask.description = preparedDescription.description;
+  newTask.description_file = preparedDescription.description_file;
 
   const changes = [
     {
       path: `tasks/${id}/task.yaml`,
       content: yaml.dump(newTask)
-    }
+    },
+    ...preparedDescription.changes
   ];
-
-  if (task.create_description_file) {
-    changes.push({
-      path: `tasks/${id}/description.md`,
-      content: task.description || '# 任务描述\n\n'
-    });
-  }
 
   writeFiles(projectPath, changes, 'xtask create task');
   return normalizeTask(newTask);
@@ -143,7 +161,12 @@ export function updateTask(projectPath, id, updates) {
   const task = readYaml(projectPath, `tasks/${id}/task.yaml`);
   if (!task) return null;
   normalizeTask(task);
+
   const { terminal, agent, git, ...restUpdates } = updates || {};
+  const descriptionInput = Object.prototype.hasOwnProperty.call(restUpdates, 'description')
+    ? restUpdates.description
+    : undefined;
+  delete restUpdates.description;
 
   Object.assign(task, restUpdates);
   task.status = normalizeTaskStatus(task.status);
@@ -168,10 +191,26 @@ export function updateTask(projectPath, id, updates) {
     };
   }
   task.updated_at = new Date().toISOString();
+
+  const descriptionChanges = [];
+  if (descriptionInput !== undefined) {
+    const preparedDescription = prepareTaskDescription(id, descriptionInput, {
+      existingPath: task.description_file || null
+    });
+    task.description = preparedDescription.description;
+    task.description_file = preparedDescription.description_file;
+    descriptionChanges.push(...preparedDescription.changes);
+  }
+
   writeFiles(projectPath, [
-    { path: `tasks/${id}/task.yaml`, content: yaml.dump(task) }
+    { path: `tasks/${id}/task.yaml`, content: yaml.dump(task) },
+    ...descriptionChanges
   ], 'xtask update task');
-  return normalizeTask(task);
+
+  return hydrateTaskContent(projectPath, task, {
+    includeDescriptionContent: true,
+    includeSummaryContent: true
+  });
 }
 
 export function deleteTask(projectPath, id) {
@@ -183,6 +222,9 @@ export function deleteTask(projectPath, id) {
   ];
   const descPath = task.description_file || `tasks/${id}/description.md`;
   changes.push({ path: descPath, delete: true });
+  if (task.summary_file) {
+    changes.push({ path: task.summary_file, delete: true });
+  }
   writeFiles(projectPath, changes, 'xtask delete task');
   return true;
 }
@@ -211,6 +253,5 @@ export function assignAgent(projectPath, id, agentInfo) {
 
 export function getTaskDescription(projectPath, taskId) {
   const task = readYaml(projectPath, `tasks/${taskId}/task.yaml`);
-  const descPath = task?.description_file || `tasks/${taskId}/description.md`;
-  return readFile(projectPath, descPath);
+  return readTaskDescriptionContent(projectPath, task);
 }

@@ -30,6 +30,9 @@ export interface Task {
   title: string;
   description: string;
   description_file: string | null;
+  description_content?: string;
+  summary_file: string | null;
+  summary_content?: string;
   status: TaskStatus;
   priority: TaskPriority;
   milestone_id: string | null;

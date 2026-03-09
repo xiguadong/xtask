@@ -26,7 +26,7 @@ ensure_dependencies "frontend" "frontend"
 
 echo "Building frontend..."
 cd frontend
-npm run build
+npm run build -- --configLoader runner
 
 if [ $? -ne 0 ]; then
   echo "✗ Frontend build failed"

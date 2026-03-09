@@ -44,6 +44,15 @@
 - [x] 停止脚本 - `scripts/stop.sh` 新增 `--all` / `all` 指令，扫描当前用户全部已监听端口中的 xtask 后端并全部关闭 (2026-03-09)
 - [x] 脚本文档 - 更新 `scripts/README.md`，补充后台常驻与 `stop.sh --all` 用法说明 (2026-03-09)
 
+### task.yml 增加总结字段（1773047051811-task-yml）
+
+- [x] 任务页样式 - Summary 调整为底部独立块，并统一 Description / Summary 的紧凑排版样式 (2026-03-09)
+- [x] 详情接口 - 任务详情/描述优先读取分支任务版本，修复 summary 已写入但任务页仍显示主任务旧数据 (2026-03-09)
+- [x] 构建脚本 - 兼容复用外部 `node_modules`，前端构建改为 `vite --configLoader runner` (2026-03-09)
+- [x] 任务模型 - 为 `task.yaml` 增加 `summary_file` 字段，并在 Agent 完成任务后自动写入总结文档 (2026-03-09)
+- [x] 描述存储 - 长描述超过阈值时自动落盘到 `description_file`，避免 `task.yaml` 内联正文过长 (2026-03-09)
+- [x] 任务页 - 在 Description 下方展示总结文档，并增加 3 分钟静态轮询刷新 (2026-03-09)
+
 
 ## 2026-03-06
 

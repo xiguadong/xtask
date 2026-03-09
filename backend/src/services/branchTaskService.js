@@ -2,11 +2,46 @@ import yaml from 'js-yaml';
 import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
 import { getWorktree } from './worktreeService.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
+import { prepareTaskDescription, readTaskDescriptionContent, readTaskSummaryContent } from '../utils/taskContent.js';
 
 function normalizeTask(task) {
   if (!task) return null;
   task.status = normalizeTaskStatus(task.status);
+  task.summary_file = task.summary_file || null;
+  task.agent = {
+    assigned: false,
+    identity: null,
+    assigned_at: null,
+    session_id: null,
+    status: null,
+    ...(task.agent || {})
+  };
+  task.git = {
+    branch: null,
+    commits: [],
+    source_branch: null,
+    ...(task.git || {})
+  };
+  task.terminal = {
+    ...getDefaultTerminal(),
+    ...(task.terminal || {})
+  };
   return task;
+}
+
+function hydrateBranchTaskContent(projectPath, task, options = {}) {
+  if (!task) return null;
+  const hydrated = normalizeTask(task);
+
+  if (options.includeDescriptionContent) {
+    hydrated.description_content = readTaskDescriptionContent(projectPath, hydrated);
+  }
+
+  if (options.includeSummaryContent) {
+    hydrated.summary_content = readTaskSummaryContent(projectPath, hydrated);
+  }
+
+  return hydrated;
 }
 
 function getDefaultTerminal() {
@@ -64,19 +99,50 @@ export function assignTaskToBranch(projectPath, taskId, branch, options = {}) {
 
 export function getBranchTasks(projectPath, branch) {
   const files = listDir(projectPath, `branches/${branch}`).filter(f => f.endsWith('.yaml'));
-  return files.map(f => normalizeTask(readYaml(projectPath, `branches/${branch}/${f}`))).filter(Boolean);
+  return files
+    .map(f => hydrateBranchTaskContent(projectPath, readYaml(projectPath, `branches/${branch}/${f}`)))
+    .filter(Boolean);
+}
+
+export function getBranchTaskById(projectPath, branch, taskId, options = {}) {
+  if (!branch) return null;
+  const task = readYaml(projectPath, `branches/${branch}/${taskId}.yaml`);
+  if (!task) return null;
+  return hydrateBranchTaskContent(projectPath, task, options);
 }
 
 export function updateBranchTask(projectPath, branch, taskId, updates) {
   const task = normalizeTask(readYaml(projectPath, `branches/${branch}/${taskId}.yaml`));
   if (!task) return null;
-  Object.assign(task, updates);
+
+  const nextUpdates = { ...(updates || {}) };
+  const descriptionInput = Object.prototype.hasOwnProperty.call(nextUpdates, 'description')
+    ? nextUpdates.description
+    : undefined;
+  delete nextUpdates.description;
+
+  Object.assign(task, nextUpdates);
   task.status = normalizeTaskStatus(task.status);
   task.updated_at = new Date().toISOString();
+
+  const descriptionChanges = [];
+  if (descriptionInput !== undefined) {
+    const preparedDescription = prepareTaskDescription(taskId, descriptionInput, {
+      existingPath: task.description_file || null
+    });
+    task.description = preparedDescription.description;
+    task.description_file = preparedDescription.description_file;
+    descriptionChanges.push(...preparedDescription.changes);
+  }
+
   writeFiles(projectPath, [
-    { path: `branches/${branch}/${taskId}.yaml`, content: yaml.dump(task) }
+    { path: `branches/${branch}/${taskId}.yaml`, content: yaml.dump(task) },
+    ...descriptionChanges
   ], 'xtask update branch task');
-  return task;
+  return hydrateBranchTaskContent(projectPath, task, {
+    includeDescriptionContent: true,
+    includeSummaryContent: true
+  });
 }
 
 export function mergeTaskToMain(projectPath, branch, taskId) {
@@ -111,8 +177,9 @@ export function createBranchTask(projectPath, branch, taskData) {
   const task = {
     id,
     title: taskData.title,
-    description: taskData.description || '',
-    description_file: taskData.description_file || null,
+    description: '',
+    description_file: null,
+    summary_file: taskData.summary_file || null,
     status: normalizeTaskStatus(taskData.status),
     priority: taskData.priority || 'medium',
     milestone_id: taskData.milestone_id || null,
@@ -136,8 +203,16 @@ export function createBranchTask(projectPath, branch, taskData) {
     }
   };
 
+  const preparedDescription = prepareTaskDescription(id, taskData.description || '', {
+    forceFile: taskData.create_description_file === true,
+    existingPath: taskData.description_file || null
+  });
+  task.description = preparedDescription.description;
+  task.description_file = preparedDescription.description_file;
+
   const changes = [
-    { path: `branches/${branch}/${id}.yaml`, content: yaml.dump(task) }
+    { path: `branches/${branch}/${id}.yaml`, content: yaml.dump(task) },
+    ...preparedDescription.changes
   ];
   const worktree = getWorktree(projectPath, branch);
   if (worktree) {

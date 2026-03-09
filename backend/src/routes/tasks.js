@@ -7,6 +7,24 @@ import { isTaskDone } from '../utils/taskStatus.js';
 
 const router = express.Router();
 
+function resolveTaskVariant(projectPath, taskId, branchHint = null) {
+  const mainTask = getTaskById(projectPath, taskId);
+  const branch = branchHint || mainTask?.git?.branch || null;
+  const branchTask = branch
+    ? branchTaskService.getBranchTaskById(projectPath, branch, taskId, {
+      includeDescriptionContent: true,
+      includeSummaryContent: true
+    })
+    : null;
+
+  return {
+    mainTask,
+    branch,
+    task: branchTask || mainTask,
+    isBranchTask: Boolean(branchTask)
+  };
+}
+
 router.get('/:projectName/tasks', (req, res) => {
   const project = getProjectByName(req.params.projectName);
   if (!project) return res.status(404).json({ error: 'Project not found' });
@@ -27,7 +45,7 @@ router.get('/:projectName/tasks/:id', (req, res) => {
   const project = getProjectByName(req.params.projectName);
   if (!project) return res.status(404).json({ error: 'Project not found' });
 
-  const task = getTaskById(project.path, req.params.id);
+  const { task } = resolveTaskVariant(project.path, req.params.id, req.query.branch);
   if (!task) return res.status(404).json({ error: 'Task not found' });
 
   res.json(task);
@@ -37,15 +55,22 @@ router.put('/:projectName/tasks/:id', (req, res) => {
   const project = getProjectByName(req.params.projectName);
   if (!project) return res.status(404).json({ error: 'Project not found' });
 
-  const previousTask = getTaskById(project.path, req.params.id);
-  const task = updateTask(project.path, req.params.id, req.body);
-  if (!task) return res.status(404).json({ error: 'Task not found' });
+  const resolved = resolveTaskVariant(project.path, req.params.id, req.query.branch || req.body?.git?.branch);
+  const previousTask = resolved.task;
 
-  if (task.git?.branch) {
-    branchTaskService.assignTaskToBranch(project.path, req.params.id, task.git.branch, {
-      sourceBranch: task.git.source_branch ?? null
-    });
+  let task = null;
+  if (resolved.isBranchTask && resolved.branch) {
+    task = branchTaskService.updateBranchTask(project.path, resolved.branch, req.params.id, req.body);
+  } else {
+    task = updateTask(project.path, req.params.id, req.body);
+    if (task?.git?.branch) {
+      branchTaskService.assignTaskToBranch(project.path, req.params.id, task.git.branch, {
+        sourceBranch: task.git.source_branch ?? null
+      });
+    }
   }
+
+  if (!task) return res.status(404).json({ error: 'Task not found' });
 
   const becameCompleted =
     previousTask &&
@@ -98,6 +123,11 @@ router.post('/:projectName/tasks/:id/merge', (req, res) => {
 router.get('/:projectName/tasks/:id/description', (req, res) => {
   const project = getProjectByName(req.params.projectName);
   if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  const resolved = resolveTaskVariant(project.path, req.params.id, req.query.branch);
+  if (resolved.isBranchTask && resolved.task) {
+    return res.json({ content: resolved.task.description_content || resolved.task.description || '' });
+  }
 
   const description = getTaskDescription(project.path, req.params.id);
   if (!description) return res.status(404).json({ error: 'Description not found' });

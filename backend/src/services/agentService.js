@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import yaml from 'js-yaml';
 import { readYaml, writeFiles } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
+import { getTaskSummaryFilePath, readTaskDescriptionContent } from '../utils/taskContent.js';
 
 const runningAgents = new Map();
 
@@ -15,22 +16,20 @@ export function startAgent(projectPath, taskId, branch = null) {
     runningAgents.delete(taskId);
     return;
   }
-  if (!task) {
-    throw new Error('Task not found');
-  }
 
   if (runningAgents.has(taskId)) {
     throw new Error('Agent already running for this task');
   }
 
   const env = { ...process.env, CLAUDE_BYPASS_PERMISSIONS: '1' };
-  delete env.CLAUDECODE; // 避免嵌套 session 冲突
+  delete env.CLAUDECODE;
 
+  const agentPrompt = readTaskDescriptionContent(projectPath, task) || task.title;
   const agentProcess = spawn('claude', [
     '--dangerously-skip-permissions',
     '--permission-mode', 'bypassPermissions',
     'chat',
-    task.description || task.title
+    agentPrompt
   ], {
     cwd: projectPath,
     env,
@@ -96,10 +95,12 @@ function updateTaskWithAgentResult(projectPath, taskId, branch, agentData) {
   task.updated_at = new Date().toISOString();
 
   const output = agentData.output.join('\n');
-  const content = `# ${task.title}\n\n## Agent 执行结果\n\n**状态**: ${agentData.status}\n**开始时间**: ${agentData.startedAt}\n**完成时间**: ${agentData.completedAt}\n**退出码**: ${agentData.exitCode}\n\n## 输出\n\n\`\`\`\n${output}\n\`\`\`\n`;
-  task.description_file = `tasks/${taskId}/description.md`;
+  const summarizedOutput = output.length > 4000 ? `${output.slice(0, 4000)}\n\n...（以下内容已截断）` : output;
+  const content = `# ${task.title}\n\n## 执行总结\n\n- 状态：${agentData.status}\n- 开始时间：${agentData.startedAt}\n- 完成时间：${agentData.completedAt}\n- 退出码：${agentData.exitCode}\n\n## 输出摘要\n\n\`\`\`\n${summarizedOutput}\n\`\`\`\n`;
+
+  task.summary_file = getTaskSummaryFilePath(taskId);
   writeFiles(projectPath, [
-    { path: `tasks/${taskId}/description.md`, content },
+    { path: task.summary_file, content },
     { path: taskPath, content: yaml.dump(task) }
   ], 'xtask agent complete');
   runningAgents.delete(taskId);

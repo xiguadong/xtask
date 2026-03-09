@@ -63,13 +63,16 @@ export default function TaskActions({ task, projectName, onUpdate }: TaskActions
 
   return (
     <section className="space-y-3 border-t border-border pt-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">Task Actions</h3>
+      <div className="border-b border-border pb-3">
+        <h3 className="text-sm font-semibold text-text">任务操作</h3>
+        <p className="mt-1 text-xs text-muted">操作区与任务描述、任务总结使用同一套标题与正文规则。</p>
+      </div>
       <div className="grid gap-3">
         <article className="space-y-3 rounded-md border border-border bg-white p-3">
           <div className="flex items-start justify-between gap-2">
             <div>
               <h4 className="text-sm font-semibold text-text">Worktree</h4>
-              <p className="mt-1 text-xs text-muted">为任务创建独立分支工作目录</p>
+              <p className="mt-1 text-xs text-muted">为任务创建独立分支工作目录。</p>
             </div>
             <span
               className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
