@@ -1,0 +1,37 @@
+id: 1773055355345-summary-git
+title: summary疑似没有添加到 git 管理，或者是没有合入到主分支
+description: ''
+description_file: null
+summary_file: null
+status: todo
+priority: critical
+milestone_id: m2
+parent_tasks: []
+labels:
+  - terminal
+created_at: '2026-03-09T11:22:35.345Z'
+updated_at: '2026-03-09T11:22:35.345Z'
+created_by: web
+agent:
+  assigned: false
+  identity: null
+  assigned_at: null
+  session_id: null
+  status: null
+terminal:
+  enabled: false
+  mode: null
+  session_id: null
+  status: stopped
+  host: null
+  port: 22
+  username: null
+  timeout_days: 3
+  auto_stop_on_task_done: true
+  started_at: null
+  last_active_at: null
+  stopped_at: null
+  stop_reason: null
+git:
+  branch: null
+  commits: []
