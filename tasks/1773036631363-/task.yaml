@@ -13,7 +13,7 @@ parent_tasks: []
 labels:
   - doc
 created_at: '2026-03-09T06:10:31.363Z'
-updated_at: '2026-03-09T06:10:31.363Z'
+updated_at: '2026-03-09T06:10:45.328Z'
 created_by: web
 agent:
   assigned: false
@@ -36,5 +36,6 @@ terminal:
   stopped_at: null
   stop_reason: null
 git:
-  branch: null
+  branch: 1773036631363-refinedoc
   commits: []
+  source_branch: null
