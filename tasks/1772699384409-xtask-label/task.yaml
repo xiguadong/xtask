@@ -1,14 +1,14 @@
 id: 1772699384409-xtask-label
 title: xtask子页面需要有增加和删除label的功能
 description: ''
-status: completed
+status: done
 priority: high
 milestone_id: m1
 parent_tasks: []
 labels:
   - ui
 created_at: '2026-03-05T08:29:44.409Z'
-updated_at: '2026-03-05T16:29:41.907Z'
+updated_at: '2026-03-09T04:51:25.611Z'
 created_by: web
 agent:
   assigned: false
