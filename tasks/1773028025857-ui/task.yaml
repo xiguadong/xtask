@@ -6,14 +6,14 @@ description: |
   task页面支持排序功能，按照时间先后、优先级状态排序；
   task的id时间戳需要显示出来，规则是name-timestramp,比如ui-2026-03-09-11-49; 
 description_file: null
-status: todo
+status: completed
 priority: high
 milestone_id: m1
 parent_tasks: []
 labels:
   - ui
 created_at: '2026-03-09T03:47:05.857Z'
-updated_at: '2026-03-09T03:50:39.104Z'
+updated_at: '2026-03-09T04:38:35.394Z'
 created_by: web
 agent:
   assigned: false
