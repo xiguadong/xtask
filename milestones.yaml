@@ -6,7 +6,7 @@ milestones:
     status: active
     goals:
       - title: 完成界面设计
-        done: false
+        done: true
   - id: m2
     name: 功能验证
     description: 完成个人向的使用
