@@ -13,7 +13,7 @@ parent_tasks: []
 labels:
   - ui
 created_at: '2026-03-09T03:47:05.857Z'
-updated_at: '2026-03-09T03:50:37.426Z'
+updated_at: '2026-03-09T03:50:39.104Z'
 created_by: web
 agent:
   assigned: false
@@ -22,17 +22,17 @@ agent:
   session_id: null
   status: null
 terminal:
-  enabled: false
-  mode: null
-  session_id: null
-  status: stopped
+  enabled: true
+  mode: local
+  session_id: 1773028025857-ui-terminal-1773028239104
+  status: running
   host: null
   port: 22
   username: null
   timeout_days: 3
   auto_stop_on_task_done: true
-  started_at: null
-  last_active_at: null
+  started_at: '2026-03-09T03:50:39.104Z'
+  last_active_at: '2026-03-09T03:50:39.104Z'
   stopped_at: null
   stop_reason: null
 git:
