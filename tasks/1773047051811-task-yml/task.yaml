@@ -13,7 +13,7 @@ labels:
   - ui
   - terminal
 created_at: '2026-03-09T09:04:11.811Z'
-updated_at: '2026-03-09T09:04:11.811Z'
+updated_at: '2026-03-09T09:04:42.901Z'
 created_by: web
 agent:
   assigned: false
@@ -36,5 +36,6 @@ terminal:
   stopped_at: null
   stop_reason: null
 git:
-  branch: null
+  branch: 1773047051811-task-yml
   commits: []
+  source_branch: null
