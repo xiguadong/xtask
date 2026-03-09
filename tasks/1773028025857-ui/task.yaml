@@ -1,10 +1,6 @@
 id: 1773028025857-ui
 title: ui优化
-description: |
-  项目页面 分成多个页面，第一页为milestone, 第二页为task列表，task列表，支持多个筛选，比如 label/完成状态/milestone;
-  milestone页面除了展示目标外，还需要展示任务状态: 所属所有任务的完成进度条和按照优先级排序的任务的进度，不用展示任务的详情，只需要进度条;
-  task页面支持排序功能，按照时间先后、优先级状态排序；
-  task页面的命名不要加时间戳，id可以带，但是用户看时不要带;
+description: null
 description_file: null
 status: todo
 priority: high
@@ -13,7 +9,7 @@ parent_tasks: []
 labels:
   - ui
 created_at: '2026-03-09T03:47:05.857Z'
-updated_at: '2026-03-09T03:47:05.857Z'
+updated_at: '2026-03-09T03:47:36.854Z'
 created_by: web
 agent:
   assigned: false
@@ -38,3 +34,4 @@ terminal:
 git:
   branch: null
   commits: []
+  source_branch: null
