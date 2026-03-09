@@ -84,6 +84,7 @@ task
   .option('-p, --priority <priority>', 'Priority level')
   .option('-m, --milestone <id>', 'Milestone ID')
   .option('-l, --labels <labels>', 'Comma-separated labels')
+  .option('--summary <summary>', 'Task summary content')
   .action((id, options) => updateTask(id, options));
 
 task

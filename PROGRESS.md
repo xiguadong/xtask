@@ -2,7 +2,7 @@
 
 ## 当前版本
 
-**v0.4.2** - 项目页拆分里程碑/任务视图并增强筛选排序；新增 xtask 初始化 skill；细化 README/AGENTS/初始化说明；修复 CLI/分支任务验证脚本与当前约束不一致的问题；修复 Web 创建 worktree 后任务未真正绑定的问题；新增任务完成前需用户确认的规则；修复 start/stop 脚本的后台常驻与全量停止能力
+**v0.4.2** - 项目页拆分里程碑/任务视图并增强筛选排序；新增 xtask 初始化 skill；细化 README/AGENTS/初始化说明；修复 CLI/分支任务验证脚本与当前约束不一致的问题；修复 Web 创建 worktree 后任务未真正绑定的问题；新增任务完成前需用户确认的规则；修复 start/stop 脚本的后台常驻与全量停止能力；补充 `xtask task update --summary` 手工写入任务总结
 
 ## 项目状态
 
@@ -13,8 +13,10 @@
 - ✅ 任务详情接口优先读取分支任务版本，修复分支任务已有 `summary_file`/`summary_content` 但页面仍显示主任务旧数据的问题
 - ✅ `build.sh` 兼容共享依赖目录：前端构建改用 `vite --configLoader runner`，避免复用外部 `node_modules` 时写 `.vite-temp` 失败
 - ✅ `task.yaml` 新增 `summary_file` 字段，Agent 完成任务后自动写入 `tasks/<id>/summary.md`
+- ✅ `xtask task update` 新增 `--summary`，支持主任务与分支任务手工写入/清空总结文档
 - ✅ 长描述自动切换为文件存储：超过阈值时写入 `description_file`，详情页读取完整内容，卡片保留摘要预览
 - ✅ Task 详情页支持展示总结文档，并增加 3 分钟静态轮询刷新以感知 Agent 新写入的总结
+- ✅ 修复 Markdown 行内代码渲染：避免单个反引号词组被误显示为整块深色代码块
 
 ## 已完成功能
 
@@ -112,6 +114,7 @@
 - 任务列表新增 Label / 完成状态 / Milestone 多维筛选与时间、优先级状态排序
 - 里程碑卡片新增所属任务总进度与按优先级聚合的完成进度展示
 - 任务卡片与详情页显示 `name-timestamp` 任务标识，并兼容 `completed` 状态显示
+- `xtask task update` 新增 `--summary`，支持主任务与分支任务手工写入总结文档
 - `frontend` 构建验证通过
 - 新增 `init-xtask` skill：支持初始化 `refs/xtask-data`、注册项目并引导首批 milestone
 - 新增 xtask 初始化 milestone 预设，覆盖通用软件、遗留项目、Web、CLI 场景

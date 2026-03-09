@@ -3,7 +3,7 @@ import { generateTaskId } from '../utils/idGenerator.js';
 import { getRepoRoot, getCurrentBranch } from '../utils/gitRepo.js';
 import { listDir, readYaml as readGitYaml, writeFiles } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
-import { prepareTaskDescription } from '../utils/taskContent.js';
+import { prepareTaskDescription, prepareTaskSummary } from '../utils/taskContent.js';
 
 function getWorktree(projectRoot, branch) {
   if (!branch) return null;
@@ -201,9 +201,19 @@ export function updateTask(id, options = {}) {
     descriptionChanges.push(...preparedDescription.changes);
   }
 
+  const summaryChanges = [];
+  if (Object.prototype.hasOwnProperty.call(options, 'summary')) {
+    const preparedSummary = prepareTaskSummary(id, options.summary, {
+      existingPath: task.summary_file || null
+    });
+    task.summary_file = preparedSummary.summary_file;
+    summaryChanges.push(...preparedSummary.changes);
+  }
+
   writeFiles(projectRoot, [
     { path: targetPath, content: yaml.dump(task) },
-    ...descriptionChanges
+    ...descriptionChanges,
+    ...summaryChanges
   ], 'xtask update task');
   console.log(`Updated task: ${id}${isInWorktree ? ` (branch: ${currentBranch})` : ''}`);
 }

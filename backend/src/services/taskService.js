@@ -1,7 +1,7 @@
 import yaml from 'js-yaml';
 import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
-import { prepareTaskDescription, readTaskDescriptionContent, readTaskSummaryContent } from '../utils/taskContent.js';
+import { prepareTaskDescription, prepareTaskSummary, readTaskDescriptionContent, readTaskSummaryContent } from '../utils/taskContent.js';
 
 function getDefaultTerminal() {
   return {
@@ -167,6 +167,10 @@ export function updateTask(projectPath, id, updates) {
     ? restUpdates.description
     : undefined;
   delete restUpdates.description;
+  const summaryInput = Object.prototype.hasOwnProperty.call(restUpdates, 'summary')
+    ? restUpdates.summary
+    : undefined;
+  delete restUpdates.summary;
 
   Object.assign(task, restUpdates);
   task.status = normalizeTaskStatus(task.status);
@@ -202,9 +206,19 @@ export function updateTask(projectPath, id, updates) {
     descriptionChanges.push(...preparedDescription.changes);
   }
 
+  const summaryChanges = [];
+  if (summaryInput !== undefined) {
+    const preparedSummary = prepareTaskSummary(id, summaryInput, {
+      existingPath: task.summary_file || null
+    });
+    task.summary_file = preparedSummary.summary_file;
+    summaryChanges.push(...preparedSummary.changes);
+  }
+
   writeFiles(projectPath, [
     { path: `tasks/${id}/task.yaml`, content: yaml.dump(task) },
-    ...descriptionChanges
+    ...descriptionChanges,
+    ...summaryChanges
   ], 'xtask update task');
 
   return hydrateTaskContent(projectPath, task, {

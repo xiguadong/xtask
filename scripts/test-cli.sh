@@ -108,6 +108,18 @@ else
 fi
 echo ""
 
+# 测试 7.1: task update summary
+echo "【测试 7.1】xtask task update --summary"
+run_xtask task update "$TASK_ID" --summary $'# 主分支检查\n\n- master 已支持 `summary_file`\n- 当前 CLI 已支持手工写入 summary'
+if git show "refs/xtask-data:tasks/$TASK_ID/task.yaml" | grep -q "summary_file: tasks/$TASK_ID/summary.md" \
+  && git show "refs/xtask-data:tasks/$TASK_ID/summary.md" | grep -q "master 已支持"; then
+  echo "✓ Summary 更新成功"
+else
+  echo "✗ Summary 更新失败"
+  exit 1
+fi
+echo ""
+
 # 测试 8: worktree create
 echo "【测试 8】xtask worktree create"
 DEFAULT_BRANCH=$(git branch --show-current)
@@ -146,6 +158,18 @@ if git show "refs/xtask-data:branches/feature-test/$BRANCH_TASK_ID.yaml" | grep 
   echo "✓ 分支任务更新成功"
 else
   echo "✗ 分支任务更新失败"
+  exit 1
+fi
+echo ""
+
+# 测试 11.1: task update summary (分支)
+echo "【测试 11.1】xtask task update --summary (分支)"
+run_xtask task update "$BRANCH_TASK_ID" --summary $'# 分支检查\n\n- feature-test 已支持分支任务总结'
+if git show "refs/xtask-data:branches/feature-test/$BRANCH_TASK_ID.yaml" | grep -q "summary_file: tasks/$BRANCH_TASK_ID/summary.md" \
+  && git show "refs/xtask-data:tasks/$BRANCH_TASK_ID/summary.md" | grep -q "feature-test 已支持"; then
+  echo "✓ 分支 Summary 更新成功"
+else
+  echo "✗ 分支 Summary 更新失败"
   exit 1
 fi
 echo ""

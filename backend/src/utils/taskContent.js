@@ -77,6 +77,29 @@ export function prepareTaskDescription(taskId, description, options = {}) {
   };
 }
 
+export function prepareTaskSummary(taskId, summary, options = {}) {
+  const normalized = normalizeText(summary);
+  const existingPath = options.existingPath || null;
+  const summaryPath = existingPath || getTaskSummaryFilePath(taskId);
+
+  if (!normalized.trim()) {
+    return {
+      summary_file: null,
+      changes: existingPath ? [{ path: existingPath, delete: true }] : []
+    };
+  }
+
+  return {
+    summary_file: summaryPath,
+    changes: [
+      {
+        path: summaryPath,
+        content: `${normalized.trimEnd()}\n`
+      }
+    ]
+  };
+}
+
 export function readTaskDescriptionContent(projectPath, task) {
   if (!task) return '';
   if (task.description_file) {

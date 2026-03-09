@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -5,6 +6,13 @@ interface MarkdownPreviewProps {
   value: string;
   className?: string;
   compact?: boolean;
+}
+
+function normalizeCodeChildren(children: ReactNode) {
+  if (Array.isArray(children)) {
+    return children.map((item) => (typeof item === 'string' ? item : '')).join('');
+  }
+  return typeof children === 'string' ? children : '';
 }
 
 export default function MarkdownPreview({ value, className, compact = false }: MarkdownPreviewProps) {
@@ -42,14 +50,21 @@ export default function MarkdownPreview({ value, className, compact = false }: M
           li: ({ children }) => <li className="leading-relaxed">{children}</li>,
           blockquote: ({ children }) => <blockquote className={blockquoteClass}>{children}</blockquote>,
           hr: () => <hr className="my-4 border-border" />,
-          code: ({ inline, children }) =>
-            inline ? (
-              <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[12px] text-slate-800">{children}</code>
-            ) : (
-              <code className="block overflow-x-auto whitespace-pre rounded bg-slate-950/90 p-3 font-mono text-[12px] text-slate-100">
-                {children}
-              </code>
-            )
+          pre: ({ children }) => (
+            <pre className="mt-3 overflow-x-auto whitespace-pre rounded bg-slate-950/90 p-3 font-mono text-[12px] leading-6 text-slate-100">
+              {children}
+            </pre>
+          ),
+          code: ({ className: codeClassName, children }) => {
+            const content = normalizeCodeChildren(children);
+            const isBlockCode = Boolean(codeClassName?.includes('language-')) || content.includes('\n');
+
+            if (isBlockCode) {
+              return <code className={codeClassName}>{content.replace(/\n$/, '')}</code>;
+            }
+
+            return <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[12px] text-slate-800">{children}</code>;
+          }
         }}
       >
         {value}

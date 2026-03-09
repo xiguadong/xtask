@@ -2,7 +2,7 @@ import yaml from 'js-yaml';
 import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
 import { getWorktree } from './worktreeService.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
-import { prepareTaskDescription, readTaskDescriptionContent, readTaskSummaryContent } from '../utils/taskContent.js';
+import { prepareTaskDescription, prepareTaskSummary, readTaskDescriptionContent, readTaskSummaryContent } from '../utils/taskContent.js';
 
 function normalizeTask(task) {
   if (!task) return null;
@@ -120,6 +120,10 @@ export function updateBranchTask(projectPath, branch, taskId, updates) {
     ? nextUpdates.description
     : undefined;
   delete nextUpdates.description;
+  const summaryInput = Object.prototype.hasOwnProperty.call(nextUpdates, 'summary')
+    ? nextUpdates.summary
+    : undefined;
+  delete nextUpdates.summary;
 
   Object.assign(task, nextUpdates);
   task.status = normalizeTaskStatus(task.status);
@@ -135,9 +139,19 @@ export function updateBranchTask(projectPath, branch, taskId, updates) {
     descriptionChanges.push(...preparedDescription.changes);
   }
 
+  const summaryChanges = [];
+  if (summaryInput !== undefined) {
+    const preparedSummary = prepareTaskSummary(taskId, summaryInput, {
+      existingPath: task.summary_file || null
+    });
+    task.summary_file = preparedSummary.summary_file;
+    summaryChanges.push(...preparedSummary.changes);
+  }
+
   writeFiles(projectPath, [
     { path: `branches/${branch}/${taskId}.yaml`, content: yaml.dump(task) },
-    ...descriptionChanges
+    ...descriptionChanges,
+    ...summaryChanges
   ], 'xtask update branch task');
   return hydrateBranchTaskContent(projectPath, task, {
     includeDescriptionContent: true,
