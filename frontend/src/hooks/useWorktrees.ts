@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Worktree } from '../types';
 
 const API_BASE = '/api';
@@ -7,11 +7,16 @@ export function useWorktrees(projectName: string) {
   const [worktrees, setWorktrees] = useState<Worktree[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const load = async () => {
+    setLoading(true);
+    const res = await fetch(`${API_BASE}/projects/${projectName}/worktrees`);
+    const data = await res.json().catch(() => []);
+    setWorktrees(Array.isArray(data) ? data : []);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    fetch(`${API_BASE}/projects/${projectName}/worktrees`)
-      .then(async (res) => (res.ok ? res.json() : []))
-      .then((data) => setWorktrees(Array.isArray(data) ? data : []))
-      .finally(() => setLoading(false));
+    void load();
   }, [projectName]);
 
   const createWorktree = async (data: { branch: string; worktree_path: string; source_branch?: string; agent?: any }) => {
@@ -40,5 +45,5 @@ export function useWorktrees(projectName: string) {
     setWorktrees((prev) => prev.filter((w) => w.branch !== branch));
   };
 
-  return { worktrees, loading, createWorktree, deleteWorktree };
+  return { worktrees, loading, refresh: load, createWorktree, deleteWorktree };
 }

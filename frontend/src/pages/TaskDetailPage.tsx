@@ -8,6 +8,7 @@ import MarkdownPreview from '../components/MarkdownPreview';
 import TerminalOverviewFloating from '../components/TerminalOverviewFloating';
 import { useMilestones } from '../hooks/useMilestones';
 import { Task } from '../types';
+import { formatTaskDisplayId, formatTaskPriority, formatTaskStatus } from '../utils/taskDisplay';
 import { fetchTask, updateTask } from '../utils/api';
 
 export default function TaskDetailPage() {
@@ -82,13 +83,13 @@ export default function TaskDetailPage() {
             <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Task Meta</h2>
             <div className="space-y-2 rounded-md border border-border bg-white p-3 text-xs">
               <p>
-                <span className="text-muted">Status:</span> {task.status}
+                <span className="text-muted">状态：</span> {formatTaskStatus(task.status)}
               </p>
               <p>
-                <span className="text-muted">Priority:</span> {task.priority}
+                <span className="text-muted">优先级：</span> {formatTaskPriority(task.priority)}
               </p>
               <p>
-                <span className="text-muted">Creator:</span> {task.created_by}
+                <span className="text-muted">创建来源：</span> {task.created_by}
               </p>
             </div>
           </aside>
@@ -97,14 +98,15 @@ export default function TaskDetailPage() {
           <section className="space-y-3 rounded-lg border border-border bg-surface p-4">
             <header className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <h2 className="text-sm font-semibold text-text">Task Details</h2>
-                <p className="mt-1 text-xs text-muted">{task.id}</p>
+                <h2 className="text-sm font-semibold text-text">任务详情</h2>
+                <p className="mt-1 text-xs text-muted">{formatTaskDisplayId(task)}</p>
+                <p className="mt-1 text-[11px] text-muted">原始 ID：{task.id}</p>
               </div>
               <button
                 onClick={() => setEditing((value) => !value)}
                 className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-hover"
               >
-                {editing ? 'Cancel' : 'Edit'}
+                {editing ? '取消' : '编辑'}
               </button>
             </header>
 
@@ -115,6 +117,7 @@ export default function TaskDetailPage() {
                     <option value="todo">todo</option>
                     <option value="in_progress">in_progress</option>
                     <option value="done">done</option>
+                    <option value="completed">completed</option>
                     <option value="blocked">blocked</option>
                   </select>
                   <select name="priority" defaultValue={task.priority} className="w-full rounded border border-border bg-white p-2 text-sm">
@@ -179,7 +182,7 @@ export default function TaskDetailPage() {
                   />
                 </div>
                 <button type="submit" className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-hover">
-                  Save
+                  保存
                 </button>
               </form>
             ) : (
