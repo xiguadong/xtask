@@ -5,7 +5,7 @@ description: |
   task页面上检测到该总结文档后，展示在description下方，静态刷新的方式或者3min检测一次;
   对于description文档，如果文档内容过长，超过一定字数和行数，就自动放到某个文件下面;
 description_file: null
-status: todo
+status: done
 priority: high
 milestone_id: m2
 parent_tasks: []
@@ -13,7 +13,7 @@ labels:
   - ui
   - terminal
 created_at: '2026-03-09T09:04:11.811Z'
-updated_at: '2026-03-09T09:04:45.141Z'
+updated_at: '2026-03-09T11:04:41.328Z'
 created_by: web
 agent:
   assigned: false
