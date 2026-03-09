@@ -4,14 +4,14 @@ description: |-
   1. 启动脚本应当改为后台常驻，不依赖终端是否启动
   2. 终止脚本增加一个指令，检测当前用户的所有端口是否启动了xtask相关进程并全部关闭；
 description_file: null
-status: todo
+status: done
 priority: critical
 milestone_id: m2
 parent_tasks: []
 labels:
   - terminal
 created_at: '2026-03-09T06:06:55.833Z'
-updated_at: '2026-03-09T06:20:01.687Z'
+updated_at: '2026-03-09T11:16:33.997Z'
 created_by: web
 agent:
   assigned: false
@@ -37,3 +37,4 @@ git:
   branch: 1773036415833-scripts
   commits: []
   source_branch: null
+summary_file: null
