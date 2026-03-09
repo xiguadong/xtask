@@ -18,4 +18,10 @@ milestones:
     description: ''
     due_date: null
     status: active
-    goals: []
+    goals:
+      - title: 支持linux/macos
+        done: false
+      - title: 发布预编译包
+        done: false
+      - title: 写好文档
+        done: false
