@@ -8,7 +8,7 @@ milestone_id: m1
 parent_tasks: []
 labels: []
 created_at: '2026-03-09T03:43:07.026Z'
-updated_at: '2026-03-09T03:43:40.845Z'
+updated_at: '2026-03-09T03:43:43.234Z'
 created_by: web
 agent:
   assigned: false
@@ -17,17 +17,17 @@ agent:
   session_id: null
   status: null
 terminal:
-  enabled: false
-  mode: null
-  session_id: null
-  status: stopped
+  enabled: true
+  mode: local
+  session_id: 1773027787026-skill-terminal-1773027823234
+  status: running
   host: null
   port: 22
   username: null
   timeout_days: 3
   auto_stop_on_task_done: true
-  started_at: null
-  last_active_at: null
+  started_at: '2026-03-09T03:43:43.234Z'
+  last_active_at: '2026-03-09T03:43:43.234Z'
   stopped_at: null
   stop_reason: null
 git:
