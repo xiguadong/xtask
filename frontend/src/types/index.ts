@@ -1,3 +1,7 @@
+export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'completed' | 'blocked';
+
+export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
+
 export interface Project {
   name: string;
   path: string;
@@ -26,8 +30,8 @@ export interface Task {
   title: string;
   description: string;
   description_file: string | null;
-  status: 'todo' | 'in_progress' | 'done' | 'blocked';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: TaskStatus;
+  priority: TaskPriority;
   milestone_id: string | null;
   parent_tasks: string[];
   labels: string[];

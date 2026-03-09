@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { Milestone, MilestoneGoal } from '../types';
+import { Milestone, MilestoneGoal, Task, TaskPriority } from '../types';
+import { formatTaskPriority, isTaskCompleted } from '../utils/taskDisplay';
 
 interface MilestoneListProps {
   milestones: Milestone[];
-  activeTab: string;
+  tasks: Task[];
   onUpdate: (id: string, updates: Partial<Milestone>) => Promise<void> | void;
   onDelete: (id: string) => Promise<void> | void;
 }
+
+const priorities: TaskPriority[] = ['critical', 'high', 'medium', 'low'];
 
 function normalizeGoals(goals: unknown): MilestoneGoal[] {
   if (!Array.isArray(goals)) return [];
@@ -34,7 +37,7 @@ function normalizeGoals(goals: unknown): MilestoneGoal[] {
 
 export default function MilestoneList({
   milestones,
-  activeTab,
+  tasks,
   onUpdate,
   onDelete
 }: MilestoneListProps) {
@@ -88,21 +91,46 @@ export default function MilestoneList({
   }
 
   return (
-    <div className="h-[340px] overflow-scroll rounded-md border border-border bg-white p-2" role="list" aria-label="里程碑列表">
+    <div className="h-[460px] overflow-scroll rounded-md border border-border bg-white p-2" role="list" aria-label="里程碑列表">
       <div className="flex min-h-full min-w-max gap-3 pb-2 pr-2">
         {milestones.map((milestone) => {
           const goals = normalizeGoals((milestone as Milestone & { goals?: unknown }).goals);
           const completed = goals.filter((goal) => goal.done).length;
           const total = goals.length;
           const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+          const milestoneTasks = tasks.filter((task) => task.milestone_id === milestone.id);
+          const completedTasks = milestoneTasks.filter((task) => isTaskCompleted(task.status)).length;
+          const totalTasks = milestoneTasks.length;
+          const taskProgress = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+          const taskProgressByPriority = priorities
+            .map((priority) => {
+              const priorityTasks = milestoneTasks.filter((task) => task.priority === priority);
+              if (priorityTasks.length === 0) return null;
+
+              const priorityDone = priorityTasks.filter((task) => isTaskCompleted(task.status)).length;
+              return {
+                priority,
+                done: priorityDone,
+                total: priorityTasks.length,
+                percent: Math.round((priorityDone / priorityTasks.length) * 100)
+              };
+            })
+            .filter(
+              (
+                item
+              ): item is {
+                priority: TaskPriority;
+                done: number;
+                total: number;
+                percent: number;
+              } => Boolean(item)
+            );
           const isEditing = editingId === milestone.id;
 
           return (
             <article
               key={milestone.id}
-              className={`h-[300px] w-80 shrink-0 rounded-lg border p-3 transition-colors duration-200 ${
-                activeTab === milestone.id ? 'border-primary bg-blue-50' : 'border-border bg-white'
-              }`}
+              className="h-[420px] w-[22rem] shrink-0 rounded-lg border border-border bg-white p-3 transition-colors duration-200"
             >
               {!isEditing ? (
                 <div className="flex h-full flex-col">
@@ -122,6 +150,18 @@ export default function MilestoneList({
                         className="h-2 rounded-full bg-primary transition-all duration-200"
                         style={{ width: `${progress}%` }}
                       />
+                    </div>
+
+                    <div className="mt-3 rounded-lg border border-border bg-slate-50 p-3">
+                      <div className="flex items-center justify-between text-xs text-muted">
+                        <span>关联任务进度</span>
+                        <span>
+                          {completedTasks}/{totalTasks}
+                        </span>
+                      </div>
+                      <div className="mt-2 h-2 rounded-full bg-slate-200">
+                        <div className="h-2 rounded-full bg-success transition-all duration-200" style={{ width: `${taskProgress}%` }} />
+                      </div>
                     </div>
                   </div>
 
@@ -146,6 +186,33 @@ export default function MilestoneList({
                           <span className={`whitespace-nowrap ${goal.done ? 'text-muted line-through' : 'text-text'}`}>{goal.title}</span>
                         </label>
                       ))
+                    )}
+                  </div>
+
+                  <div className="mt-3 rounded-lg border border-border bg-white p-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <h4 className="font-semibold text-text">任务状态</h4>
+                      <span className="text-muted">按优先级</span>
+                    </div>
+
+                    {taskProgressByPriority.length === 0 ? (
+                      <p className="mt-2 text-xs text-muted">暂无关联任务</p>
+                    ) : (
+                      <div className="mt-2 space-y-2">
+                        {taskProgressByPriority.map((item) => (
+                          <div key={`${milestone.id}-${item.priority}`}>
+                            <div className="flex items-center justify-between text-[11px] text-muted">
+                              <span>{formatTaskPriority(item.priority)}</span>
+                              <span>
+                                {item.done}/{item.total}
+                              </span>
+                            </div>
+                            <div className="mt-1 h-1.5 rounded-full bg-slate-200">
+                              <div className="h-1.5 rounded-full bg-primary transition-all duration-200" style={{ width: `${item.percent}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
 
