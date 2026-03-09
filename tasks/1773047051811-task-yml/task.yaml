@@ -13,7 +13,7 @@ labels:
   - ui
   - terminal
 created_at: '2026-03-09T09:04:11.811Z'
-updated_at: '2026-03-09T11:04:41.328Z'
+updated_at: '2026-03-09T11:04:42.981Z'
 created_by: web
 agent:
   assigned: false
@@ -22,19 +22,21 @@ agent:
   session_id: null
   status: null
 terminal:
-  enabled: true
+  enabled: false
   mode: local
-  session_id: 1773047051811-task-yml-terminal-1773047085140
-  status: running
+  session_id: null
+  status: stopped
   host: null
   port: 22
   username: null
   timeout_days: 3
   auto_stop_on_task_done: true
   started_at: '2026-03-09T09:04:45.140Z'
-  last_active_at: '2026-03-09T09:04:45.140Z'
-  stopped_at: null
-  stop_reason: null
+  last_active_at: '2026-03-09T11:04:41.451Z'
+  stopped_at: '2026-03-09T11:04:42.981Z'
+  stop_reason: task_completed
+  exit_code: 0
+  exit_signal: 9
 git:
   branch: 1773047051811-task-yml
   commits: []
