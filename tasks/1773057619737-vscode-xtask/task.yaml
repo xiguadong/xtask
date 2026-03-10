@@ -14,7 +14,7 @@ labels:
   - vscode
   - web
 created_at: '2026-03-09T12:00:19.737Z'
-updated_at: '2026-03-10T03:40:16.250Z'
+updated_at: '2026-03-10T03:40:18.162Z'
 created_by: cli
 agent:
   assigned: false
@@ -23,17 +23,17 @@ agent:
   session_id: null
   status: null
 terminal:
-  enabled: false
-  mode: null
-  session_id: null
-  status: stopped
+  enabled: true
+  mode: local
+  session_id: 1773057619737-vscode-xtask-terminal-1773114018162
+  status: running
   host: null
   port: 22
   username: null
   timeout_days: 3
   auto_stop_on_task_done: true
-  started_at: null
-  last_active_at: null
+  started_at: '2026-03-10T03:40:18.162Z'
+  last_active_at: '2026-03-10T03:40:18.162Z'
   stopped_at: null
   stop_reason: null
 git:
