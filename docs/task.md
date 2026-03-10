@@ -2,6 +2,12 @@
 
 ## 2026-03-10
 
+### xtask init 安装 skill（1773135724373-xtask-init-skill）
+
+- [x] CLI 初始化 - `xtask init` 在创建或检测到 `refs/xtask-data` 后，同步安装 `xtask-safe` 与 `init-xtask` 到目标仓库 `.codex/skills` (2026-03-10)
+- [x] 幂等补齐 - 已初始化仓库重复执行 `xtask init` 时，仍会继续补齐缺失的项目内置 skill，并跳过当前仓库同路径自拷贝 (2026-03-10)
+- [x] 验证 - `scripts/test-cli.sh` 新增内置 skill 安装校验，初始化临时仓库后确认两份 skill 均已落盘 (2026-03-10)
+
 ### xtask 任务页 UI 优化（1773124373867-xtask-ui）
 
 - [x] 任务页排序 - 排序控件移动到页面上方，支持按优先级 / 时间 / 名称切换，且都支持正序与倒序 (2026-03-10)

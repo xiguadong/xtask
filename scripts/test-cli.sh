@@ -54,8 +54,18 @@ else
 fi
 echo ""
 
-# 测试 1.1: register
-echo "【测试 1.1】xtask project register"
+# 测试 1.1: skill 安装
+echo "【测试 1.1】xtask init 自动安装 skills"
+if [ -f "$TEST_DIR/.codex/skills/xtask-safe/SKILL.md" ] && [ -f "$TEST_DIR/.codex/skills/init-xtask/SKILL.md" ]; then
+  echo "✓ 项目内置 skills 安装成功"
+else
+  echo "✗ 项目内置 skills 安装失败"
+  exit 1
+fi
+echo ""
+
+# 测试 1.2: register
+echo "【测试 1.2】xtask project register"
 run_xtask project register >/dev/null 2>&1 || true
 echo ""
 

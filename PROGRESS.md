@@ -10,6 +10,10 @@
 
 ## 2026-03-10
 
+- ✅ `xtask init` 自动把 `xtask-safe` 与 `init-xtask` 安装到目标仓库的 `.codex/skills/`
+- ✅ `xtask init` 改为幂等补齐：即使 `refs/xtask-data` 已存在，也会继续同步缺失的项目内置 skills
+- ✅ CLI 测试脚本新增 skill 安装校验，初始化临时仓库后会检查两份内置 skill 是否已落到目标目录
+
 - ✅ `start.sh` 输出访问地址时改用本机真实 IP，不再固定打印 `localhost`
 - ✅ `start.sh` 启动成功判定改为“端口已实际监听”，避免后台进程短暂存活导致误报成功
 - ✅ `AGENTS.md` 补充说明：Codex 沙箱模式下，允许为 worktree 分支脱离沙箱执行 `./scripts/start.sh`

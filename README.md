@@ -54,6 +54,7 @@ xtask task create "我的第一个任务" --milestone m1 --labels demo
 
 - 全局项目注册信息写入 `~/.xtask/projects.yaml`
 - 项目任务数据写入 Git 数据分支 `refs/xtask-data`
+- 当前仓库会自动补齐 `.codex/skills/xtask-safe` 与 `.codex/skills/init-xtask`
 
 常见数据结构如下：
 
@@ -111,6 +112,8 @@ xtask worktree tasks
 - `blocked`
 
 ## Codex / Skill 用法
+
+如果你是在目标仓库里执行 `xtask init`，默认会自动把 `xtask-safe` 与 `init-xtask` 安装到该仓库的 `.codex/skills/`。
 
 如果你想在自己的仓库里复用这里的 Codex skills，可以用下面两种方式：
 
