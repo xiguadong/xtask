@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllProjects, getProjectByName } from '../services/projectService.js';
+import { getAllProjects, getProjectByName, hideProjectByName } from '../services/projectService.js';
 import { getTasks } from '../services/taskService.js';
 import { getMilestones } from '../services/milestoneService.js';
 
@@ -25,6 +25,15 @@ router.get('/:name', (req, res) => {
     return res.status(404).json({ error: 'Project not found' });
   }
   res.json(project);
+});
+
+router.delete('/:name', (req, res) => {
+  const project = hideProjectByName(req.params.name);
+  if (!project) {
+    return res.status(404).json({ error: 'Project not found' });
+  }
+
+  res.status(204).send();
 });
 
 export default router;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Shell from '../components/layout/Shell';
 import TopBar from '../components/layout/TopBar';
 import TaskActions from '../components/TaskActions';
@@ -13,6 +13,7 @@ import { fetchTask, updateTask } from '../utils/api';
 
 export default function TaskDetailPage() {
   const { projectName, taskId } = useParams<{ projectName: string; taskId: string }>();
+  const navigate = useNavigate();
   const { milestones, loading: milestonesLoading } = useMilestones(projectName!);
   const [task, setTask] = useState<Task | null>(null);
   const [editing, setEditing] = useState(false);
@@ -83,6 +84,10 @@ export default function TaskDetailPage() {
   }
 
   const descriptionContent = task.description_content || task.description;
+
+  async function handleTaskDeleted() {
+    navigate(`/projects/${projectName}`);
+  }
 
   return (
     <>
@@ -236,7 +241,7 @@ export default function TaskDetailPage() {
                   </div>
                 </article>
 
-                <TaskActions task={task} projectName={projectName!} onUpdate={loadTask} />
+                <TaskActions task={task} projectName={projectName!} onUpdate={loadTask} onDeleted={handleTaskDeleted} />
 
                 {task.summary_content?.trim() ? (
                   <section className="rounded-lg border border-border bg-white p-4 shadow-sm">

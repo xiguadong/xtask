@@ -3,7 +3,13 @@ import { Link } from 'react-router-dom';
 import { fetchTerminalOverview } from '../utils/api';
 import { Project, TerminalOverview } from '../types';
 
-export default function ProjectCard({ project }: { project: Project }) {
+interface ProjectCardProps {
+  project: Project;
+  deleting?: boolean;
+  onDelete?: (project: Project) => void;
+}
+
+export default function ProjectCard({ project, deleting = false, onDelete }: ProjectCardProps) {
   const [terminalOverview, setTerminalOverview] = useState<TerminalOverview | null>(null);
   const [terminalError, setTerminalError] = useState(false);
 
@@ -49,82 +55,94 @@ export default function ProjectCard({ project }: { project: Project }) {
   }, [project.name, refreshJitterMs]);
 
   return (
-    <Link
-      to={`/projects/${project.name}`}
-      className="block rounded-lg border border-border bg-surface p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-    >
-      <h3 className="mb-1 text-base font-semibold text-text">{project.name}</h3>
-      <p className="mb-3 truncate text-xs text-muted">{project.path}</p>
-      <div className="flex gap-4 text-xs font-medium">
-        <span className="text-primary">{project.taskCount || 0} tasks</span>
-        <span className="text-success">{project.milestoneCount || 0} milestones</span>
+    <article className="rounded-lg border border-border bg-surface p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="mb-1 truncate text-base font-semibold text-text">{project.name}</h3>
+          <p className="truncate text-xs text-muted">{project.path}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onDelete?.(project)}
+          disabled={deleting}
+          className="shrink-0 rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 transition-colors duration-200 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {deleting ? '删除中...' : '删除项目'}
+        </button>
       </div>
 
-      <div className="mt-3 rounded-md border border-border bg-white p-3 text-xs">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Terminal</p>
-            {terminalOverview ? (
-              <p className="mt-1 text-[11px] text-muted">
-                活跃 {terminalOverview.counts.total} / {terminalOverview.counts.max}，可用 {terminalOverview.counts.available}
-              </p>
-            ) : terminalError ? (
-              <p className="mt-1 text-[11px] text-red-700">终端概览加载失败（3 分钟后自动重试）</p>
-            ) : (
-              <p className="mt-1 text-[11px] text-muted">加载终端概览中…</p>
-            )}
-          </div>
-          <span className="rounded border border-border bg-slate-50 px-2 py-1 text-[10px] font-semibold text-muted">
-            3 分钟刷新
-          </span>
+      <Link to={`/projects/${project.name}`} className="mt-3 block rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+        <div className="flex gap-4 text-xs font-medium">
+          <span className="text-primary">{project.taskCount || 0} tasks</span>
+          <span className="text-success">{project.milestoneCount || 0} milestones</span>
         </div>
 
-        {terminalOverview && (
-          <>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <div className="rounded border border-green-100 bg-green-50 p-2">
-                <p className="text-green-700">工作中</p>
-                <p className="text-sm font-semibold text-green-700">{terminalOverview.counts.working}</p>
-              </div>
-              <div className="rounded border border-amber-100 bg-amber-50 p-2">
-                <p className="text-amber-700">等待中</p>
-                <p className="text-sm font-semibold text-amber-700">{terminalOverview.counts.waiting}</p>
-              </div>
-              <div className="rounded border border-slate-200 bg-slate-50 p-2">
-                <p className="text-slate-600">可用</p>
-                <p className="text-sm font-semibold text-slate-700">{terminalOverview.counts.available}</p>
-              </div>
+        <div className="mt-3 rounded-md border border-border bg-white p-3 text-xs">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Terminal</p>
+              {terminalOverview ? (
+                <p className="mt-1 text-[11px] text-muted">
+                  活跃 {terminalOverview.counts.total} / {terminalOverview.counts.max}，可用 {terminalOverview.counts.available}
+                </p>
+              ) : terminalError ? (
+                <p className="mt-1 text-[11px] text-red-700">终端概览加载失败（3 分钟后自动重试）</p>
+              ) : (
+                <p className="mt-1 text-[11px] text-muted">加载终端概览中…</p>
+              )}
             </div>
+            <span className="rounded border border-border bg-slate-50 px-2 py-1 text-[10px] font-semibold text-muted">
+              3 分钟刷新
+            </span>
+          </div>
 
-            {terminalOverview.items.length === 0 ? (
-              <p className="mt-3 rounded border border-dashed border-border p-2 text-[11px] text-muted">
-                暂无任务终端在运行
-              </p>
-            ) : (
-              <div className="mt-3 space-y-2">
-                {terminalOverview.items.slice(0, 2).map((item) => (
-                  <div key={item.sessionId} className="rounded border border-border bg-slate-50 p-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="line-clamp-1 text-[11px] font-medium text-text">{item.taskTitle}</p>
-                      <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-                          item.runtimeStatus === 'working' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                        }`}
-                      >
-                        {item.runtimeStatus === 'working' ? '工作中' : '等待'}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-[10px] text-muted">{item.taskId}</p>
-                  </div>
-                ))}
-                {terminalOverview.items.length > 2 && (
-                  <p className="text-[10px] text-muted">还有 {terminalOverview.items.length - 2} 个终端未展示</p>
-                )}
+          {terminalOverview && (
+            <>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <div className="rounded border border-green-100 bg-green-50 p-2">
+                  <p className="text-green-700">工作中</p>
+                  <p className="text-sm font-semibold text-green-700">{terminalOverview.counts.working}</p>
+                </div>
+                <div className="rounded border border-amber-100 bg-amber-50 p-2">
+                  <p className="text-amber-700">等待中</p>
+                  <p className="text-sm font-semibold text-amber-700">{terminalOverview.counts.waiting}</p>
+                </div>
+                <div className="rounded border border-slate-200 bg-slate-50 p-2">
+                  <p className="text-slate-600">可用</p>
+                  <p className="text-sm font-semibold text-slate-700">{terminalOverview.counts.available}</p>
+                </div>
               </div>
-            )}
-          </>
-        )}
-      </div>
-    </Link>
+
+              {terminalOverview.items.length === 0 ? (
+                <p className="mt-3 rounded border border-dashed border-border p-2 text-[11px] text-muted">
+                  暂无任务终端在运行
+                </p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {terminalOverview.items.slice(0, 2).map((item) => (
+                    <div key={item.sessionId} className="rounded border border-border bg-slate-50 p-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="line-clamp-1 text-[11px] font-medium text-text">{item.taskTitle}</p>
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                            item.runtimeStatus === 'working' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          }`}
+                        >
+                          {item.runtimeStatus === 'working' ? '工作中' : '等待'}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[10px] text-muted">{item.taskId}</p>
+                    </div>
+                  ))}
+                  {terminalOverview.items.length > 2 && (
+                    <p className="text-[10px] text-muted">还有 {terminalOverview.items.length - 2} 个终端未展示</p>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </Link>
+    </article>
   );
 }

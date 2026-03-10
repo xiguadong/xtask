@@ -2,6 +2,7 @@ import yaml from 'js-yaml';
 import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
 import { prepareTaskDescription, prepareTaskSummary, readTaskDescriptionContent, readTaskSummaryContent } from '../utils/taskContent.js';
+import { getWorktree } from './worktreeService.js';
 
 function getDefaultTerminal() {
   return {
@@ -230,6 +231,7 @@ export function updateTask(projectPath, id, updates) {
 export function deleteTask(projectPath, id) {
   const task = readYaml(projectPath, `tasks/${id}/task.yaml`);
   if (!task) return false;
+  normalizeTask(task);
 
   const changes = [
     { path: `tasks/${id}/task.yaml`, delete: true }
@@ -239,6 +241,37 @@ export function deleteTask(projectPath, id) {
   if (task.summary_file) {
     changes.push({ path: task.summary_file, delete: true });
   }
+
+  const branches = listDir(projectPath, 'branches');
+  branches.forEach((branch) => {
+    const branchTask = readYaml(projectPath, `branches/${branch}/${id}.yaml`);
+    if (!branchTask) return;
+
+    changes.push({ path: `branches/${branch}/${id}.yaml`, delete: true });
+
+    if (branchTask.description_file) {
+      changes.push({ path: branchTask.description_file, delete: true });
+    }
+    if (branchTask.summary_file) {
+      changes.push({ path: branchTask.summary_file, delete: true });
+    }
+
+    const worktree = getWorktree(projectPath, branch);
+    if (!worktree) return;
+
+    const nextTasks = Array.isArray(worktree.tasks)
+      ? worktree.tasks.filter((taskId) => taskId !== id)
+      : [];
+
+    changes.push({
+      path: `worktrees/${branch}.yaml`,
+      content: yaml.dump({
+        ...worktree,
+        tasks: nextTasks
+      })
+    });
+  });
+
   writeFiles(projectPath, changes, 'xtask delete task');
   return true;
 }
