@@ -4,10 +4,19 @@ import { getWorktree } from './worktreeService.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
 import { prepareTaskDescription, prepareTaskSummary, readTaskDescriptionContent, readTaskSummaryContent } from '../utils/taskContent.js';
 
+function normalizeTaskLabel(label) {
+  return String(label || '').trim().toLowerCase();
+}
+
+function normalizeTaskLabels(labels = []) {
+  return Array.from(new Set((labels || []).map((label) => normalizeTaskLabel(label)).filter(Boolean)));
+}
+
 function normalizeTask(task) {
   if (!task) return null;
   task.status = normalizeTaskStatus(task.status);
   task.summary_file = task.summary_file || null;
+  task.labels = normalizeTaskLabels(task.labels || []);
   task.agent = {
     assigned: false,
     identity: null,
@@ -127,6 +136,7 @@ export function updateBranchTask(projectPath, branch, taskId, updates) {
 
   Object.assign(task, nextUpdates);
   task.status = normalizeTaskStatus(task.status);
+  task.labels = normalizeTaskLabels(task.labels || []);
   task.updated_at = new Date().toISOString();
 
   const descriptionChanges = [];
@@ -198,7 +208,7 @@ export function createBranchTask(projectPath, branch, taskData) {
     priority: taskData.priority || 'medium',
     milestone_id: taskData.milestone_id || null,
     parent_tasks: taskData.parent_tasks || [],
-    labels: taskData.labels || [],
+    labels: normalizeTaskLabels(taskData.labels || []),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     created_by: taskData.created_by || 'web',

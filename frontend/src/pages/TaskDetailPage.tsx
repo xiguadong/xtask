@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
+import LabelBadge from '../components/LabelBadge';
 import Shell from '../components/layout/Shell';
 import TopBar from '../components/layout/TopBar';
 import TaskActions from '../components/TaskActions';
@@ -8,16 +9,19 @@ import MarkdownPreview from '../components/MarkdownPreview';
 import TerminalOverviewFloating from '../components/TerminalOverviewFloating';
 import { useMilestones } from '../hooks/useMilestones';
 import { Task } from '../types';
+import { normalizeTaskLabel, normalizeTaskLabels } from '../utils/taskLabels';
 import { formatTaskDisplayId, formatTaskPriority, formatTaskStatus } from '../utils/taskDisplay';
 import { fetchTask, updateTask } from '../utils/api';
 
 export default function TaskDetailPage() {
   const { projectName, taskId } = useParams<{ projectName: string; taskId: string }>();
+  const location = useLocation();
   const { milestones, loading: milestonesLoading } = useMilestones(projectName!);
   const [task, setTask] = useState<Task | null>(null);
   const [editing, setEditing] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [descriptionDraft, setDescriptionDraft] = useState('');
+  const backTo = useMemo(() => `/projects/${projectName}${location.search || '?view=tasks'}`, [location.search, projectName]);
 
   useEffect(() => {
     void loadTask();
@@ -39,7 +43,10 @@ export default function TaskDetailPage() {
 
   async function loadTask() {
     const data = await fetchTask(projectName!, taskId!);
-    setTask(data);
+    setTask({
+      ...data,
+      labels: normalizeTaskLabels(data.labels || [])
+    });
   }
 
   async function handleUpdate(event: React.FormEvent<HTMLFormElement>) {
@@ -59,12 +66,13 @@ export default function TaskDetailPage() {
 
   function handleAddLabel(event: React.FormEvent) {
     event.preventDefault();
-    if (!newLabel.trim() || !task) return;
-    if (task.labels.includes(newLabel.trim())) {
+    const normalizedLabel = normalizeTaskLabel(newLabel);
+    if (!normalizedLabel || !task) return;
+    if (task.labels.includes(normalizedLabel)) {
       setNewLabel('');
       return;
     }
-    setTask({ ...task, labels: [...task.labels, newLabel.trim()] });
+    setTask({ ...task, labels: normalizeTaskLabels([...task.labels, normalizedLabel]) });
     setNewLabel('');
   }
 
@@ -76,7 +84,7 @@ export default function TaskDetailPage() {
   if (!task) {
     return (
       <>
-        <TopBar title="Task Detail" backTo={`/projects/${projectName}`} backLabel="Back to project" searchPlaceholder="Search task" />
+        <TopBar title="Task Detail" backTo={backTo} backLabel="返回任务列表" searchPlaceholder="Search task" />
         <div className="mx-auto max-w-[1600px] p-6 text-sm text-muted">Loading task...</div>
       </>
     );
@@ -86,7 +94,7 @@ export default function TaskDetailPage() {
 
   return (
     <>
-      <TopBar title={task.title} backTo={`/projects/${projectName}`} backLabel="Back to project" searchPlaceholder="Search task" />
+      <TopBar title={task.title} backTo={backTo} backLabel="返回任务列表" searchPlaceholder="Search task" />
 
       <Shell
         sidebar={
@@ -155,22 +163,18 @@ export default function TaskDetailPage() {
                   <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Labels</h3>
                   <div className="mb-2 flex flex-wrap gap-2">
                     {task.labels.map((label) => (
-                      <span key={label} className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs text-slate-700">
-                        {label}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveLabel(label)}
-                          className="text-slate-500 hover:text-red-600"
-                        >
+                      <div key={label} className="inline-flex items-center gap-1 rounded-full border border-border bg-white pr-2 shadow-sm">
+                        <LabelBadge label={label} />
+                        <button type="button" onClick={() => handleRemoveLabel(label)} className="text-slate-500 hover:text-red-600">
                           ×
                         </button>
-                      </span>
+                      </div>
                     ))}
                   </div>
                   <div className="flex gap-2">
                     <input
                       value={newLabel}
-                      onChange={(e) => setNewLabel(e.target.value)}
+                      onChange={(e) => setNewLabel(e.target.value.toLowerCase())}
                       className="flex-1 rounded border border-border bg-white p-2 text-sm"
                       placeholder="添加新标签"
                     />
@@ -224,11 +228,7 @@ export default function TaskDetailPage() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {task.labels.length > 0 ? (
-                        task.labels.map((label) => (
-                          <span key={label} className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-700">
-                            {label}
-                          </span>
-                        ))
+                        task.labels.map((label) => <LabelBadge key={label} label={label} />)
                       ) : (
                         <span className="text-muted">No labels</span>
                       )}

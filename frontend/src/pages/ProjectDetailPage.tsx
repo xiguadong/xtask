@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
+import LabelBadge from '../components/LabelBadge';
 import MilestoneList from '../components/MilestoneList';
 import TaskList from '../components/TaskList';
 import TerminalOverviewFloating from '../components/TerminalOverviewFloating';
@@ -11,7 +12,8 @@ import { useTasks } from '../hooks/useTasks';
 import { useWorktrees } from '../hooks/useWorktrees';
 import { Milestone, Task } from '../types';
 import { createMilestone, createTask, deleteMilestone, updateMilestone } from '../utils/api';
-import { TaskSortOption, compareTasks, formatTaskPriority, formatTaskStatus, isTaskCompleted } from '../utils/taskDisplay';
+import { normalizeTaskLabel, normalizeTaskLabels } from '../utils/taskLabels';
+import { TaskSortDirection, TaskSortField, compareTasks, formatTaskPriority, formatTaskStatus, isTaskCompleted } from '../utils/taskDisplay';
 
 type ProjectView = 'milestones' | 'tasks' | 'worktrees';
 
@@ -19,7 +21,33 @@ const ALL_MILESTONES = 'all';
 const NO_MILESTONE = '__none__';
 const ALL_STATUSES = 'all';
 const COMPLETED_FILTER = '__completed__';
-const ALL_LABELS = 'all';
+
+function isTaskSortField(value: string | null): value is TaskSortField {
+  return value === 'priority' || value === 'created_at' || value === 'title';
+}
+
+function isTaskSortDirection(value: string | null): value is TaskSortDirection {
+  return value === 'asc' || value === 'desc';
+}
+
+function isTaskStatusFilter(value: string | null): value is string {
+  return value === ALL_STATUSES || value === COMPLETED_FILTER || value === 'todo' || value === 'in_progress' || value === 'blocked' || value === 'done';
+}
+
+function parseProjectDetailSearch(searchParams: URLSearchParams) {
+  return {
+    projectView: isProjectView(searchParams.get('view')) ? searchParams.get('view') : 'milestones',
+    taskMilestoneFilter: searchParams.get('milestone') || ALL_MILESTONES,
+    taskStatusFilter: isTaskStatusFilter(searchParams.get('status')) ? searchParams.get('status')! : ALL_STATUSES,
+    taskLabelFilters: normalizeTaskLabels((searchParams.get('labels') || '').split(',')),
+    taskSortField: isTaskSortField(searchParams.get('sortField')) ? searchParams.get('sortField')! : 'priority',
+    taskSortDirection: isTaskSortDirection(searchParams.get('sortDir')) ? searchParams.get('sortDir')! : 'asc'
+  };
+}
+
+function isProjectView(value: string | null): value is ProjectView {
+  return value === 'milestones' || value === 'tasks' || value === 'worktrees';
+}
 
 function buildTaskSummary(tasks: Task[]) {
   const total = tasks.length;
@@ -34,11 +62,9 @@ function buildTaskSummary(tasks: Task[]) {
 
 export default function ProjectDetailPage() {
   const { projectName } = useParams<{ projectName: string }>();
-  const [projectView, setProjectView] = useState<ProjectView>('milestones');
-  const [taskMilestoneFilter, setTaskMilestoneFilter] = useState<string>(ALL_MILESTONES);
-  const [taskStatusFilter, setTaskStatusFilter] = useState<string>(ALL_STATUSES);
-  const [taskLabelFilter, setTaskLabelFilter] = useState<string>(ALL_LABELS);
-  const [taskSort, setTaskSort] = useState<TaskSortOption>('priority_status');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const parsedSearchState = useMemo(() => parseProjectDetailSearch(searchParams), [searchParams]);
+  const { projectView, taskMilestoneFilter, taskStatusFilter, taskLabelFilters, taskSortField, taskSortDirection } = parsedSearchState;
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
 
@@ -46,7 +72,28 @@ export default function ProjectDetailPage() {
   const { milestones, loading: milestonesLoading, refresh: refreshMilestones } = useMilestones(projectName!);
   const { worktrees, loading: worktreesLoading, refresh: refreshWorktrees, createWorktree, deleteWorktree } = useWorktrees(projectName!);
 
-  const allLabels = useMemo(() => Array.from(new Set(tasks.flatMap((task) => task.labels))).sort((a, b) => a.localeCompare(b)), [tasks]);
+  function updateProjectDetailSearch(nextState: Partial<typeof parsedSearchState>) {
+    const mergedState = {
+      ...parsedSearchState,
+      ...nextState
+    };
+    const nextParams = new URLSearchParams();
+    if (mergedState.projectView !== 'milestones') nextParams.set('view', mergedState.projectView);
+    if (mergedState.taskMilestoneFilter !== ALL_MILESTONES) nextParams.set('milestone', mergedState.taskMilestoneFilter);
+    if (mergedState.taskStatusFilter !== ALL_STATUSES) nextParams.set('status', mergedState.taskStatusFilter);
+    if (mergedState.taskLabelFilters.length > 0) nextParams.set('labels', mergedState.taskLabelFilters.join(','));
+    if (mergedState.taskSortField !== 'priority') nextParams.set('sortField', mergedState.taskSortField);
+    if (mergedState.taskSortDirection !== 'asc') nextParams.set('sortDir', mergedState.taskSortDirection);
+
+    if (nextParams.toString() !== searchParams.toString()) {
+      setSearchParams(nextParams, { replace: true });
+    }
+  }
+
+  const allLabels = useMemo(
+    () => normalizeTaskLabels(tasks.flatMap((task) => task.labels)).sort((a, b) => a.localeCompare(b)),
+    [tasks]
+  );
 
   const filteredTasks = useMemo(() => {
     const next = tasks.filter((task) => {
@@ -54,12 +101,12 @@ export default function ProjectDetailPage() {
       if (taskMilestoneFilter !== ALL_MILESTONES && taskMilestoneFilter !== NO_MILESTONE && task.milestone_id !== taskMilestoneFilter) return false;
       if (taskStatusFilter === COMPLETED_FILTER && !isTaskCompleted(task.status)) return false;
       if (taskStatusFilter !== ALL_STATUSES && taskStatusFilter !== COMPLETED_FILTER && task.status !== taskStatusFilter) return false;
-      if (taskLabelFilter !== ALL_LABELS && !task.labels.includes(taskLabelFilter)) return false;
+      if (taskLabelFilters.length > 0 && !task.labels.some((label) => taskLabelFilters.includes(normalizeTaskLabel(label)))) return false;
       return true;
     });
 
-    return [...next].sort((a, b) => compareTasks(a, b, taskSort));
-  }, [taskLabelFilter, taskMilestoneFilter, taskSort, taskStatusFilter, tasks]);
+    return [...next].sort((a, b) => compareTasks(a, b, taskSortField, taskSortDirection));
+  }, [taskLabelFilters, taskMilestoneFilter, taskSortDirection, taskSortField, taskStatusFilter, tasks]);
 
   const overallSummary = useMemo(() => buildTaskSummary(tasks), [tasks]);
   const filteredSummary = useMemo(() => buildTaskSummary(filteredTasks), [filteredTasks]);
@@ -137,12 +184,35 @@ export default function ProjectDetailPage() {
       parts.push(formatTaskStatus(taskStatusFilter as Task['status']));
     }
 
-    if (taskLabelFilter !== ALL_LABELS) {
-      parts.push(`标签 ${taskLabelFilter}`);
+    if (taskLabelFilters.length === 1) {
+      parts.push(`标签 ${taskLabelFilters[0]}`);
+    } else if (taskLabelFilters.length > 1) {
+      parts.push(`标签 ${taskLabelFilters.join(' / ')}`);
+    } else {
+      parts.push('全部标签');
     }
 
+    parts.push(`排序 ${taskSortField === 'priority' ? '优先级' : taskSortField === 'created_at' ? '时间' : '名称'}${taskSortDirection === 'asc' ? '正序' : '倒序'}`);
+
     return parts.join(' / ');
-  }, [milestones, taskLabelFilter, taskMilestoneFilter, taskStatusFilter]);
+  }, [milestones, taskLabelFilters, taskMilestoneFilter, taskSortDirection, taskSortField, taskStatusFilter]);
+
+  function handleProjectViewChange(view: ProjectView) {
+    updateProjectDetailSearch({ projectView: view });
+  }
+
+  function handleToggleTaskLabelFilter(label: string) {
+    const normalizedLabel = normalizeTaskLabel(label);
+    updateProjectDetailSearch({
+      taskLabelFilters: taskLabelFilters.includes(normalizedLabel)
+        ? taskLabelFilters.filter((item) => item !== normalizedLabel)
+        : [...taskLabelFilters, normalizedLabel]
+    });
+  }
+
+  function handleClearTaskLabelFilters() {
+    updateProjectDetailSearch({ taskLabelFilters: [] });
+  }
 
   async function handleCreateTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -154,7 +224,7 @@ export default function ProjectDetailPage() {
       description: data.get('description'),
       priority: data.get('priority'),
       milestone_id: data.get('milestone') || null,
-      labels: (data.get('labels') as string)?.split(',').map((label) => label.trim()).filter(Boolean) || []
+      labels: normalizeTaskLabels((data.get('labels') as string)?.split(',') || [])
     });
 
     setShowTaskForm(false);
@@ -211,7 +281,7 @@ export default function ProjectDetailPage() {
             <span>Milestone</span>
             <select
               value={taskMilestoneFilter}
-              onChange={(event) => setTaskMilestoneFilter(event.target.value)}
+              onChange={(event) => updateProjectDetailSearch({ taskMilestoneFilter: event.target.value })}
               className="w-full rounded border border-border bg-white p-2 text-xs text-text"
             >
               <option value={ALL_MILESTONES}>全部里程碑</option>
@@ -227,7 +297,7 @@ export default function ProjectDetailPage() {
             <span>完成状态</span>
             <select
               value={taskStatusFilter}
-              onChange={(event) => setTaskStatusFilter(event.target.value)}
+              onChange={(event) => updateProjectDetailSearch({ taskStatusFilter: event.target.value })}
               className="w-full rounded border border-border bg-white p-2 text-xs text-text"
             >
               <option value={ALL_STATUSES}>全部状态</option>
@@ -237,30 +307,40 @@ export default function ProjectDetailPage() {
               <option value="blocked">阻塞</option>
             </select>
           </label>
-          <label className="block space-y-1 text-xs text-muted">
-            <span>Label</span>
-            <select
-              value={taskLabelFilter}
-              onChange={(event) => setTaskLabelFilter(event.target.value)}
-              className="w-full rounded border border-border bg-white p-2 text-xs text-text"
-            >
-              <option value={ALL_LABELS}>全部标签</option>
-              {allLabels.map((label) => (
-                <option key={label} value={label}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block space-y-1 text-xs text-muted">
-            <span>排序</span>
-            <select value={taskSort} onChange={(event) => setTaskSort(event.target.value as TaskSortOption)} className="w-full rounded border border-border bg-white p-2 text-xs text-text">
-              <option value="priority_status">优先级 + 状态</option>
-              <option value="status_priority">状态 + 优先级</option>
-              <option value="created_desc">时间倒序</option>
-              <option value="created_asc">时间正序</option>
-            </select>
-          </label>
+          <div className="space-y-2 text-xs text-muted">
+            <div className="flex items-center justify-between gap-2">
+              <span>标签筛选</span>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full border border-border bg-slate-50 px-2 py-0.5 text-[11px] text-muted">
+                  {taskLabelFilters.length === 0 ? '全部' : `已选 ${taskLabelFilters.length}`}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleClearTaskLabelFilters}
+                  className="whitespace-nowrap rounded-md px-2 py-1 text-[11px] font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+                >
+                  重置
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2 rounded-xl border border-border bg-white p-3">
+              {allLabels.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border bg-slate-50 px-3 py-2 text-[11px] text-muted">当前项目暂无标签</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {allLabels.map((label) => (
+                    <LabelBadge
+                      key={label}
+                      label={label}
+                      selected={taskLabelFilters.includes(label)}
+                      onClick={() => handleToggleTaskLabelFilter(label)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </section>
 
         <section className="space-y-2 rounded-md border border-border bg-white p-3">
@@ -345,17 +425,63 @@ export default function ProjectDetailPage() {
   const main =
     projectView === 'tasks' ? (
       <section className="space-y-3" data-testid="project-detail-tasks">
-        <header className="flex items-center justify-between rounded-lg border border-border bg-surface p-4">
-          <div>
-            <h2 className="text-sm font-semibold text-text">任务列表</h2>
-            <p className="mt-1 text-xs text-muted">支持按 Label、完成状态、Milestone 多维筛选，并可按时间或优先级排序。</p>
+        <header className="space-y-3 rounded-lg border border-border bg-surface p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-text">任务列表</h2>
+              <p className="mt-1 text-xs text-muted">筛选保留在左侧，排序移动到页面上方，支持按优先级、时间、名称正序/倒序查看。</p>
+            </div>
+            <button
+              onClick={() => setShowTaskForm((value) => !value)}
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-hover"
+            >
+              {showTaskForm ? '关闭' : '新建任务'}
+            </button>
           </div>
-          <button
-            onClick={() => setShowTaskForm((value) => !value)}
-            className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-hover"
-          >
-            {showTaskForm ? '关闭' : '新建任务'}
-          </button>
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-white px-3 py-2.5 text-xs">
+            <span className="font-medium text-muted">排序方式</span>
+            <div className="inline-flex flex-wrap gap-1 rounded-full bg-slate-50 p-1">
+              {([
+                ['priority', '优先级'],
+                ['created_at', '时间'],
+                ['title', '名称']
+              ] as const).map(([field, label]) => (
+                <button
+                  key={field}
+                  type="button"
+                  onClick={() => updateProjectDetailSearch({ taskSortField: field })}
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
+                    taskSortField === field ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:bg-white'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="inline-flex gap-1 rounded-full bg-slate-50 p-1">
+              <button
+                type="button"
+                onClick={() => updateProjectDetailSearch({ taskSortDirection: 'asc' })}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
+                  taskSortDirection === 'asc' ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:bg-white'
+                }`}
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                onClick={() => updateProjectDetailSearch({ taskSortDirection: 'desc' })}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
+                  taskSortDirection === 'desc' ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:bg-white'
+                }`}
+              >
+                ↓
+              </button>
+            </div>
+            <span className="rounded-full border border-border bg-slate-50 px-2 py-0.5 text-[11px] text-muted">
+              {taskSortField === 'priority' ? '优先级' : taskSortField === 'created_at' ? '时间' : '名称'} · {taskSortDirection === 'asc' ? '正序' : '倒序'}
+            </span>
+          </div>
         </header>
 
         {showTaskForm && (
@@ -411,7 +537,12 @@ export default function ProjectDetailPage() {
         {tasksLoading ? (
           <p className="rounded-lg border border-dashed border-border bg-surface p-6 text-center text-sm text-muted">任务加载中...</p>
         ) : (
-          <TaskList tasks={filteredTasks} projectName={projectName!} emptyText="当前筛选下暂无任务" />
+          <TaskList
+            tasks={filteredTasks}
+            projectName={projectName!}
+            currentSearch={searchParams.toString() ? `?${searchParams.toString()}` : ''}
+            emptyText="当前筛选下暂无任务"
+          />
         )}
       </section>
     ) : projectView === 'milestones' ? (
@@ -555,19 +686,19 @@ export default function ProjectDetailPage() {
         rightSlot={
           <div className="flex gap-2">
             <button
-              onClick={() => setProjectView('milestones')}
+              onClick={() => handleProjectViewChange('milestones')}
               className={`rounded px-3 py-1 text-xs ${projectView === 'milestones' ? 'bg-primary text-white' : 'bg-gray-200 text-slate-700'}`}
             >
               里程碑
             </button>
             <button
-              onClick={() => setProjectView('tasks')}
+              onClick={() => handleProjectViewChange('tasks')}
               className={`rounded px-3 py-1 text-xs ${projectView === 'tasks' ? 'bg-primary text-white' : 'bg-gray-200 text-slate-700'}`}
             >
               任务
             </button>
             <button
-              onClick={() => setProjectView('worktrees')}
+              onClick={() => handleProjectViewChange('worktrees')}
               className={`rounded px-3 py-1 text-xs ${projectView === 'worktrees' ? 'bg-primary text-white' : 'bg-gray-200 text-slate-700'}`}
             >
               Worktrees

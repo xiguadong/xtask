@@ -3,6 +3,14 @@ import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
 import { prepareTaskDescription, prepareTaskSummary, readTaskDescriptionContent, readTaskSummaryContent } from '../utils/taskContent.js';
 
+function normalizeTaskLabel(label) {
+  return String(label || '').trim().toLowerCase();
+}
+
+function normalizeTaskLabels(labels = []) {
+  return Array.from(new Set((labels || []).map((label) => normalizeTaskLabel(label)).filter(Boolean)));
+}
+
 function getDefaultTerminal() {
   return {
     enabled: false,
@@ -46,6 +54,7 @@ function normalizeTask(task) {
 
   task.status = normalizeTaskStatus(task.status);
   task.summary_file = task.summary_file || null;
+  task.labels = normalizeTaskLabels(task.labels || []);
 
   task.terminal = {
     ...getDefaultTerminal(),
@@ -87,7 +96,8 @@ export function getTasks(projectPath, filters = {}) {
     tasks = tasks.filter(t => t.status === targetStatus);
   }
   if (filters.label) {
-    tasks = tasks.filter(t => t.labels.includes(filters.label));
+    const targetLabel = normalizeTaskLabel(filters.label);
+    tasks = tasks.filter(t => t.labels.includes(targetLabel));
   }
   if (filters.branch) {
     tasks = tasks.filter(t => t.git?.branch === filters.branch);
@@ -120,7 +130,7 @@ export function createTask(projectPath, task) {
     priority: task.priority || 'medium',
     milestone_id: task.milestone_id || null,
     parent_tasks: task.parent_tasks || [],
-    labels: task.labels || [],
+    labels: normalizeTaskLabels(task.labels || []),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     created_by: task.created_by || 'web',
@@ -174,6 +184,7 @@ export function updateTask(projectPath, id, updates) {
 
   Object.assign(task, restUpdates);
   task.status = normalizeTaskStatus(task.status);
+  task.labels = normalizeTaskLabels(task.labels || []);
   if (terminal) {
     task.terminal = {
       ...task.terminal,
