@@ -5,7 +5,7 @@ description: >-
   终端、启动脚本退出、端口监听终止或前端/后端进程生命周期设计导致。
 description_file: null
 summary_file: tasks/1773057619737-vscode-xtask/summary.md
-status: todo
+status: done
 priority: high
 milestone_id: m2
 parent_tasks: []
@@ -14,7 +14,7 @@ labels:
   - vscode
   - web
 created_at: '2026-03-09T12:00:19.737Z'
-updated_at: '2026-03-10T06:03:31.803Z'
+updated_at: '2026-03-10T06:19:07.269Z'
 created_by: cli
 agent:
   assigned: false
