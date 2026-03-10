@@ -5,7 +5,7 @@ description: |
   - xtask 任务页 筛选 的按钮在左侧，筛选标签时，支持多选，应当展示一行多个，并且不同标签颜色不同，在task页面渲染时都能看到
   - xtask返回到上一级页面时，应当返回到任务那一栏；而不是milestones;
 description_file: null
-summary_file: null
+summary_file: tasks/1773124373867-xtask-ui/summary.md
 status: todo
 priority: high
 milestone_id: m1
@@ -14,7 +14,7 @@ labels:
   - ui
   - xtask
 created_at: '2026-03-10T06:32:53.867Z'
-updated_at: '2026-03-10T06:34:06.807Z'
+updated_at: '2026-03-10T08:18:46.375Z'
 created_by: web
 agent:
   assigned: false
