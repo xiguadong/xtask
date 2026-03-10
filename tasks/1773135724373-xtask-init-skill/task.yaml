@@ -10,7 +10,7 @@ parent_tasks: []
 labels:
   - cli
 created_at: '2026-03-10T09:42:04.373Z'
-updated_at: '2026-03-10T09:42:04.373Z'
+updated_at: '2026-03-10T09:42:11.674Z'
 created_by: web
 agent:
   assigned: false
@@ -33,5 +33,6 @@ terminal:
   stopped_at: null
   stop_reason: null
 git:
-  branch: null
+  branch: 1773135724373-xtask-init-skill
   commits: []
+  source_branch: null
