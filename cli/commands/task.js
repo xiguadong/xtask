@@ -26,6 +26,22 @@ function normalizeTask(task) {
   return task;
 }
 
+function buildDoneStatusSyncChanges(projectRoot, task, updatedAt = new Date().toISOString()) {
+  if (normalizeTaskStatus(task?.status, task?.status || 'todo') !== 'done') return [];
+
+  const mainTaskPath = `tasks/${task.id}/task.yaml`;
+  const mainTask = normalizeTask(readGitYaml(projectRoot, mainTaskPath));
+  if (!mainTask || mainTask.status === 'done') return [];
+
+  mainTask.status = 'done';
+  mainTask.updated_at = updatedAt;
+
+  return [{
+    path: mainTaskPath,
+    content: yaml.dump(mainTask)
+  }];
+}
+
 export function createTask(title, options = {}) {
   const projectRoot = getRepoRoot();
   const currentBranch = getCurrentBranch(projectRoot);
@@ -220,8 +236,11 @@ export function updateTask(id, options = {}) {
     summaryChanges.push(...preparedSummary.changes);
   }
 
+  const syncChanges = isInWorktree ? buildDoneStatusSyncChanges(projectRoot, task, task.updated_at) : [];
+
   writeFiles(projectRoot, [
     { path: targetPath, content: yaml.dump(task) },
+    ...syncChanges,
     ...descriptionChanges,
     ...summaryChanges
   ], 'xtask update task');

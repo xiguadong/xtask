@@ -71,6 +71,22 @@ function getDefaultTerminal() {
   };
 }
 
+export function buildDoneStatusSyncChanges(projectPath, task, updatedAt = new Date().toISOString()) {
+  if (normalizeTaskStatus(task?.status) !== 'done') return [];
+
+  const mainTaskPath = `tasks/${task.id}/task.yaml`;
+  const mainTask = normalizeTask(readYaml(projectPath, mainTaskPath));
+  if (!mainTask || mainTask.status === 'done') return [];
+
+  mainTask.status = 'done';
+  mainTask.updated_at = updatedAt;
+
+  return [{
+    path: mainTaskPath,
+    content: yaml.dump(mainTask)
+  }];
+}
+
 export function assignTaskToBranch(projectPath, taskId, branch, options = {}) {
   const task = readYaml(projectPath, `tasks/${taskId}/task.yaml`);
   if (!task) return null;
@@ -158,8 +174,11 @@ export function updateBranchTask(projectPath, branch, taskId, updates) {
     summaryChanges.push(...preparedSummary.changes);
   }
 
+  const syncChanges = buildDoneStatusSyncChanges(projectPath, task, task.updated_at);
+
   writeFiles(projectPath, [
     { path: `branches/${branch}/${taskId}.yaml`, content: yaml.dump(task) },
+    ...syncChanges,
     ...descriptionChanges,
     ...summaryChanges
   ], 'xtask update branch task');
@@ -234,8 +253,11 @@ export function createBranchTask(projectPath, branch, taskData) {
   task.description = preparedDescription.description;
   task.description_file = preparedDescription.description_file;
 
+  const syncChanges = buildDoneStatusSyncChanges(projectPath, task, task.updated_at);
+
   const changes = [
     { path: `branches/${branch}/${id}.yaml`, content: yaml.dump(task) },
+    ...syncChanges,
     ...preparedDescription.changes
   ];
   const worktree = getWorktree(projectPath, branch);

@@ -3,6 +3,7 @@ import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
 import { prepareTaskDescription, prepareTaskSummary, readTaskDescriptionContent, readTaskSummaryContent } from '../utils/taskContent.js';
 import { getWorktree } from './worktreeService.js';
+import { getBranchTaskById } from './branchTaskService.js';
 
 function normalizeTaskLabel(label) {
   return String(label || '').trim().toLowerCase();
@@ -82,12 +83,17 @@ function hydrateTaskContent(projectPath, task, options = {}) {
   return hydrated;
 }
 
+function resolveTaskVariant(projectPath, task) {
+  if (!task?.git?.branch) return task;
+  return getBranchTaskById(projectPath, task.git.branch, task.id) || task;
+}
+
 export function getTasks(projectPath, filters = {}) {
   const taskDirs = listDir(projectPath, 'tasks');
   let tasks = taskDirs.map(dir => {
     const task = readYaml(projectPath, `tasks/${dir}/task.yaml`);
     return task ? hydrateTaskContent(projectPath, task) : null;
-  }).filter(Boolean);
+  }).filter(Boolean).map(task => resolveTaskVariant(projectPath, task));
 
   if (filters.milestone) {
     tasks = tasks.filter(t => t.milestone_id === filters.milestone);

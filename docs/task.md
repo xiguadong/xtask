@@ -2,6 +2,18 @@
 
 ## 2026-03-10
 
+### 分支 done 自动同步主任务（1773142600000-branch-done-sync）
+
+- [x] 后端同步 - Web/Agent 在分支任务标记为 `done` 时自动同步主任务状态为 `done` (2026-03-10)
+- [x] CLI 对齐 - `xtask task update` 在 worktree 分支内把任务更新为 `done` 时同步回写主任务状态 (2026-03-10)
+- [x] 验证补齐 - `scripts/test-cli.sh` 增加主任务状态自动同步校验 (2026-03-10)
+
+### 任务状态同步修复（1773142000000-task-status-sync）
+
+- [x] 列表状态源 - 项目页任务列表优先读取分支任务副本，修复详情页已改 `done` 但看板仍显示未完成 (2026-03-10)
+- [x] 状态枚举 - 前端统一任务完成态为 `done`，兼容历史 `completed` 数据但不再作为编辑选项暴露 (2026-03-10)
+- [x] 详情编辑 - 删除任务详情页中重复的 `completed` 选项，仅保留 `done` (2026-03-10)
+
 ### xtask init 安装 skill（1773135724373-xtask-init-skill）
 
 - [x] CLI 初始化 - `xtask init` 在创建或检测到 `refs/xtask-data` 后，同步安装 `xtask-safe` 与 `init-xtask` 到目标仓库 `.codex/skills` (2026-03-10)

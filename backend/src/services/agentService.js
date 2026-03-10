@@ -3,6 +3,7 @@ import yaml from 'js-yaml';
 import { readYaml, writeFiles } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
 import { getTaskSummaryFilePath, readTaskDescriptionContent } from '../utils/taskContent.js';
+import { buildDoneStatusSyncChanges } from './branchTaskService.js';
 
 const runningAgents = new Map();
 
@@ -99,9 +100,12 @@ function updateTaskWithAgentResult(projectPath, taskId, branch, agentData) {
   const content = `# ${task.title}\n\n## 执行总结\n\n- 状态：${agentData.status}\n- 开始时间：${agentData.startedAt}\n- 完成时间：${agentData.completedAt}\n- 退出码：${agentData.exitCode}\n\n## 输出摘要\n\n\`\`\`\n${summarizedOutput}\n\`\`\`\n`;
 
   task.summary_file = getTaskSummaryFilePath(taskId);
+  const syncChanges = branch ? buildDoneStatusSyncChanges(projectPath, task, task.updated_at) : [];
+
   writeFiles(projectPath, [
     { path: task.summary_file, content },
-    { path: taskPath, content: yaml.dump(task) }
+    { path: taskPath, content: yaml.dump(task) },
+    ...syncChanges
   ], 'xtask agent complete');
   runningAgents.delete(taskId);
 }

@@ -14,24 +14,28 @@ const statusRank: Record<TaskStatus, number> = {
   in_progress: 0,
   blocked: 1,
   todo: 2,
-  done: 3,
-  completed: 3
+  done: 3
 };
 
-export const completedTaskStatuses = new Set<TaskStatus>(['done', 'completed']);
-
-export function isTaskCompleted(status: TaskStatus) {
-  return completedTaskStatuses.has(status);
+export function normalizeTaskStatus(status: TaskStatus | string): TaskStatus {
+  if (status === 'completed') return 'done';
+  if (status === 'in_progress' || status === 'blocked' || status === 'done') return status;
+  return 'todo';
 }
 
-export function formatTaskStatus(status: TaskStatus) {
-  switch (status) {
+export const completedTaskStatuses = new Set<TaskStatus>(['done']);
+
+export function isTaskCompleted(status: TaskStatus | string) {
+  return completedTaskStatuses.has(normalizeTaskStatus(status));
+}
+
+export function formatTaskStatus(status: TaskStatus | string) {
+  switch (normalizeTaskStatus(status)) {
     case 'todo':
       return '待开始';
     case 'in_progress':
       return '进行中';
     case 'done':
-    case 'completed':
       return '已完成';
     case 'blocked':
       return '阻塞';
@@ -121,7 +125,7 @@ export function compareTasks(a: Task, b: Task, field: TaskSortField, direction: 
     default: {
       const byPriority = priorityRank[a.priority] - priorityRank[b.priority];
       if (byPriority !== 0) return byPriority * directionFactor;
-      const byStatus = statusRank[a.status] - statusRank[b.status];
+      const byStatus = statusRank[normalizeTaskStatus(a.status)] - statusRank[normalizeTaskStatus(b.status)];
       if (byStatus !== 0) return byStatus;
       return -createdDiff;
     }

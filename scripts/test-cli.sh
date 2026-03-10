@@ -130,11 +130,20 @@ else
 fi
 echo ""
 
+# 测试 7.2: task assign branch
+echo "【测试 7.2】xtask task assign --branch"
+run_xtask task assign "$TASK_ID" --branch feature-test --agent cli-sync-check
+if git show "refs/xtask-data:branches/feature-test/$TASK_ID.yaml" >/dev/null 2>&1; then
+  echo "✓ 主任务分支分配成功"
+else
+  echo "✗ 主任务分支分配失败"
+  exit 1
+fi
+
 # 测试 8: worktree create
 echo "【测试 8】xtask worktree create"
 DEFAULT_BRANCH=$(git branch --show-current)
 WORKTREE_PATH="cache/worktrees/feature-test"
-git checkout -b feature-test -q
 run_xtask worktree create feature-test --path "$WORKTREE_PATH"
 if git show "refs/xtask-data:worktrees/feature-test.yaml" >/dev/null 2>&1; then
   echo "✓ Worktree 创建成功"
@@ -142,6 +151,7 @@ else
   echo "✗ Worktree 创建失败"
   exit 1
 fi
+git checkout -b feature-test -q
 echo ""
 
 # 测试 9: task create (分支)
@@ -168,6 +178,18 @@ if git show "refs/xtask-data:branches/feature-test/$BRANCH_TASK_ID.yaml" | grep 
   echo "✓ 分支任务更新成功"
 else
   echo "✗ 分支任务更新失败"
+  exit 1
+fi
+echo ""
+
+# 测试 11.0: 主任务状态自动同步
+echo "【测试 11.0】分支 done 自动同步主任务"
+run_xtask task update "$TASK_ID" --status done
+if git show "refs/xtask-data:branches/feature-test/$TASK_ID.yaml" | grep -q "status: done" \
+  && git show "refs/xtask-data:tasks/$TASK_ID/task.yaml" | grep -q "status: done"; then
+  echo "✓ 主任务状态自动同步成功"
+else
+  echo "✗ 主任务状态自动同步失败"
   exit 1
 fi
 echo ""

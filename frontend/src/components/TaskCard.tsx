@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom';
 import LabelBadge from './LabelBadge';
 import { Task } from '../types';
-import { formatTaskDateTime, formatTaskDisplayId, formatTaskPriority, formatTaskStatus } from '../utils/taskDisplay';
+import { formatTaskDateTime, formatTaskDisplayId, formatTaskPriority, formatTaskStatus, normalizeTaskStatus } from '../utils/taskDisplay';
 
 const statusColors = {
   todo: 'bg-slate-100 text-slate-700',
   in_progress: 'bg-primary/10 text-primary',
   done: 'bg-success/10 text-success',
-  completed: 'bg-success/10 text-success',
   blocked: 'bg-danger/10 text-danger'
 };
 
@@ -20,6 +19,7 @@ const priorityColors = {
 
 export default function TaskCard({ task, projectName, currentSearch = '' }: { task: Task; projectName: string; currentSearch?: string }) {
   const displayId = formatTaskDisplayId(task);
+  const normalizedStatus = normalizeTaskStatus(task.status);
 
   return (
     <Link
@@ -31,7 +31,7 @@ export default function TaskCard({ task, projectName, currentSearch = '' }: { ta
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted">{displayId}</p>
           <h4 className="mt-1 text-base font-semibold text-text">{task.title}</h4>
         </div>
-        <span className={`rounded-md px-2 py-1 text-xs font-medium ${statusColors[task.status]}`}>
+        <span className={`rounded-md px-2 py-1 text-xs font-medium ${statusColors[normalizedStatus]}`}>
           {formatTaskStatus(task.status)}
         </span>
       </div>

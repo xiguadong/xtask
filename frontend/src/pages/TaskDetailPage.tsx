@@ -10,7 +10,7 @@ import TerminalOverviewFloating from '../components/TerminalOverviewFloating';
 import { useMilestones } from '../hooks/useMilestones';
 import { Task } from '../types';
 import { normalizeTaskLabel, normalizeTaskLabels } from '../utils/taskLabels';
-import { formatTaskDisplayId, formatTaskPriority, formatTaskStatus } from '../utils/taskDisplay';
+import { formatTaskDisplayId, formatTaskPriority, formatTaskStatus, normalizeTaskStatus } from '../utils/taskDisplay';
 import { fetchTask, updateTask } from '../utils/api';
 
 export default function TaskDetailPage() {
@@ -92,6 +92,7 @@ export default function TaskDetailPage() {
   }
 
   const descriptionContent = task.description_content || task.description;
+  const normalizedTaskStatus = normalizeTaskStatus(task.status);
 
   async function handleTaskDeleted() {
     navigate(backTo);
@@ -137,11 +138,10 @@ export default function TaskDetailPage() {
             {editing ? (
               <form onSubmit={handleUpdate} className="space-y-3">
                 <div className="grid gap-2 md:grid-cols-3">
-                  <select name="status" defaultValue={task.status} className="w-full rounded border border-border bg-white p-2 text-sm">
+                  <select name="status" defaultValue={normalizedTaskStatus} className="w-full rounded border border-border bg-white p-2 text-sm">
                     <option value="todo">todo</option>
                     <option value="in_progress">in_progress</option>
                     <option value="done">done</option>
-                    <option value="completed">completed</option>
                     <option value="blocked">blocked</option>
                   </select>
                   <select name="priority" defaultValue={task.priority} className="w-full rounded border border-border bg-white p-2 text-sm">
