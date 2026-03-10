@@ -6,6 +6,8 @@ cd "$ROOT_DIR"
 
 PORT=${1:-3000}
 MAX_PORT_RETRIES=20
+STARTUP_CHECK_RETRIES=20
+STARTUP_CHECK_INTERVAL=0.5
 LOG_DIR="$ROOT_DIR/logs"
 PID_FILE="$LOG_DIR/server.pid"
 PORT_FILE="$LOG_DIR/server.port"
@@ -27,6 +29,59 @@ is_port_in_use() {
       return 0
     fi
   fi
+
+  return 1
+}
+
+get_local_ip() {
+  local ip=""
+
+  if command -v ip >/dev/null 2>&1; then
+    ip=$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i = 1; i <= NF; i += 1) if ($i == "src") {print $(i + 1); exit}}' | head -n 1)
+  fi
+
+  if [ -z "$ip" ] && command -v hostname >/dev/null 2>&1; then
+    ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+  fi
+
+  if [ -z "$ip" ] && command -v ipconfig >/dev/null 2>&1; then
+    for iface in en0 en1 eth0 wlan0; do
+      ip=$(ipconfig getifaddr "$iface" 2>/dev/null || true)
+      if [ -n "$ip" ]; then
+        break
+      fi
+    done
+  fi
+
+  if [ -z "$ip" ] && command -v ifconfig >/dev/null 2>&1; then
+    ip=$(ifconfig 2>/dev/null | awk '/inet / && $2 != "127.0.0.1" {print $2; exit}')
+  fi
+
+  if [ -z "$ip" ]; then
+    ip="127.0.0.1"
+  fi
+
+  printf '%s' "$ip"
+}
+
+wait_for_server_ready() {
+  local port="$1"
+  local retries="$2"
+  local interval="$3"
+  local attempt=0
+
+  while [ "$attempt" -lt "$retries" ]; do
+    if is_port_in_use "$port"; then
+      return 0
+    fi
+
+    if ! kill -0 "$SERVER_PID" >/dev/null 2>&1; then
+      return 1
+    fi
+
+    sleep "$interval"
+    attempt=$((attempt + 1))
+  done
 
   return 1
 }
@@ -54,14 +109,13 @@ while [ "$attempt" -lt "$MAX_PORT_RETRIES" ]; do
   : > "$LOG_FILE"
   launch_server
 
-  sleep 1
-
-  if kill -0 "$SERVER_PID" >/dev/null 2>&1; then
+  if wait_for_server_ready "$PORT" "$STARTUP_CHECK_RETRIES" "$STARTUP_CHECK_INTERVAL"; then
+    LOCAL_IP=$(get_local_ip)
     echo "$SERVER_PID" > "$PID_FILE"
     echo "$PORT" > "$PORT_FILE"
     echo "✓ 服务器启动成功"
     echo "✓ PID: $SERVER_PID"
-    echo "✓ 访问地址: http://localhost:$PORT"
+    echo "✓ 访问地址: http://$LOCAL_IP:$PORT"
     echo "✓ 已脱离终端后台运行"
     exit 0
   fi
@@ -75,6 +129,10 @@ while [ "$attempt" -lt "$MAX_PORT_RETRIES" ]; do
     done
     attempt=$((attempt+1))
     continue
+  fi
+
+  if kill -0 "$SERVER_PID" >/dev/null 2>&1; then
+    kill "$SERVER_PID" >/dev/null 2>&1 || true
   fi
 
   echo "✗ 服务器启动失败"

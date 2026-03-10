@@ -137,3 +137,5 @@ xtask worktree tasks <branch> # 列出指定 worktree 分支的任务
 2. 前端需要编译后才能使用
 3. 启动脚本会自动检测端口占用
 4. 所有数据存储在 YAML 文件中
+5. 开发 worktree 分支时，优先复用主分支已安装好的依赖与运行环境；若主分支环境可用，则不要在 worktree 中重复安装
+6. 如果 Codex 运行在沙箱模式，且需要在 worktree 分支启动本地服务进行验证，允许对 `./scripts/start.sh` 申请脱离沙箱执行；此时仍应优先复用主分支已有环境，不要在 worktree 中重复安装依赖
