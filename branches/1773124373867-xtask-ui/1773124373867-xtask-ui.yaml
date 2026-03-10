@@ -6,7 +6,7 @@ description: |
   - xtask返回到上一级页面时，应当返回到任务那一栏；而不是milestones;
 description_file: null
 summary_file: tasks/1773124373867-xtask-ui/summary.md
-status: todo
+status: done
 priority: high
 milestone_id: m1
 parent_tasks: []
@@ -14,7 +14,7 @@ labels:
   - ui
   - xtask
 created_at: '2026-03-10T06:32:53.867Z'
-updated_at: '2026-03-10T08:18:46.375Z'
+updated_at: '2026-03-10T08:18:46.498Z'
 created_by: web
 agent:
   assigned: false
