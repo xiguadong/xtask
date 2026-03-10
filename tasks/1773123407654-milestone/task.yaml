@@ -1,0 +1,39 @@
+id: 1773123407654-milestone
+title: milestone界面优化
+description: >-
+  里程碑页面，做长一点，目标框的长度固定为5个目标长度，支持上下滑动，下方的xtask状态放到后面一点，现在xtask 按照
+  high/low展示状态时会挤压目标框的长度，变得很小了；
+description_file: null
+summary_file: null
+status: todo
+priority: critical
+milestone_id: m2
+parent_tasks: []
+labels:
+  - ui
+created_at: '2026-03-10T06:16:47.654Z'
+updated_at: '2026-03-10T06:16:47.654Z'
+created_by: web
+agent:
+  assigned: false
+  identity: null
+  assigned_at: null
+  session_id: null
+  status: null
+terminal:
+  enabled: false
+  mode: null
+  session_id: null
+  status: stopped
+  host: null
+  port: 22
+  username: null
+  timeout_days: 3
+  auto_stop_on_task_done: true
+  started_at: null
+  last_active_at: null
+  stopped_at: null
+  stop_reason: null
+git:
+  branch: null
+  commits: []
