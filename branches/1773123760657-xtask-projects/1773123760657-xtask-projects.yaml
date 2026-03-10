@@ -4,15 +4,15 @@ description: |-
   - 首页支持删除 projects
   - 任务页支持删除任务
 description_file: null
-summary_file: null
-status: todo
+summary_file: tasks/1773123760657-xtask-projects/summary.md
+status: done
 priority: high
 milestone_id: m1
 parent_tasks: []
 labels:
   - ui
 created_at: '2026-03-10T06:22:40.658Z'
-updated_at: '2026-03-10T06:23:02.580Z'
+updated_at: '2026-03-10T06:51:53.228Z'
 created_by: web
 agent:
   assigned: false
