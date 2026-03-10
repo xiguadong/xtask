@@ -10,6 +10,9 @@ interface MilestoneListProps {
 }
 
 const priorities: TaskPriority[] = ['critical', 'high', 'medium', 'low'];
+const visibleGoalRows = 5;
+const goalViewportHeightClass = 'h-[11rem]';
+const milestoneCardHeightClass = 'h-[31rem]';
 
 function normalizeGoals(goals: unknown): MilestoneGoal[] {
   if (!Array.isArray(goals)) return [];
@@ -91,7 +94,7 @@ export default function MilestoneList({
   }
 
   return (
-    <div className="h-[460px] overflow-scroll rounded-md border border-border bg-white p-2" role="list" aria-label="里程碑列表">
+    <div className="h-[560px] overflow-scroll rounded-md border border-border bg-white p-2" role="list" aria-label="里程碑列表">
       <div className="flex min-h-full min-w-max gap-3 pb-2 pr-2">
         {milestones.map((milestone) => {
           const goals = normalizeGoals((milestone as Milestone & { goals?: unknown }).goals);
@@ -130,7 +133,7 @@ export default function MilestoneList({
           return (
             <article
               key={milestone.id}
-              className="h-[420px] w-[22rem] shrink-0 rounded-lg border border-border bg-white p-3 transition-colors duration-200"
+              className={`${milestoneCardHeightClass} w-[22rem] shrink-0 rounded-lg border border-border bg-white p-3 transition-colors duration-200`}
             >
               {!isEditing ? (
                 <div className="flex h-full flex-col">
@@ -165,14 +168,14 @@ export default function MilestoneList({
                     </div>
                   </div>
 
-                  <div className="mt-3 min-h-0 flex-1 overflow-scroll rounded border border-border bg-slate-50 p-1">
+                  <div className={`mt-4 ${goalViewportHeightClass} overflow-y-auto overflow-x-hidden rounded border border-border bg-slate-50 p-1`}>
                     {goals.length === 0 ? (
                       <p className="rounded border border-dashed border-border px-2 py-2 text-xs text-muted">暂无目标，点击编辑添加</p>
                     ) : (
                       goals.map((goal, index) => (
                         <label
                           key={`${milestone.id}-${goal.title}-${index}`}
-                          className="flex min-w-max cursor-pointer items-start gap-2 rounded px-1 py-1 text-xs hover:bg-slate-100"
+                          className="flex min-h-8 cursor-pointer items-start gap-2 rounded px-1 py-1 text-xs hover:bg-slate-100"
                         >
                           <input
                             type="checkbox"
@@ -183,13 +186,20 @@ export default function MilestoneList({
                             }}
                             className="mt-0.5 h-3.5 w-3.5"
                           />
-                          <span className={`whitespace-nowrap ${goal.done ? 'text-muted line-through' : 'text-text'}`}>{goal.title}</span>
+                          <span
+                            title={goal.title}
+                            className={`block flex-1 overflow-hidden text-ellipsis whitespace-nowrap ${goal.done ? 'text-muted line-through' : 'text-text'}`}
+                          >
+                            {goal.title}
+                          </span>
                         </label>
                       ))
                     )}
                   </div>
 
-                  <div className="mt-3 rounded-lg border border-border bg-white p-3">
+                  <p className="mt-2 text-[11px] text-muted">目标区固定展示 {visibleGoalRows} 条，超出后可上下滚动</p>
+
+                  <div className="mt-4 rounded-lg border border-border bg-white p-3">
                     <div className="flex items-center justify-between text-xs">
                       <h4 className="font-semibold text-text">任务状态</h4>
                       <span className="text-muted">按优先级</span>
@@ -198,18 +208,19 @@ export default function MilestoneList({
                     {taskProgressByPriority.length === 0 ? (
                       <p className="mt-2 text-xs text-muted">暂无关联任务</p>
                     ) : (
-                      <div className="mt-2 space-y-2">
+                      <div className="mt-2 grid grid-cols-2 gap-2">
                         {taskProgressByPriority.map((item) => (
-                          <div key={`${milestone.id}-${item.priority}`}>
+                          <div key={`${milestone.id}-${item.priority}`} className="rounded border border-border bg-slate-50 p-2">
                             <div className="flex items-center justify-between text-[11px] text-muted">
                               <span>{formatTaskPriority(item.priority)}</span>
-                              <span>
-                                {item.done}/{item.total}
-                              </span>
+                              <span>{item.percent}%</span>
                             </div>
                             <div className="mt-1 h-1.5 rounded-full bg-slate-200">
                               <div className="h-1.5 rounded-full bg-primary transition-all duration-200" style={{ width: `${item.percent}%` }} />
                             </div>
+                            <p className="mt-1 text-[11px] text-muted">
+                              {item.done}/{item.total}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -249,9 +260,9 @@ export default function MilestoneList({
                     className="w-full rounded border border-border p-2 text-xs"
                   />
 
-                  <div className="mt-2 min-h-0 flex-1 overflow-scroll rounded border border-border bg-slate-50 p-1">
+                  <div className={`mt-2 ${goalViewportHeightClass} overflow-y-auto overflow-x-hidden rounded border border-border bg-slate-50 p-1`}>
                     {draftGoals.map((goal, index) => (
-                      <div key={`draft-${index}`} className="flex min-w-max items-center gap-2 py-0.5">
+                      <div key={`draft-${index}`} className="flex items-center gap-2 py-0.5">
                         <input
                           type="checkbox"
                           checked={goal.done}
@@ -261,7 +272,7 @@ export default function MilestoneList({
                         <input
                           value={goal.title}
                           onChange={(event) => updateDraftGoal(index, { title: event.target.value })}
-                          className="w-[190px] rounded border border-border p-1.5 text-xs"
+                          className="min-w-0 flex-1 rounded border border-border p-1.5 text-xs"
                           placeholder={`目标 ${index + 1}`}
                         />
                         <button
