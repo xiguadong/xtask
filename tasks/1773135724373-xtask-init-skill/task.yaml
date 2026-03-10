@@ -10,7 +10,7 @@ parent_tasks: []
 labels:
   - cli
 created_at: '2026-03-10T09:42:04.373Z'
-updated_at: '2026-03-10T09:42:11.674Z'
+updated_at: '2026-03-10T09:42:12.754Z'
 created_by: web
 agent:
   assigned: false
@@ -19,17 +19,17 @@ agent:
   session_id: null
   status: null
 terminal:
-  enabled: false
-  mode: null
-  session_id: null
-  status: stopped
+  enabled: true
+  mode: local
+  session_id: 1773135724373-xtask-init-skill-terminal-1773135732754
+  status: running
   host: null
   port: 22
   username: null
   timeout_days: 3
   auto_stop_on_task_done: true
-  started_at: null
-  last_active_at: null
+  started_at: '2026-03-10T09:42:12.754Z'
+  last_active_at: '2026-03-10T09:42:12.754Z'
   stopped_at: null
   stop_reason: null
 git:
