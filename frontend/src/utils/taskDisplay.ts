@@ -1,6 +1,7 @@
 import { Task, TaskPriority, TaskStatus } from '../types';
 
-export type TaskSortOption = 'created_desc' | 'created_asc' | 'priority_status' | 'status_priority';
+export type TaskSortField = 'priority' | 'created_at' | 'title';
+export type TaskSortDirection = 'asc' | 'desc';
 
 const priorityRank: Record<TaskPriority, number> = {
   critical: 0,
@@ -104,25 +105,22 @@ export function formatTaskDateTime(value: string) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-export function compareTasks(a: Task, b: Task, sort: TaskSortOption) {
+export function compareTasks(a: Task, b: Task, field: TaskSortField, direction: TaskSortDirection) {
   const createdDiff = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  const directionFactor = direction === 'asc' ? 1 : -1;
 
-  switch (sort) {
-    case 'created_asc':
-      return createdDiff;
-    case 'created_desc':
-      return -createdDiff;
-    case 'status_priority': {
-      const byStatus = statusRank[a.status] - statusRank[b.status];
-      if (byStatus !== 0) return byStatus;
-      const byPriority = priorityRank[a.priority] - priorityRank[b.priority];
-      if (byPriority !== 0) return byPriority;
-      return -createdDiff;
+  switch (field) {
+    case 'title': {
+      const byTitle = a.title.localeCompare(b.title, 'zh-Hans-CN');
+      if (byTitle !== 0) return byTitle * directionFactor;
+      return createdDiff * directionFactor;
     }
-    case 'priority_status':
+    case 'created_at':
+      return -createdDiff * directionFactor;
+    case 'priority':
     default: {
       const byPriority = priorityRank[a.priority] - priorityRank[b.priority];
-      if (byPriority !== 0) return byPriority;
+      if (byPriority !== 0) return byPriority * directionFactor;
       const byStatus = statusRank[a.status] - statusRank[b.status];
       if (byStatus !== 0) return byStatus;
       return -createdDiff;

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import LabelBadge from './LabelBadge';
 import { Task } from '../types';
 import { formatTaskDateTime, formatTaskDisplayId, formatTaskPriority, formatTaskStatus } from '../utils/taskDisplay';
 
@@ -17,12 +18,12 @@ const priorityColors = {
   critical: 'border-danger/30 bg-danger/10 text-danger'
 };
 
-export default function TaskCard({ task, projectName }: { task: Task; projectName: string }) {
+export default function TaskCard({ task, projectName, currentSearch = '' }: { task: Task; projectName: string; currentSearch?: string }) {
   const displayId = formatTaskDisplayId(task);
 
   return (
     <Link
-      to={`/projects/${projectName}/tasks/${task.id}`}
+      to={`/projects/${projectName}/tasks/${task.id}${currentSearch}`}
       className="block rounded-lg border border-border bg-surface p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
     >
       <div className="mb-3 flex items-start justify-between gap-3">
@@ -44,9 +45,7 @@ export default function TaskCard({ task, projectName }: { task: Task; projectNam
           <span className="rounded-full bg-emerald-50 px-2 py-1 text-emerald-700">分支 {task.git.branch}</span>
         )}
         {task.labels.map((label) => (
-          <span key={label} className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">
-            {label}
-          </span>
+          <LabelBadge key={label} label={label} />
         ))}
         {task.parent_tasks.length > 0 && (
           <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-500">子任务</span>

@@ -5,6 +5,14 @@ import { listDir, readYaml as readGitYaml, writeFiles } from '../utils/gitDataSt
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
 import { prepareTaskDescription, prepareTaskSummary } from '../utils/taskContent.js';
 
+function normalizeTaskLabel(label) {
+  return String(label || '').trim().toLowerCase();
+}
+
+function normalizeTaskLabels(labels = []) {
+  return Array.from(new Set((labels || []).map((label) => normalizeTaskLabel(label)).filter(Boolean)));
+}
+
 function getWorktree(projectRoot, branch) {
   if (!branch) return null;
   return readGitYaml(projectRoot, `worktrees/${branch}.yaml`);
@@ -14,6 +22,7 @@ function normalizeTask(task) {
   if (!task) return null;
   task.status = normalizeTaskStatus(task.status, task.status || 'todo');
   task.summary_file = task.summary_file || null;
+  task.labels = normalizeTaskLabels(task.labels || []);
   return task;
 }
 
@@ -34,7 +43,7 @@ export function createTask(title, options = {}) {
     priority: options.priority || 'medium',
     milestone_id: options.milestone || null,
     parent_tasks: options.parent ? [options.parent] : [],
-    labels: options.labels ? options.labels.split(',') : [],
+    labels: normalizeTaskLabels(options.labels ? options.labels.split(',') : []),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     created_by: 'cli',
@@ -128,7 +137,8 @@ export function listTasks(options = {}) {
     filtered = filtered.filter(t => t.status === targetStatus);
   }
   if (options.label) {
-    filtered = filtered.filter(t => t.labels.includes(options.label));
+    const targetLabel = normalizeTaskLabel(options.label);
+    filtered = filtered.filter(t => t.labels.includes(targetLabel));
   }
 
   if (filtered.length === 0) {
@@ -188,7 +198,7 @@ export function updateTask(id, options = {}) {
   if (options.status) task.status = normalizeTaskStatus(options.status, task.status);
   if (options.priority) task.priority = options.priority;
   if (options.milestone !== undefined) task.milestone_id = options.milestone;
-  if (options.labels) task.labels = options.labels.split(',');
+  if (options.labels) task.labels = normalizeTaskLabels(options.labels.split(','));
   task.updated_at = new Date().toISOString();
 
   const descriptionChanges = [];
