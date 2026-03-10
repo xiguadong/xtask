@@ -10,6 +10,17 @@ export async function fetchProject(name: string) {
   return res.json();
 }
 
+export async function deleteProject(name: string) {
+  const res = await fetch(`${API_BASE}/projects/${name}`, {
+    method: 'DELETE'
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '删除项目失败');
+  }
+}
+
 export async function fetchTasks(projectName: string, filters?: Record<string, string>) {
   const params = new URLSearchParams(filters);
   const res = await fetch(`${API_BASE}/projects/${projectName}/tasks?${params}`);
@@ -37,6 +48,17 @@ export async function updateTask(projectName: string, id: string, updates: any) 
     body: JSON.stringify(updates)
   });
   return res.json();
+}
+
+export async function deleteTask(projectName: string, id: string) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/tasks/${id}`, {
+    method: 'DELETE'
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '删除任务失败');
+  }
 }
 
 export async function assignAgent(projectName: string, id: string, agentInfo: any) {

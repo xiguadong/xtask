@@ -114,8 +114,11 @@ xtask worktree tasks <branch> # 列出指定 worktree 分支的任务
 
 3. **任务完成后（必须执行）**
    ```bash
-   # 更新任务状态为已完成
-   xtask task update <task-id> --status completed
+   # 更新任务状态（如需标记 done，先获得用户明确确认）
+   xtask task update <task-id> --status done
+
+   # 写入任务总结
+   xtask task update <task-id> --summary "任务总结"
 
    # 如果是关键功能，同时更新 PROGRESS.md
    ```
@@ -124,6 +127,7 @@ xtask worktree tasks <branch> # 列出指定 worktree 分支的任务
 
 - 所有开发任务都应该在 xtask 中创建和跟踪
 - 完成任务后必须更新状态，保持任务列表准确
+- 完成任务后必须写入任务总结，保证任务结果可追溯
 - 重要功能完成后，同步更新 PROGRESS.md 的已完成功能清单
 - 使用里程碑组织相关任务，便于进度跟踪
 
@@ -133,6 +137,7 @@ xtask worktree tasks <branch> # 列出指定 worktree 分支的任务
 - 所有变更通过 xtask CLI 命令执行
 - 子任务正确继承父任务属性
 - 禁止删除操作
+- 将任务状态改为 `done` 前，必须先获得用户明确确认
 
 详见：`.claude/skills/xtask-safe/SKILL.md`
 

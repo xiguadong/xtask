@@ -106,6 +106,8 @@ xtask worktree tasks <branch> # 列出指定 worktree 分支的任务
 - 子任务正确继承父任务属性
 - 禁止删除操作
 - 将任务状态改为 `done` 前，必须先获得用户明确确认
+- 完成 xtask 任务后，必须通过 `xtask task update <task-id> --status <status>` 更新任务状态
+- 完成 xtask 任务后，必须通过 `xtask task update <task-id> --summary <summary>` 写入任务总结
 
 如果你是通过 Codex 维护任务，还需要遵循这两条：
 - 涉及任务状态更新、建子任务、拆分任务时，优先使用 `xtask-safe` skill
