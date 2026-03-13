@@ -5,7 +5,7 @@ description: |-
   - xtask cli 支持查找当前分支任务，并回显的功能
 description_file: null
 summary_file: tasks/1773395323882-xtask-cli/summary.md
-status: todo
+status: done
 priority: high
 milestone_id: m1
 parent_tasks: []
@@ -13,7 +13,7 @@ labels:
   - xtask
   - cli
 created_at: '2026-03-13T09:48:43.882Z'
-updated_at: '2026-03-13T10:07:11.212Z'
+updated_at: '2026-03-13T10:07:59.875Z'
 created_by: web
 agent:
   assigned: false
