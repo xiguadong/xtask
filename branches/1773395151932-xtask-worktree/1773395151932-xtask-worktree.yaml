@@ -5,7 +5,7 @@ description: |-
 
   - 支持关联到已有的worktree上;
 description_file: null
-summary_file: null
+summary_file: tasks/1773395151932-xtask-worktree/summary.md
 status: todo
 priority: medium
 milestone_id: m1
@@ -13,7 +13,7 @@ parent_tasks: []
 labels:
   - xtask
 created_at: '2026-03-13T09:45:51.932Z'
-updated_at: '2026-03-13T09:46:16.744Z'
+updated_at: '2026-03-13T10:05:15.112Z'
 created_by: web
 agent:
   assigned: false
