@@ -2,11 +2,19 @@
 
 ## 当前版本
 
-**v0.4.8** - 分支任务标记 `done` 时自动同步主任务状态，补齐 Web/CLI 一致性与测试覆盖
+**v0.4.9** - 任务详情页支持展示默认分支并关联已有 Worktree，补齐 Worktree 来源分支元数据
 
 ## 项目状态
 
 🚧 开发中
+
+## 2026-03-13
+
+- ✅ 任务详情页的 Worktree 配置表单会直接展示项目默认分支，优先识别仓库真实默认分支并回显 `main` / `master`
+- ✅ 任务详情页新增“关联已有 Worktree”模式，未绑定分支的任务可直接接入现有 Worktree
+- ✅ 后端 `createWorktree` 现在把 `source_branch` 写入 Worktree 元数据，前端详情页与关联流程都能展示真实来源分支
+- ✅ `GET /api/projects/:name` 返回 `default_branch`，供前端在创建前显示默认来源分支
+- ✅ `frontend npm run build -- --configLoader runner` 构建通过，后端相关模块导入校验通过
 
 ## 2026-03-10
 

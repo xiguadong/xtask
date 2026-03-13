@@ -1,5 +1,14 @@
 # 任务记录
 
+## 2026-03-13
+
+### xtask 详情页配置 worktree（1773395151932-xtask-worktree）
+
+- [x] 默认分支展示 - 任务详情页配置 Worktree 时直接展示项目默认分支，优先识别 `main` / `master`，不再只提示“自动检测” (2026-03-13)
+- [x] 关联已有 Worktree - 未绑定分支的任务可直接选择并关联项目内已有 Worktree，无需重复创建 (2026-03-13)
+- [x] 来源分支透传 - 后端创建 Worktree 时写入 `source_branch` 元数据，前端详情页可回显真实来源分支 (2026-03-13)
+- [x] 验证 - 复用相邻 worktree 已安装依赖完成 `frontend npm run build -- --configLoader runner`，后端改动模块导入校验通过 (2026-03-13)
+
 ## 2026-03-10
 
 ### 分支 done 自动同步主任务（1773142600000-branch-done-sync）

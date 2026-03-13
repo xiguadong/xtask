@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useWorktrees } from '../hooks/useWorktrees';
-import { Task } from '../types';
-import { deleteTask } from '../utils/api';
+import { Task, Worktree } from '../types';
+import { deleteTask, updateTask } from '../utils/api';
 import TaskTerminalPanel from './TaskTerminalPanel';
 
 interface TaskActionsProps {
@@ -12,11 +12,13 @@ interface TaskActionsProps {
 }
 
 export default function TaskActions({ task, projectName, onUpdate, onDeleted }: TaskActionsProps) {
-  const { worktrees, createWorktree } = useWorktrees(projectName);
+  const { worktrees, createWorktree, defaultBranch } = useWorktrees(projectName);
   const [showWorktreeForm, setShowWorktreeForm] = useState(false);
+  const [worktreeMode, setWorktreeMode] = useState<'create' | 'link'>('create');
   const [sourceBranch, setSourceBranch] = useState(task.git.source_branch || '');
   const [branchName, setBranchName] = useState('');
   const [worktreePath, setWorktreePath] = useState('');
+  const [selectedExistingBranch, setSelectedExistingBranch] = useState('');
   const [workingAction, setWorkingAction] = useState<'worktree' | 'delete' | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -25,6 +27,32 @@ export default function TaskActions({ task, projectName, onUpdate, onDeleted }: 
     () => (task.git.branch ? worktrees.find((wt) => wt.branch === task.git.branch) : null),
     [task.git.branch, worktrees]
   );
+  const availableWorktrees = useMemo(
+    () => worktrees.filter((wt) => wt.branch !== task.git.branch),
+    [task.git.branch, worktrees]
+  );
+  const selectedExistingWorktree = useMemo(
+    () => availableWorktrees.find((wt) => wt.branch === selectedExistingBranch) || null,
+    [availableWorktrees, selectedExistingBranch]
+  );
+  const detectedSourceBranch = currentWorktree?.source_branch || task.git.source_branch || defaultBranch || 'main';
+
+  const resetWorktreeDraft = (mode: 'create' | 'link' = 'create') => {
+    setWorktreeMode(mode);
+    setSourceBranch(task.git.source_branch || defaultBranch || '');
+    setBranchName(task.id);
+    setWorktreePath(`cache/worktrees/${task.id}`);
+    setSelectedExistingBranch(availableWorktrees[0]?.branch || '');
+  };
+
+  const saveTaskGitConfig = async (worktree: Worktree) => {
+    await updateTask(projectName, task.id, {
+      git: {
+        branch: worktree.branch,
+        source_branch: worktree.source_branch || task.git.source_branch || defaultBranch || null
+      }
+    });
+  };
 
   const handleCreateWorktree = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,28 +64,39 @@ export default function TaskActions({ task, projectName, onUpdate, onDeleted }: 
     setWorkingAction('worktree');
     setErrorMessage(null);
     try {
-      await createWorktree({
+      const createdWorktree = await createWorktree({
         branch: normalizedBranch,
         worktree_path: normalizedPath,
         source_branch: normalizedSourceBranch || undefined
       });
-      const res = await fetch(`/api/projects/${projectName}/tasks/${task.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ git: { branch: normalizedBranch, source_branch: normalizedSourceBranch || null } })
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error || '关联任务分支失败');
-      }
+      await saveTaskGitConfig(createdWorktree);
       setShowWorktreeForm(false);
-      setSourceBranch(normalizedSourceBranch);
+      setSourceBranch(createdWorktree.source_branch || normalizedSourceBranch || detectedSourceBranch);
       setBranchName('');
       setWorktreePath('');
+      setSelectedExistingBranch('');
       onUpdate?.();
     } catch (err: any) {
       setErrorMessage(err?.message || '创建 Worktree 失败');
       console.error('Failed to create worktree:', err);
+    } finally {
+      setWorkingAction(null);
+    }
+  };
+
+  const handleLinkWorktree = async () => {
+    if (!selectedExistingWorktree) return;
+
+    setWorkingAction('worktree');
+    setErrorMessage(null);
+    try {
+      await saveTaskGitConfig(selectedExistingWorktree);
+      setShowWorktreeForm(false);
+      setSelectedExistingBranch('');
+      onUpdate?.();
+    } catch (err: any) {
+      setErrorMessage(err?.message || '关联已有 Worktree 失败');
+      console.error('Failed to link worktree:', err);
     } finally {
       setWorkingAction(null);
     }
@@ -107,7 +146,7 @@ export default function TaskActions({ task, projectName, onUpdate, onDeleted }: 
               <p className="text-xs text-muted">当前分支</p>
               <p className="mt-1 font-mono text-xs text-slate-700">{task.git.branch}</p>
               <p className="mt-2 text-xs text-muted">从哪个分支创建</p>
-              <p className="mt-1 font-mono text-xs text-slate-700">{task.git.source_branch || '自动检测'}</p>
+              <p className="mt-1 font-mono text-xs text-slate-700">{currentWorktree?.source_branch || task.git.source_branch || detectedSourceBranch}</p>
               <p className="mt-2 text-xs text-muted">工作目录</p>
               <p className="mt-1 font-mono text-xs text-slate-700">{currentWorktree?.worktree_path || '未找到 worktree 记录'}</p>
             </div>
@@ -115,80 +154,161 @@ export default function TaskActions({ task, projectName, onUpdate, onDeleted }: 
             <button
               onClick={() => {
                 setShowWorktreeForm(true);
-                setSourceBranch(task.git.source_branch || '');
-                setBranchName(task.id);
-                setWorktreePath(`cache/worktrees/${task.id}`);
+                resetWorktreeDraft('create');
               }}
               className="w-full rounded-md bg-primary px-3 py-2 text-xs font-semibold text-white transition-colors duration-200 hover:bg-primary-hover"
             >
               配置 Worktree
             </button>
           ) : (
-            <form onSubmit={handleCreateWorktree} className="space-y-2">
-              <label className="space-y-1 text-xs text-muted">
-                从哪个分支创建
-                <input
-                  type="text"
-                  value={sourceBranch}
-                  onChange={(event) => setSourceBranch(event.target.value)}
-                  placeholder="留空自动检测（推荐，例如 main）"
-                  className="w-full rounded border border-border bg-white p-2 text-sm text-text"
-                />
-              </label>
-              <label className="space-y-1 text-xs text-muted">
-                Worktree 分支
-                <input
-                  type="text"
-                  value={branchName}
-                  onChange={(event) => setBranchName(event.target.value)}
-                  placeholder={`默认: ${task.id}`}
-                  className="w-full rounded border border-border bg-white p-2 text-sm text-text"
-                />
-              </label>
-              <label className="space-y-1 text-xs text-muted">
-                Worktree 路径
-                <input
-                  type="text"
-                  value={worktreePath}
-                  onChange={(event) => setWorktreePath(event.target.value)}
-                  placeholder={`默认: cache/worktrees/${task.id}`}
-                  className="w-full rounded border border-border bg-white p-2 text-sm text-text"
-                />
-              </label>
-              <div className="flex gap-2">
+            <div className="space-y-3">
+              <div className="grid gap-2 sm:grid-cols-2">
                 <button
-                  type="submit"
-                  disabled={workingAction === 'worktree' || !branchName.trim() || !worktreePath.trim()}
-                  className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  type="button"
+                  onClick={() => resetWorktreeDraft('create')}
+                  className={`rounded-md border px-3 py-2 text-xs font-semibold transition-colors duration-200 ${
+                    worktreeMode === 'create'
+                      ? 'border-blue-200 bg-blue-50 text-blue-700'
+                      : 'border-border bg-white text-muted hover:bg-slate-100'
+                  }`}
                 >
-                  {workingAction === 'worktree' ? '创建中...' : '确认创建'}
+                  新建 Worktree
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setSourceBranch(task.git.source_branch || '');
-                    setBranchName(task.id);
-                    setWorktreePath(`cache/worktrees/${task.id}`);
-                  }}
-                  disabled={workingAction === 'worktree'}
-                  className="rounded-md border border-border bg-white px-3 py-1.5 text-xs font-semibold text-muted transition-colors duration-200 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => resetWorktreeDraft('link')}
+                  disabled={availableWorktrees.length === 0}
+                  className={`rounded-md border px-3 py-2 text-xs font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    worktreeMode === 'link'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'border-border bg-white text-muted hover:bg-slate-100'
+                  }`}
                 >
-                  使用默认
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowWorktreeForm(false);
-                    setSourceBranch('');
-                    setBranchName('');
-                    setWorktreePath('');
-                  }}
-                  className="rounded-md border border-border bg-white px-3 py-1.5 text-xs font-semibold text-muted transition-colors duration-200 hover:bg-slate-100"
-                >
-                  取消
+                  关联已有 Worktree
                 </button>
               </div>
-            </form>
+
+              {worktreeMode === 'create' ? (
+                <form onSubmit={handleCreateWorktree} className="space-y-2">
+                  <label className="space-y-1 text-xs text-muted">
+                    从哪个分支创建
+                    <input
+                      type="text"
+                      value={sourceBranch}
+                      onChange={(event) => setSourceBranch(event.target.value)}
+                      placeholder={`默认: ${detectedSourceBranch}`}
+                      className="w-full rounded border border-border bg-white p-2 text-sm text-text"
+                    />
+                  </label>
+                  <p className="text-[11px] text-muted">当前项目默认分支：{detectedSourceBranch}</p>
+                  <label className="space-y-1 text-xs text-muted">
+                    Worktree 分支
+                    <input
+                      type="text"
+                      value={branchName}
+                      onChange={(event) => setBranchName(event.target.value)}
+                      placeholder={`默认: ${task.id}`}
+                      className="w-full rounded border border-border bg-white p-2 text-sm text-text"
+                    />
+                  </label>
+                  <label className="space-y-1 text-xs text-muted">
+                    Worktree 路径
+                    <input
+                      type="text"
+                      value={worktreePath}
+                      onChange={(event) => setWorktreePath(event.target.value)}
+                      placeholder={`默认: cache/worktrees/${task.id}`}
+                      className="w-full rounded border border-border bg-white p-2 text-sm text-text"
+                    />
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={workingAction === 'worktree' || !branchName.trim() || !worktreePath.trim()}
+                      className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {workingAction === 'worktree' ? '创建中...' : '确认创建'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => resetWorktreeDraft('create')}
+                      disabled={workingAction === 'worktree'}
+                      className="rounded-md border border-border bg-white px-3 py-1.5 text-xs font-semibold text-muted transition-colors duration-200 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      使用默认
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowWorktreeForm(false);
+                        setSourceBranch('');
+                        setBranchName('');
+                        setWorktreePath('');
+                        setSelectedExistingBranch('');
+                      }}
+                      className="rounded-md border border-border bg-white px-3 py-1.5 text-xs font-semibold text-muted transition-colors duration-200 hover:bg-slate-100"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-2">
+                  {availableWorktrees.length > 0 ? (
+                    <>
+                      <label className="space-y-1 text-xs text-muted">
+                        选择已有 Worktree
+                        <select
+                          value={selectedExistingBranch}
+                          onChange={(event) => setSelectedExistingBranch(event.target.value)}
+                          className="w-full rounded border border-border bg-white p-2 text-sm text-text"
+                        >
+                          {availableWorktrees.map((worktree) => (
+                            <option key={worktree.branch} value={worktree.branch}>
+                              {worktree.branch}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="rounded border border-border bg-slate-50 p-2">
+                        <p className="text-xs text-muted">来源分支</p>
+                        <p className="mt-1 font-mono text-xs text-slate-700">
+                          {selectedExistingWorktree?.source_branch || detectedSourceBranch}
+                        </p>
+                        <p className="mt-2 text-xs text-muted">工作目录</p>
+                        <p className="mt-1 font-mono text-xs text-slate-700">
+                          {selectedExistingWorktree?.worktree_path || '未找到 worktree 路径'}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleLinkWorktree}
+                          disabled={workingAction === 'worktree' || !selectedExistingBranch}
+                          className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {workingAction === 'worktree' ? '关联中...' : '确认关联'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowWorktreeForm(false);
+                            setSelectedExistingBranch('');
+                          }}
+                          className="rounded-md border border-border bg-white px-3 py-1.5 text-xs font-semibold text-muted transition-colors duration-200 hover:bg-slate-100"
+                        >
+                          取消
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rounded border border-border bg-slate-50 px-3 py-2 text-xs text-muted">
+                      当前项目还没有可关联的已有 Worktree，请先创建一个新的。
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </article>
 

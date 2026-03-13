@@ -7,6 +7,10 @@ export async function fetchProjects() {
 
 export async function fetchProject(name: string) {
   const res = await fetch(`${API_BASE}/projects/${name}`);
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '加载项目失败');
+  }
   return res.json();
 }
 
@@ -47,6 +51,10 @@ export async function updateTask(projectName: string, id: string, updates: any) 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updates)
   });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '更新任务失败');
+  }
   return res.json();
 }
 
