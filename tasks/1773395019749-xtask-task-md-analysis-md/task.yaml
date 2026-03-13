@@ -1,0 +1,49 @@
+id: 1773395019749-xtask-task-md-analysis-md
+title: xtask页可以分栏展示task.md和analysis.md
+description: >-
+  重新梳理 workflows:
+
+  1. 每次进入终端时先通过xtask cli命令， 获取当前xtask任务
+
+  2. 创建分支后，自动在对应分支生成空的 task.md analysis.md ，比如 cache目录下;
+
+  3. xtask详情页可以展示 task.md / analysis.md 的详情；
+
+  4. xtask cli支持更新 task.md 和 analysis.md 的功能，task.md/analysis.md 在完成当前任务后，xtask
+  支持拷贝 task.md/analysis.md到ref-xtask分支中
+description_file: null
+summary_file: null
+status: todo
+priority: high
+milestone_id: m1
+parent_tasks: []
+labels:
+  - ui
+  - xtask
+  - cli
+created_at: '2026-03-13T09:43:39.750Z'
+updated_at: '2026-03-13T09:43:39.750Z'
+created_by: web
+agent:
+  assigned: false
+  identity: null
+  assigned_at: null
+  session_id: null
+  status: null
+terminal:
+  enabled: false
+  mode: null
+  session_id: null
+  status: stopped
+  host: null
+  port: 22
+  username: null
+  timeout_days: 3
+  auto_stop_on_task_done: true
+  started_at: null
+  last_active_at: null
+  stopped_at: null
+  stop_reason: null
+git:
+  branch: null
+  commits: []
