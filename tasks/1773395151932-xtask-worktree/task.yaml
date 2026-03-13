@@ -2,7 +2,8 @@ id: 1773395151932-xtask-worktree
 title: xtask详情页配置worktree
 description: |-
   - xtask 详情页配置worktree时，默认分支应当显示展出master或者是main; 
-  -支持关联到已有的worktree上;
+
+  - 支持关联到已有的worktree上;
 description_file: null
 summary_file: null
 status: todo
@@ -12,7 +13,7 @@ parent_tasks: []
 labels:
   - xtask
 created_at: '2026-03-13T09:45:51.932Z'
-updated_at: '2026-03-13T09:45:51.932Z'
+updated_at: '2026-03-13T09:46:08.874Z'
 created_by: web
 agent:
   assigned: false
@@ -37,3 +38,4 @@ terminal:
 git:
   branch: null
   commits: []
+  source_branch: null
