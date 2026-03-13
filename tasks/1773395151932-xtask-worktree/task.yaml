@@ -13,7 +13,7 @@ parent_tasks: []
 labels:
   - xtask
 created_at: '2026-03-13T09:45:51.932Z'
-updated_at: '2026-03-13T09:46:08.874Z'
+updated_at: '2026-03-13T09:46:16.744Z'
 created_by: web
 agent:
   assigned: false
@@ -36,6 +36,6 @@ terminal:
   stopped_at: null
   stop_reason: null
 git:
-  branch: null
+  branch: 1773395151932-xtask-worktree
   commits: []
   source_branch: null
