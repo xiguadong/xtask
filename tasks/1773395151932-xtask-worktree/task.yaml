@@ -6,14 +6,14 @@ description: |-
   - 支持关联到已有的worktree上;
 description_file: null
 summary_file: null
-status: todo
+status: done
 priority: medium
 milestone_id: m1
 parent_tasks: []
 labels:
   - xtask
 created_at: '2026-03-13T09:45:51.932Z'
-updated_at: '2026-03-13T09:46:20.808Z'
+updated_at: '2026-03-13T10:06:44.276Z'
 created_by: web
 agent:
   assigned: false
