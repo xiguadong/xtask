@@ -99,6 +99,8 @@ xtask project register
 xtask milestone list
 xtask task list
 xtask task show <id>
+xtask task current
+xtask task update <id> --summary-file summary.md
 xtask task update <id> --status done
 xtask worktree list
 xtask worktree tasks

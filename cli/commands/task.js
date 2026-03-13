@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import yaml from 'js-yaml';
 import { generateTaskId } from '../utils/idGenerator.js';
 import { getRepoRoot, getCurrentBranch } from '../utils/gitRepo.js';
@@ -18,12 +20,75 @@ function getWorktree(projectRoot, branch) {
   return readGitYaml(projectRoot, `worktrees/${branch}.yaml`);
 }
 
+function getBranchTaskCandidates(projectRoot, branch) {
+  const worktree = getWorktree(projectRoot, branch);
+  const worktreeTaskIds = Array.isArray(worktree?.tasks) ? worktree.tasks.filter(Boolean) : [];
+  const branchFiles = listDir(projectRoot, `branches/${branch}`).filter((file) => file.endsWith('.yaml'));
+  const branchTaskIds = branchFiles.map((file) => file.replace(/\.yaml$/, ''));
+
+  const orderedIds = [];
+  const seen = new Set();
+  const addId = (id) => {
+    if (!id || seen.has(id)) return;
+    seen.add(id);
+    orderedIds.push(id);
+  };
+
+  worktreeTaskIds.forEach(addId);
+  branchTaskIds.forEach(addId);
+
+  const missing = [];
+  const tasks = orderedIds
+    .map((id) => {
+      const task = normalizeTask(readGitYaml(projectRoot, `branches/${branch}/${id}.yaml`));
+      if (!task) {
+        missing.push(id);
+      }
+      return task;
+    })
+    .filter(Boolean);
+
+  return { tasks, missing };
+}
+
 function normalizeTask(task) {
   if (!task) return null;
   task.status = normalizeTaskStatus(task.status, task.status || 'todo');
   task.summary_file = task.summary_file || null;
   task.labels = normalizeTaskLabels(task.labels || []);
   return task;
+}
+
+function printTask(task, options = {}) {
+  if (options.branch) {
+    console.log(`Current branch: ${options.branch}`);
+  }
+  console.log(`ID: ${task.id}`);
+  console.log(`Title: ${task.title}`);
+  console.log(`Status: ${task.status}`);
+  console.log(`Priority: ${task.priority}`);
+  console.log(`Milestone: ${task.milestone_id || 'None'}`);
+  console.log(`Labels: ${task.labels.join(', ') || 'None'}`);
+  console.log(`Summary file: ${task.summary_file || 'None'}`);
+  if (task.git?.branch) {
+    console.log(`Branch: ${task.git.branch}`);
+  }
+  if (task.git?.source_branch) {
+    console.log(`Source branch: ${task.git.source_branch}`);
+  }
+  if (task.agent?.assigned) {
+    console.log(`Agent: ${task.agent.identity} [${task.agent.status}]`);
+  }
+}
+
+function readSummaryContent(summaryFile) {
+  const resolvedSummaryFile = path.resolve(process.cwd(), summaryFile);
+  if (!fs.existsSync(resolvedSummaryFile)) {
+    console.log(`Summary file not found: ${summaryFile}`);
+    return null;
+  }
+
+  return fs.readFileSync(resolvedSummaryFile, 'utf8');
 }
 
 function buildDoneStatusSyncChanges(projectRoot, task, updatedAt = new Date().toISOString()) {
@@ -181,18 +246,37 @@ export function showTask(id) {
     console.log('Task not found');
     return;
   }
-  console.log(`ID: ${task.id}`);
-  console.log(`Title: ${task.title}`);
-  console.log(`Status: ${task.status}`);
-  console.log(`Priority: ${task.priority}`);
-  console.log(`Milestone: ${task.milestone_id || 'None'}`);
-  console.log(`Labels: ${task.labels.join(', ') || 'None'}`);
-  if (task.summary_file) {
-    console.log(`Summary file: ${task.summary_file}`);
+  printTask(task);
+}
+
+export function showCurrentTask() {
+  const projectRoot = getRepoRoot();
+  const currentBranch = getCurrentBranch(projectRoot);
+
+  if (!currentBranch || currentBranch === 'HEAD') {
+    console.log('Current branch not found');
+    return;
   }
-  if (task.agent.assigned) {
-    console.log(`Agent: ${task.agent.identity} [${task.agent.status}]`);
-    console.log(`Branch: ${task.git.branch || 'None'}`);
+
+  const directTask = normalizeTask(readGitYaml(projectRoot, `branches/${currentBranch}/${currentBranch}.yaml`));
+  const { tasks, missing } = getBranchTaskCandidates(projectRoot, currentBranch);
+
+  if (directTask) {
+    printTask(directTask, { branch: currentBranch });
+  } else if (tasks.length === 1) {
+    printTask(tasks[0], { branch: currentBranch });
+  } else if (tasks.length > 1) {
+    console.log(`Current branch: ${currentBranch}`);
+    console.log('Found multiple tasks in current branch, please use xtask task show <id>:');
+    tasks.forEach((task) => {
+      console.log(`${task.id}: ${task.title} [${task.status}]`);
+    });
+  } else {
+    console.log(`No task found for current branch: ${currentBranch}`);
+  }
+
+  if (missing.length > 0) {
+    console.log(`Missing task metadata: ${missing.join(', ')}`);
   }
 }
 
@@ -208,6 +292,14 @@ export function updateTask(id, options = {}) {
   const task = normalizeTask(readGitYaml(projectRoot, targetPath));
   if (!task) {
     console.log('Task not found');
+    return;
+  }
+
+  const hasSummaryOption = options.summary !== undefined;
+  const hasSummaryFileOption = options.summaryFile !== undefined;
+
+  if (hasSummaryOption && hasSummaryFileOption) {
+    console.log('Error: --summary and --summary-file cannot be used together');
     return;
   }
 
@@ -228,8 +320,14 @@ export function updateTask(id, options = {}) {
   }
 
   const summaryChanges = [];
-  if (Object.prototype.hasOwnProperty.call(options, 'summary')) {
-    const preparedSummary = prepareTaskSummary(id, options.summary, {
+  const summaryInput = hasSummaryFileOption
+    ? readSummaryContent(options.summaryFile)
+    : (hasSummaryOption ? options.summary : undefined);
+  if (summaryInput === null) {
+    return;
+  }
+  if (summaryInput !== undefined) {
+    const preparedSummary = prepareTaskSummary(id, summaryInput, {
       existingPath: task.summary_file || null
     });
     task.summary_file = preparedSummary.summary_file;

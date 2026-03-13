@@ -3,7 +3,7 @@
 import { Command } from 'commander';
 import { initCommand } from './commands/init.js';
 import { registerProject, listProjects, deleteProject, deleteProjectByPath, migrateProjectToGit } from './commands/project.js';
-import { createTask, listTasks, showTask, updateTask, deleteTask, assignAgent, mergeTask } from './commands/task.js';
+import { createTask, listTasks, showTask, showCurrentTask, updateTask, deleteTask, assignAgent, mergeTask } from './commands/task.js';
 import { createMilestone, listMilestones, updateMilestone } from './commands/milestone.js';
 import { startServer } from './commands/start.js';
 import worktreeCommand from './commands/worktree.js';
@@ -78,6 +78,11 @@ task
   .action(showTask);
 
 task
+  .command('current')
+  .description('Show current branch task')
+  .action(showCurrentTask);
+
+task
   .command('update <id>')
   .description('Update task')
   .option('-s, --status <status>', 'Task status')
@@ -85,6 +90,7 @@ task
   .option('-m, --milestone <id>', 'Milestone ID')
   .option('-l, --labels <labels>', 'Comma-separated labels')
   .option('--summary <summary>', 'Task summary content')
+  .option('--summary-file <path>', 'Read task summary from markdown file')
   .action((id, options) => updateTask(id, options));
 
 task

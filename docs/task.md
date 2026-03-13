@@ -1,5 +1,13 @@
 # 任务记录
 
+## 2026-03-13
+
+### xtask cli支持新的功能（1773395323882-xtask-cli）
+
+- [x] Summary 同步 - `xtask task update` 支持从现有 `summary.md` 读取内容并同步写入 `refs/xtask-data` (2026-03-13)
+- [x] 当前分支任务 - 新增 `xtask task current`，可直接定位并回显当前分支绑定任务 (2026-03-13)
+- [x] 验证 - `scripts/test-cli.sh` 补充 summary 文件同步与当前分支任务回显测试 (2026-03-13)
+
 ## 2026-03-10
 
 ### 分支 done 自动同步主任务（1773142600000-branch-done-sync）

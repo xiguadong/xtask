@@ -8,13 +8,13 @@ CACHE_DIR="$ROOT_DIR/cache"
 TEST_DIR="$CACHE_DIR/test-cli-$$"
 
 run_xtask() {
-  if command -v xtask >/dev/null 2>&1; then
-    xtask "$@"
+  if [ -d "$ROOT_DIR/cli/node_modules" ]; then
+    node "$ROOT_DIR/cli/index.js" "$@"
     return
   fi
 
-  if [ -d "$ROOT_DIR/cli/node_modules" ]; then
-    node "$ROOT_DIR/cli/index.js" "$@"
+  if command -v xtask >/dev/null 2>&1; then
+    xtask "$@"
     return
   fi
 
@@ -42,6 +42,8 @@ git commit -m "Initial commit" -q
 
 echo "✓ Git 仓库初始化完成"
 echo ""
+
+DEFAULT_BRANCH=$(git branch --show-current)
 
 # 测试 1: init
 echo "【测试 1】xtask init"
@@ -130,6 +132,18 @@ else
 fi
 echo ""
 
+# 测试 7.1.1: task update summary file
+echo "【测试 7.1.1】xtask task update --summary-file"
+printf '%s\n' '# 文件总结' '' '- 这份内容来自现有 summary.md' > summary.md
+run_xtask task update "$TASK_ID" --summary-file summary.md
+if git show "refs/xtask-data:tasks/$TASK_ID/summary.md" | grep -q "来自现有 summary.md"; then
+  echo "✓ Summary 文件同步成功"
+else
+  echo "✗ Summary 文件同步失败"
+  exit 1
+fi
+echo ""
+
 # 测试 7.2: task assign branch
 echo "【测试 7.2】xtask task assign --branch"
 run_xtask task assign "$TASK_ID" --branch feature-test --agent cli-sync-check
@@ -140,9 +154,25 @@ else
   exit 1
 fi
 
+# 测试 7.3: current branch task
+echo "【测试 7.3】xtask task current"
+CURRENT_BRANCH_PATH="cache/worktrees/$TASK_ID"
+run_xtask worktree create "$TASK_ID" --path "$CURRENT_BRANCH_PATH"
+run_xtask task assign "$TASK_ID" --branch "$TASK_ID" --agent current-task-check
+git checkout -b "$TASK_ID" -q
+CURRENT_OUTPUT=$(run_xtask task current)
+echo "$CURRENT_OUTPUT"
+if printf '%s\n' "$CURRENT_OUTPUT" | grep -q "ID: $TASK_ID"; then
+  echo "✓ 当前分支任务回显成功"
+else
+  echo "✗ 当前分支任务回显失败"
+  exit 1
+fi
+git checkout "$DEFAULT_BRANCH" -q
+echo ""
+
 # 测试 8: worktree create
 echo "【测试 8】xtask worktree create"
-DEFAULT_BRANCH=$(git branch --show-current)
 WORKTREE_PATH="cache/worktrees/feature-test"
 run_xtask worktree create feature-test --path "$WORKTREE_PATH"
 if git show "refs/xtask-data:worktrees/feature-test.yaml" >/dev/null 2>&1; then
@@ -157,7 +187,7 @@ echo ""
 # 测试 9: task create (分支)
 echo "【测试 9】xtask task create (分支)"
 run_xtask task create "分支任务" --milestone m1 --labels "frontend"
-BRANCH_TASK_ID=$(git ls-tree --name-only "refs/xtask-data:branches/feature-test" | head -1 | sed 's/.yaml$//')
+BRANCH_TASK_ID=$(git ls-tree --name-only "refs/xtask-data:branches/feature-test" | sed 's/.yaml$//' | grep -v "^$TASK_ID$" | head -1)
 if git show "refs/xtask-data:branches/feature-test/$BRANCH_TASK_ID.yaml" >/dev/null 2>&1; then
   echo "✓ 分支任务创建成功: $BRANCH_TASK_ID"
 else
