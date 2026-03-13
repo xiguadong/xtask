@@ -1,8 +1,9 @@
 import path from 'path';
-import { execFileSync, execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import yaml from 'js-yaml';
 import { readYaml, writeFiles, listDir } from '../utils/gitDataStore.js';
 import { ensureDir } from '../utils/fileSystem.js';
+import { detectDefaultBranch } from '../utils/gitRepo.js';
 
 export function createWorktree(projectPath, branch, worktreePath, agent, sourceBranch) {
   const resolvedWorktreePath = path.isAbsolute(worktreePath)
@@ -26,15 +27,7 @@ export function createWorktree(projectPath, branch, worktreePath, agent, sourceB
     return resolvedWorktreePath;
   })();
 
-  // 自动检测主分支
-  if (!sourceBranch) {
-    try {
-      sourceBranch = execSync('git symbolic-ref refs/remotes/origin/HEAD', { cwd: projectPath, encoding: 'utf-8' })
-        .trim().replace('refs/remotes/origin/', '');
-    } catch {
-      sourceBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: projectPath, encoding: 'utf-8' }).trim();
-    }
-  }
+  sourceBranch = sourceBranch || detectDefaultBranch(projectPath) || 'main';
 
   // 创建 git worktree
   try {
@@ -49,6 +42,7 @@ export function createWorktree(projectPath, branch, worktreePath, agent, sourceB
   const worktree = {
     branch,
     worktree_path: storedWorktreePath,
+    source_branch: sourceBranch,
     created_at: new Date().toISOString(),
     agent: {
       identity: agent?.identity || null,

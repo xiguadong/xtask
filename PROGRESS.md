@@ -2,7 +2,7 @@
 
 ## 当前版本
 
-**v0.4.9** - CLI 支持从现有 `summary.md` 同步总结，并可直接回显当前分支任务
+**v0.4.9** - CLI 支持从现有 `summary.md` 同步总结，并可直接回显当前分支任务；任务详情页支持展示默认分支并关联已有 Worktree
 
 ## 项目状态
 
@@ -12,12 +12,6 @@
 
 - ✅ `xtask task update` 新增 `--summary-file <path>`，可直接读取现有 `summary.md` 并同步写入 `refs/xtask-data`
 - ✅ `xtask task current` 新增当前分支任务回显能力，优先定位与分支同名任务，找不到时回显候选列表
-- ✅ `scripts/test-cli.sh` 补充 summary 文件同步与当前分支任务回显校验
-
-## 2026-03-10
-
-- ✅ 分支任务在 Web/CLI 中被标记为 `done` 时，会自动把主任务 `tasks/<id>/task.yaml` 的状态同步为 `done`
-- ✅ Agent 在分支任务上执行完成后，也会同步回写主任务完成状态，避免详情页/看板再次分裂
 - ✅ `scripts/test-cli.sh` 新增“分支 done 自动同步主任务”校验，覆盖 CLI 路径
 
 - ✅ 任务列表接口改为优先返回分支任务副本，修复任务详情已改成 `done` 但项目页看板仍按主任务 `todo` 统计为未完成的问题
@@ -84,7 +78,7 @@
 ### CLI 工具
 - ✅ 项目管理命令（init, register, list, delete）
 - ✅ 里程碑管理命令（create, list, update）
-- ✅ 任务管理命令（create, list, show, current, update, assign, merge）
+- ✅ 任务管理命令（create, list, show, update, assign, merge）
 - ✅ Worktree 管理命令（create, list, info, delete, rename）
 - ✅ Worktree 分支任务列表命令（worktree tasks）
 - ✅ 分支任务自动检测和隔离存储
@@ -152,11 +146,6 @@
 - [ ] 支持插件系统
 
 ## 版本历史
-
-### v0.4.9 (2026-03-13)
-- `xtask task update` 新增 `--summary-file <path>`，支持把已有 Markdown 总结同步到 `refs/xtask-data`
-- `xtask task current` 支持直接定位并回显当前分支任务，分支下存在多个任务时给出候选列表
-- `scripts/test-cli.sh` 新增 summary 文件同步与当前分支任务回显验证
 
 ### v0.4.8 (2026-03-10)
 - 分支任务在 Web/CLI 标记为 `done` 时，自动把主任务状态同步为 `done`

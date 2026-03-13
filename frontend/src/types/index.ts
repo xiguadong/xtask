@@ -7,6 +7,7 @@ export interface Project {
   path: string;
   created_at: string;
   hidden: boolean;
+  default_branch?: string | null;
   taskCount?: number;
   milestoneCount?: number;
 }
@@ -108,6 +109,7 @@ export interface TerminalConfig {
 export interface Worktree {
   branch: string;
   worktree_path: string;
+  source_branch?: string | null;
   created_at: string;
   agent: {
     identity: string | null;

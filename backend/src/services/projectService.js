@@ -1,6 +1,7 @@
 import os from 'os';
 import path from 'path';
 import { readYaml, writeYaml } from '../utils/yamlHelper.js';
+import { detectDefaultBranch } from '../utils/gitRepo.js';
 
 const GLOBAL_DIR = path.join(os.homedir(), '.xtask');
 const PROJECTS_FILE = path.join(GLOBAL_DIR, 'projects.yaml');
@@ -24,6 +25,10 @@ export function getAllProjects(options = {}) {
 export function getProjectByName(name, options = {}) {
   const projects = getAllProjects(options);
   return projects.find(p => p.name === name);
+}
+
+export function getProjectDefaultBranch(projectPath) {
+  return detectDefaultBranch(projectPath);
 }
 
 export function hideProjectByName(name) {

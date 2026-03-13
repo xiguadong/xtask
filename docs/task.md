@@ -8,14 +8,12 @@
 - [x] 当前分支任务 - 新增 `xtask task current`，可直接定位并回显当前分支绑定任务 (2026-03-13)
 - [x] 验证 - `scripts/test-cli.sh` 补充 summary 文件同步与当前分支任务回显测试 (2026-03-13)
 
-## 2026-03-10
+### xtask 详情页配置 worktree（1773395151932-xtask-worktree）
 
-### 分支 done 自动同步主任务（1773142600000-branch-done-sync）
-
-- [x] 后端同步 - Web/Agent 在分支任务标记为 `done` 时自动同步主任务状态为 `done` (2026-03-10)
-- [x] CLI 对齐 - `xtask task update` 在 worktree 分支内把任务更新为 `done` 时同步回写主任务状态 (2026-03-10)
-- [x] 验证补齐 - `scripts/test-cli.sh` 增加主任务状态自动同步校验 (2026-03-10)
-
+- [x] 默认分支展示 - 任务详情页配置 Worktree 时直接展示项目默认分支，优先识别 `main` / `master`，不再只提示"自动检测" (2026-03-13)
+- [x] 关联已有 Worktree - 未绑定分支的任务可直接选择并关联项目内已有 Worktree，无需重复创建 (2026-03-13)
+- [x] 来源分支透传 - 后端创建 Worktree 时写入 `source_branch` 元数据，前端详情页可回显真实来源分支 (2026-03-13)
+- [x] 验证 - 复用相邻 worktree 已安装依赖完成 `frontend npm run build -- --configLoader runner`，后端改动模块导入校验通过 (2026-03-13)
 ### 任务状态同步修复（1773142000000-task-status-sync）
 
 - [x] 列表状态源 - 项目页任务列表优先读取分支任务副本，修复详情页已改 `done` 但看板仍显示未完成 (2026-03-10)
