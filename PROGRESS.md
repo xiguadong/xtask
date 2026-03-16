@@ -2,11 +2,21 @@
 
 ## 当前版本
 
-**v0.4.9** - CLI 支持从现有 `summary.md` 同步总结，并可直接回显当前分支任务；任务详情页支持展示默认分支并关联已有 Worktree
+**v0.5.0** - 项目页新增 `Discussion` 视图，支持讨论预览列表、Markdown 详情编辑、右栏实时预览与评论
 
 ## 项目状态
 
 🚧 开发中
+
+## 2026-03-16
+
+- ✅ 项目详情页新增 `Discussion` 视图，入口与 `Milestones / Tasks / Worktrees` 并列，风格保持与现有任务页一致
+- ✅ `Discussion` 先以预览卡片列表展示，再进入具体 discussion 详情页，避免在项目页直接暴露单篇编辑态
+- ✅ 详情页采用左侧功能框、中间 Markdown 编辑区、右侧实时预览与评论区的三栏布局
+- ✅ 讨论标签复用任务页现有标签风格与归一化规则，支持从项目已有任务标签中直接挑选
+- ✅ 后端新增 discussion 读写与评论接口，数据落到 `refs/xtask-data` 的 `discussions/<id>/discussion.yaml`
+- ✅ 复用主分支依赖环境完成 `frontend npm run build -- --configLoader runner`，并通过后端 discussion 模块导入校验
+- ⚠️ 前端构建仍有 Vite 大包体积告警，属于既有体积问题，本次未处理代码分包
 
 ## 2026-03-13
 

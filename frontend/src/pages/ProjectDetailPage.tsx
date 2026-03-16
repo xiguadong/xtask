@@ -5,8 +5,10 @@ import MilestoneList from '../components/MilestoneList';
 import TaskList from '../components/TaskList';
 import TerminalOverviewFloating from '../components/TerminalOverviewFloating';
 import { WorktreeList } from '../components/WorktreeList';
+import ProjectDiscussionContent from '../components/discussion/ProjectDiscussionContent';
 import Shell from '../components/layout/Shell';
 import TopBar from '../components/layout/TopBar';
+import { useDiscussions } from '../hooks/useDiscussions';
 import { useMilestones } from '../hooks/useMilestones';
 import { useTasks } from '../hooks/useTasks';
 import { useWorktrees } from '../hooks/useWorktrees';
@@ -15,7 +17,7 @@ import { createMilestone, createTask, deleteMilestone, updateMilestone } from '.
 import { normalizeTaskLabel, normalizeTaskLabels } from '../utils/taskLabels';
 import { TaskSortDirection, TaskSortField, compareTasks, formatTaskPriority, formatTaskStatus, isTaskCompleted } from '../utils/taskDisplay';
 
-type ProjectView = 'milestones' | 'tasks' | 'worktrees';
+type ProjectView = 'milestones' | 'tasks' | 'worktrees' | 'discussion';
 
 const ALL_MILESTONES = 'all';
 const NO_MILESTONE = '__none__';
@@ -37,6 +39,7 @@ function isTaskStatusFilter(value: string | null): value is string {
 function parseProjectDetailSearch(searchParams: URLSearchParams) {
   return {
     projectView: isProjectView(searchParams.get('view')) ? searchParams.get('view') : 'milestones',
+    selectedDiscussionId: searchParams.get('discussion') || '',
     taskMilestoneFilter: searchParams.get('milestone') || ALL_MILESTONES,
     taskStatusFilter: isTaskStatusFilter(searchParams.get('status')) ? searchParams.get('status')! : ALL_STATUSES,
     taskLabelFilters: normalizeTaskLabels((searchParams.get('labels') || '').split(',')),
@@ -46,7 +49,7 @@ function parseProjectDetailSearch(searchParams: URLSearchParams) {
 }
 
 function isProjectView(value: string | null): value is ProjectView {
-  return value === 'milestones' || value === 'tasks' || value === 'worktrees';
+  return value === 'milestones' || value === 'tasks' || value === 'worktrees' || value === 'discussion';
 }
 
 function buildTaskSummary(tasks: Task[]) {
@@ -64,13 +67,14 @@ export default function ProjectDetailPage() {
   const { projectName } = useParams<{ projectName: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const parsedSearchState = useMemo(() => parseProjectDetailSearch(searchParams), [searchParams]);
-  const { projectView, taskMilestoneFilter, taskStatusFilter, taskLabelFilters, taskSortField, taskSortDirection } = parsedSearchState;
+  const { projectView, selectedDiscussionId, taskMilestoneFilter, taskStatusFilter, taskLabelFilters, taskSortField, taskSortDirection } = parsedSearchState;
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
 
   const { tasks, loading: tasksLoading, refresh: refreshTasks } = useTasks(projectName!);
   const { milestones, loading: milestonesLoading, refresh: refreshMilestones } = useMilestones(projectName!);
   const { worktrees, loading: worktreesLoading, refresh: refreshWorktrees, createWorktree, deleteWorktree } = useWorktrees(projectName!);
+  const { discussions, loading: discussionsLoading, refresh: refreshDiscussions } = useDiscussions(projectName!);
 
   function updateProjectDetailSearch(nextState: Partial<typeof parsedSearchState>) {
     const mergedState = {
@@ -79,6 +83,7 @@ export default function ProjectDetailPage() {
     };
     const nextParams = new URLSearchParams();
     if (mergedState.projectView !== 'milestones') nextParams.set('view', mergedState.projectView);
+    if (mergedState.selectedDiscussionId) nextParams.set('discussion', mergedState.selectedDiscussionId);
     if (mergedState.taskMilestoneFilter !== ALL_MILESTONES) nextParams.set('milestone', mergedState.taskMilestoneFilter);
     if (mergedState.taskStatusFilter !== ALL_STATUSES) nextParams.set('status', mergedState.taskStatusFilter);
     if (mergedState.taskLabelFilters.length > 0) nextParams.set('labels', mergedState.taskLabelFilters.join(','));
@@ -270,6 +275,76 @@ export default function ProjectDetailPage() {
     refreshTasks();
     refreshMilestones();
     refreshWorktrees();
+    refreshDiscussions();
+  }
+
+  function handleOpenDiscussion(id: string) {
+    updateProjectDetailSearch({
+      projectView: 'discussion',
+      selectedDiscussionId: id
+    });
+  }
+
+  function handleClearDiscussion() {
+    updateProjectDetailSearch({
+      selectedDiscussionId: ''
+    });
+  }
+
+  if (projectView === 'discussion') {
+    return (
+      <>
+        <TopBar
+          title={projectName || 'Project'}
+          backTo="/"
+          backLabel="首页"
+          searchPlaceholder="搜索 discussion"
+          rightSlot={
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleProjectViewChange('milestones')}
+                className={`rounded px-3 py-1 text-xs ${projectView === 'milestones' ? 'bg-primary text-white' : 'bg-gray-200 text-slate-700'}`}
+              >
+                里程碑
+              </button>
+              <button
+                onClick={() => handleProjectViewChange('tasks')}
+                className={`rounded px-3 py-1 text-xs ${projectView === 'tasks' ? 'bg-primary text-white' : 'bg-gray-200 text-slate-700'}`}
+              >
+                任务
+              </button>
+              <button
+                onClick={() => handleProjectViewChange('worktrees')}
+                className={`rounded px-3 py-1 text-xs ${projectView === 'worktrees' ? 'bg-primary text-white' : 'bg-gray-200 text-slate-700'}`}
+              >
+                Worktrees
+              </button>
+              <button
+                onClick={() => handleProjectViewChange('discussion')}
+                className={`rounded px-3 py-1 text-xs ${projectView === 'discussion' ? 'bg-primary text-white' : 'bg-gray-200 text-slate-700'}`}
+              >
+                Discussion
+              </button>
+              <button onClick={refreshAll} className="rounded-md bg-primary px-2 py-1 text-xs font-semibold text-white hover:bg-primary-hover">
+                刷新
+              </button>
+            </div>
+          }
+        />
+
+        <ProjectDiscussionContent
+          projectName={projectName!}
+          discussions={discussions}
+          loading={discussionsLoading}
+          availableLabels={allLabels}
+          selectedDiscussionId={selectedDiscussionId}
+          onSelectDiscussion={handleOpenDiscussion}
+          onClearDiscussion={handleClearDiscussion}
+          onRefresh={refreshDiscussions}
+        />
+        {projectName && <TerminalOverviewFloating projectName={projectName} showConfig defaultExpanded />}
+      </>
+    );
   }
 
   const sidebar =
@@ -702,6 +777,12 @@ export default function ProjectDetailPage() {
               className={`rounded px-3 py-1 text-xs ${projectView === 'worktrees' ? 'bg-primary text-white' : 'bg-gray-200 text-slate-700'}`}
             >
               Worktrees
+            </button>
+            <button
+              onClick={() => handleProjectViewChange('discussion')}
+              className={`rounded px-3 py-1 text-xs ${projectView === 'discussion' ? 'bg-primary text-white' : 'bg-gray-200 text-slate-700'}`}
+            >
+              Discussion
             </button>
             <button onClick={refreshAll} className="rounded-md bg-primary px-2 py-1 text-xs font-semibold text-white hover:bg-primary-hover">
               刷新

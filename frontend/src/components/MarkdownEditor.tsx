@@ -8,15 +8,17 @@ interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  hidePreview?: boolean;
 }
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-export default function MarkdownEditor({ name, value, onChange, placeholder }: MarkdownEditorProps) {
+export default function MarkdownEditor({ name, value, onChange, placeholder, hidePreview = false }: MarkdownEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const [view, setView] = useState<ViewMode>('split');
+  const [view, setView] = useState<ViewMode>(hidePreview ? 'write' : 'split');
+  const effectiveView = hidePreview ? 'write' : view;
 
   const stats = useMemo(() => {
     const text = value || '';
@@ -115,35 +117,37 @@ export default function MarkdownEditor({ name, value, onChange, placeholder }: M
           <div className="hidden text-[11px] text-muted md:block">
             {stats.lines} 行 / {stats.chars} 字符
           </div>
-          <div className="inline-flex overflow-hidden rounded border border-border bg-white text-[11px]">
-            <button
-              type="button"
-              onClick={() => setView('write')}
-              className={`px-2 py-1 font-semibold ${view === 'write' ? 'bg-primary text-white' : 'text-muted hover:bg-slate-100'}`}
-            >
-              编辑
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('split')}
-              className={`px-2 py-1 font-semibold ${view === 'split' ? 'bg-primary text-white' : 'text-muted hover:bg-slate-100'}`}
-            >
-              分屏
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('preview')}
-              className={`px-2 py-1 font-semibold ${view === 'preview' ? 'bg-primary text-white' : 'text-muted hover:bg-slate-100'}`}
-            >
-              预览
-            </button>
-          </div>
+          {!hidePreview ? (
+            <div className="inline-flex overflow-hidden rounded border border-border bg-white text-[11px]">
+              <button
+                type="button"
+                onClick={() => setView('write')}
+                className={`px-2 py-1 font-semibold ${view === 'write' ? 'bg-primary text-white' : 'text-muted hover:bg-slate-100'}`}
+              >
+                编辑
+              </button>
+              <button
+                type="button"
+                onClick={() => setView('split')}
+                className={`px-2 py-1 font-semibold ${view === 'split' ? 'bg-primary text-white' : 'text-muted hover:bg-slate-100'}`}
+              >
+                分屏
+              </button>
+              <button
+                type="button"
+                onClick={() => setView('preview')}
+                className={`px-2 py-1 font-semibold ${view === 'preview' ? 'bg-primary text-white' : 'text-muted hover:bg-slate-100'}`}
+              >
+                预览
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
 
-      <div className={`grid gap-0 ${view === 'split' ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
-        {view !== 'preview' && (
-          <div className={view === 'split' ? 'border-b border-border md:border-b-0 md:border-r' : ''}>
+      <div className={`grid gap-0 ${effectiveView === 'split' ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
+        {effectiveView !== 'preview' && (
+          <div className={effectiveView === 'split' ? 'border-b border-border md:border-b-0 md:border-r' : ''}>
             <textarea
               ref={textareaRef}
               name={name}
@@ -156,7 +160,7 @@ export default function MarkdownEditor({ name, value, onChange, placeholder }: M
           </div>
         )}
 
-        {view !== 'write' && (
+        {effectiveView !== 'write' && (
           <div className="bg-white p-3 md:min-h-[18rem]">
             {value.trim() ? (
               <MarkdownPreview value={value} className="text-sm" />
@@ -169,4 +173,3 @@ export default function MarkdownEditor({ name, value, onChange, placeholder }: M
     </div>
   );
 }
-

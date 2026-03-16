@@ -5,6 +5,54 @@ export async function fetchProjects() {
   return res.json();
 }
 
+export async function fetchDiscussions(projectName: string) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/discussions`);
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '加载讨论失败');
+  }
+  return res.json();
+}
+
+export async function createDiscussion(projectName: string, payload: any) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/discussions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '创建讨论失败');
+  }
+  return res.json();
+}
+
+export async function updateDiscussion(projectName: string, id: string, payload: any) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/discussions/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '更新讨论失败');
+  }
+  return res.json();
+}
+
+export async function addDiscussionComment(projectName: string, id: string, payload: any) {
+  const res = await fetch(`${API_BASE}/projects/${projectName}/discussions/${id}/comments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '添加评论失败');
+  }
+  return res.json();
+}
+
 export async function fetchProject(name: string) {
   const res = await fetch(`${API_BASE}/projects/${name}`);
   if (!res.ok) {

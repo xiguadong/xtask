@@ -1,5 +1,14 @@
 # 任务记录
 
+## 2026-03-16
+
+### 项目 Discussion 子页面（1773631663482-discussion）
+
+- [x] Discussion 列表页 - 在项目页新增 `Discussion` 视图，先展示讨论预览卡片，再进入具体 discussion 详情页 (2026-03-16)
+- [x] Discussion 详情页 - 复用任务页视觉体系，采用左侧功能框 + 中间编辑区 + 右侧预览与评论区的布局 (2026-03-16)
+- [x] 数据与评论 - 后端新增 discussion 读写与评论接口，支持 Markdown 正文、标签和评论存储 (2026-03-16)
+- [x] 验证 - 复用主分支 `node_modules` 完成 `frontend npm run build -- --configLoader runner`，后端 discussion 模块导入校验通过 (2026-03-16)
+
 ## 2026-03-13
 
 ### xtask cli支持新的功能（1773395323882-xtask-cli）

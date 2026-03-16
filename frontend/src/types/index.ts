@@ -119,3 +119,22 @@ export interface Worktree {
   tasks: string[];
   last_commit: string | null;
 }
+
+export interface DiscussionComment {
+  id: string;
+  author: string;
+  content: string;
+  created_at: string;
+}
+
+export interface Discussion {
+  id: string;
+  title: string;
+  content: string;
+  labels: string[];
+  comments: DiscussionComment[];
+  created_at: string;
+  updated_at: string;
+  excerpt: string;
+  comment_count: number;
+}
