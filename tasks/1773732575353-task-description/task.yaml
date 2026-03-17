@@ -10,7 +10,7 @@ parent_tasks: []
 labels:
   - xtask
 created_at: '2026-03-17T07:29:35.353Z'
-updated_at: '2026-03-17T07:29:35.353Z'
+updated_at: '2026-03-17T07:29:44.737Z'
 created_by: web
 agent:
   assigned: false
@@ -33,5 +33,6 @@ terminal:
   stopped_at: null
   stop_reason: null
 git:
-  branch: null
+  branch: 1773732575353-task-description
   commits: []
+  source_branch: master
