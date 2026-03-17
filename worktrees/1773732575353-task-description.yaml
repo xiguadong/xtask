@@ -6,5 +6,6 @@ agent:
   identity: null
   model: null
 status: active
-tasks: []
+tasks:
+  - 1773732575353-task-description
 last_commit: null
