@@ -10,7 +10,7 @@ import TerminalOverviewFloating from '../components/TerminalOverviewFloating';
 import { useMilestones } from '../hooks/useMilestones';
 import { Task } from '../types';
 import { normalizeTaskLabel, normalizeTaskLabels } from '../utils/taskLabels';
-import { formatTaskDisplayId, formatTaskPriority, formatTaskStatus, normalizeTaskStatus } from '../utils/taskDisplay';
+import { formatTaskDisplayId, formatTaskPriority, formatTaskStatus, formatTaskWorktreeBranchName, normalizeTaskStatus } from '../utils/taskDisplay';
 import { fetchTask, updateTask } from '../utils/api';
 
 export default function TaskDetailPage() {
@@ -125,7 +125,7 @@ export default function TaskDetailPage() {
               <div>
                 <h2 className="text-sm font-semibold text-text">任务详情</h2>
                 <p className="mt-1 text-xs text-muted">{formatTaskDisplayId(task)}</p>
-                <p className="mt-1 text-[11px] text-muted">原始 ID：{task.id}</p>
+                <p className="mt-1 text-[11px] text-muted">推荐分支名（时间戳-任务描述）：{formatTaskWorktreeBranchName(task)}</p>
               </div>
               <button
                 onClick={() => setEditing((value) => !value)}

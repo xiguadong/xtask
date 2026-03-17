@@ -17,6 +17,31 @@ const statusRank: Record<TaskStatus, number> = {
   done: 3
 };
 
+function parseTaskIdTime(id: string) {
+  const msMatch = id.match(/^(\d{13})/);
+  if (msMatch) {
+    const date = new Date(Number(msMatch[1]));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const humanMatch = id.match(
+    /^(\d{4})-(\d{1,2})-(\d{1,2})-(\d{1,2})-(\d{1,2})-(\d{1,2})(?:-(\d{1,3}))?/
+  );
+  if (!humanMatch) return null;
+
+  const [, year, month, day, hour, minute, second, millisecond] = humanMatch;
+  const date = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+    millisecond ? Number(millisecond) : 0
+  );
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export function normalizeTaskStatus(status: TaskStatus | string): TaskStatus {
   if (status === 'completed') return 'done';
   if (status === 'in_progress' || status === 'blocked' || status === 'done') return status;
@@ -60,10 +85,8 @@ export function formatTaskPriority(priority: TaskPriority) {
 }
 
 function getTaskTime(task: Task) {
-  const idTimestamp = task.id.match(/^(\d{13})/)?.[1];
-  if (idTimestamp) {
-    return new Date(Number(idTimestamp));
-  }
+  const idTime = parseTaskIdTime(task.id);
+  if (idTime) return idTime;
   return new Date(task.created_at);
 }
 
@@ -83,10 +106,47 @@ function getTaskNamePart(task: Task) {
   const fromTitle = slugify(task.title || '');
   if (fromTitle) return fromTitle;
 
-  const fromId = slugify(task.id.replace(/^\d+-?/, ''));
+  const fromId = slugify(
+    task.id
+      .replace(/^\d{13}-?/, '')
+      .replace(/^\d{4}-\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2}(?:-\d{1,3})?-?/, '')
+  );
   if (fromId) return fromId;
 
   return 'task';
+}
+
+function formatTimestampForId(date: Date) {
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+    pad(date.getHours()),
+    pad(date.getMinutes()),
+    pad(date.getSeconds()),
+    String(date.getMilliseconds()).padStart(3, '0')
+  ].join('-');
+}
+
+export function formatTaskWorktreeBranchName(task: Task) {
+  const rawId = String(task.id || '').trim();
+  if (!rawId) return 'task';
+
+  if (/^\d{4}-\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2}(?:-\d{1,3})?/.test(rawId)) {
+    return rawId;
+  }
+
+  const msMatch = rawId.match(/^(\d{13})(?:-(.*))?$/);
+  if (msMatch) {
+    const date = new Date(Number(msMatch[1]));
+    if (!Number.isNaN(date.getTime())) {
+      const suffixFromId = String(msMatch[2] || '').trim().replace(/^-+|-+$/g, '');
+      const suffix = suffixFromId || getTaskNamePart(task) || 'task';
+      return `${formatTimestampForId(date)}-${suffix}`;
+    }
+  }
+
+  return rawId;
 }
 
 export function formatTaskDisplayId(task: Task) {
@@ -96,7 +156,8 @@ export function formatTaskDisplayId(task: Task) {
     pad(date.getMonth() + 1),
     pad(date.getDate()),
     pad(date.getHours()),
-    pad(date.getMinutes())
+    pad(date.getMinutes()),
+    pad(date.getSeconds())
   ].join('-');
 
   return `${getTaskNamePart(task)}-${timestamp}`;

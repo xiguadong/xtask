@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useWorktrees } from '../hooks/useWorktrees';
 import { Task, Worktree } from '../types';
 import { deleteTask, updateTask } from '../utils/api';
+import { formatTaskWorktreeBranchName } from '../utils/taskDisplay';
 import TaskTerminalPanel from './TaskTerminalPanel';
 
 interface TaskActionsProps {
@@ -40,8 +41,9 @@ export default function TaskActions({ task, projectName, onUpdate, onDeleted }: 
   const resetWorktreeDraft = (mode: 'create' | 'link' = 'create') => {
     setWorktreeMode(mode);
     setSourceBranch(task.git.source_branch || defaultBranch || '');
-    setBranchName(task.id);
-    setWorktreePath(`cache/worktrees/${task.id}`);
+    const defaultWorktreeBranch = formatTaskWorktreeBranchName(task);
+    setBranchName(defaultWorktreeBranch);
+    setWorktreePath(`cache/worktrees/${defaultWorktreeBranch}`);
     setSelectedExistingBranch(availableWorktrees[0]?.branch || '');
   };
 
@@ -207,7 +209,7 @@ export default function TaskActions({ task, projectName, onUpdate, onDeleted }: 
                       type="text"
                       value={branchName}
                       onChange={(event) => setBranchName(event.target.value)}
-                      placeholder={`默认: ${task.id}`}
+                      placeholder={`默认: ${formatTaskWorktreeBranchName(task)}`}
                       className="w-full rounded border border-border bg-white p-2 text-sm text-text"
                     />
                   </label>
@@ -217,7 +219,7 @@ export default function TaskActions({ task, projectName, onUpdate, onDeleted }: 
                       type="text"
                       value={worktreePath}
                       onChange={(event) => setWorktreePath(event.target.value)}
-                      placeholder={`默认: cache/worktrees/${task.id}`}
+                      placeholder={`默认: cache/worktrees/${formatTaskWorktreeBranchName(task)}`}
                       className="w-full rounded border border-border bg-white p-2 text-sm text-text"
                     />
                   </label>

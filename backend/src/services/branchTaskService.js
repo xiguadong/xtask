@@ -12,6 +12,22 @@ function normalizeTaskLabels(labels = []) {
   return Array.from(new Set((labels || []).map((label) => normalizeTaskLabel(label)).filter(Boolean)));
 }
 
+function pad(value, length = 2) {
+  return String(value).padStart(length, '0');
+}
+
+function formatTimestampForId(date = new Date()) {
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+    pad(date.getHours()),
+    pad(date.getMinutes()),
+    pad(date.getSeconds()),
+    pad(date.getMilliseconds(), 3)
+  ].join('-');
+}
+
 function normalizeTask(task) {
   if (!task) return null;
   task.status = normalizeTaskStatus(task.status);
@@ -213,8 +229,12 @@ export function mergeTaskToMain(projectPath, branch, taskId) {
 }
 
 export function createBranchTask(projectPath, branch, taskData) {
-  const timestamp = Date.now();
-  const slug = taskData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const timestamp = formatTimestampForId();
+  const slug = String(taskData?.title || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{Letter}\p{Number}]+/gu, '-')
+    .replace(/^-+|-+$/g, '') || 'task';
   const id = `${timestamp}-${slug}`;
 
   const task = {
