@@ -3,14 +3,14 @@ title: 新建任务的分支名时应当显示以视角戳-{task description} �
 description: ''
 description_file: null
 summary_file: tasks/1773732575353-task-description/summary.md
-status: in_progress
+status: done
 priority: critical
 milestone_id: m2
 parent_tasks: []
 labels:
   - xtask
 created_at: '2026-03-17T07:29:35.353Z'
-updated_at: '2026-03-17T08:46:02.800Z'
+updated_at: '2026-03-17T09:08:06.064Z'
 created_by: web
 agent:
   assigned: false
