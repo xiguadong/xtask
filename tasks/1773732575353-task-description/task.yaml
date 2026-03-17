@@ -10,7 +10,7 @@ parent_tasks: []
 labels:
   - xtask
 created_at: '2026-03-17T07:29:35.353Z'
-updated_at: '2026-03-17T07:29:47.217Z'
+updated_at: '2026-03-17T09:07:55.818Z'
 created_by: web
 agent:
   assigned: false
@@ -19,19 +19,21 @@ agent:
   session_id: null
   status: null
 terminal:
-  enabled: true
+  enabled: false
   mode: local
-  session_id: 1773732575353-task-description-terminal-1773732587217
-  status: running
+  session_id: null
+  status: stopped
   host: null
   port: 22
   username: null
   timeout_days: 3
   auto_stop_on_task_done: true
   started_at: '2026-03-17T07:29:47.217Z'
-  last_active_at: '2026-03-17T07:29:47.217Z'
-  stopped_at: null
-  stop_reason: null
+  last_active_at: '2026-03-17T09:07:54.280Z'
+  stopped_at: '2026-03-17T09:07:55.818Z'
+  stop_reason: manual
+  exit_code: 0
+  exit_signal: 9
 git:
   branch: 1773732575353-task-description
   commits: []
