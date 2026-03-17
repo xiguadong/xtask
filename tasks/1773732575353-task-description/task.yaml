@@ -1,0 +1,37 @@
+id: 1773732575353-task-description
+title: 新建任务的分支名时应当显示以视角戳-{task description} 命名
+description: ''
+description_file: null
+summary_file: null
+status: todo
+priority: critical
+milestone_id: m2
+parent_tasks: []
+labels:
+  - xtask
+created_at: '2026-03-17T07:29:35.353Z'
+updated_at: '2026-03-17T07:29:35.353Z'
+created_by: web
+agent:
+  assigned: false
+  identity: null
+  assigned_at: null
+  session_id: null
+  status: null
+terminal:
+  enabled: false
+  mode: null
+  session_id: null
+  status: stopped
+  host: null
+  port: 22
+  username: null
+  timeout_days: 3
+  auto_stop_on_task_done: true
+  started_at: null
+  last_active_at: null
+  stopped_at: null
+  stop_reason: null
+git:
+  branch: null
+  commits: []
