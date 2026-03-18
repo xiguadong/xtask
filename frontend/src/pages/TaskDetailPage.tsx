@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import LabelBadge from '../components/LabelBadge';
 import Shell from '../components/layout/Shell';
+import TaskTerminalPanel from '../components/TaskTerminalPanel';
 import TopBar from '../components/layout/TopBar';
-import TaskActions from '../components/TaskActions';
+import { TaskDeletePanel, TaskWorktreePanel } from '../components/TaskActions';
 import MarkdownEditor from '../components/MarkdownEditor';
 import MarkdownPreview from '../components/MarkdownPreview';
 import TerminalOverviewFloating from '../components/TerminalOverviewFloating';
@@ -104,20 +105,23 @@ export default function TaskDetailPage() {
 
       <Shell
         sidebar={
-          <aside className="space-y-3 rounded-lg border border-border bg-surface p-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Task Meta</h2>
-            <div className="space-y-2 rounded-md border border-border bg-white p-3 text-xs">
-              <p>
-                <span className="text-muted">状态：</span> {formatTaskStatus(task.status)}
-              </p>
-              <p>
-                <span className="text-muted">优先级：</span> {formatTaskPriority(task.priority)}
-              </p>
-              <p>
-                <span className="text-muted">创建来源：</span> {task.created_by}
-              </p>
-            </div>
-          </aside>
+          <div className="space-y-3">
+            <aside className="space-y-3 rounded-lg border border-border bg-surface p-3">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Task Meta</h2>
+              <div className="space-y-2 rounded-md border border-border bg-white p-3 text-xs">
+                <p>
+                  <span className="text-muted">状态：</span> {formatTaskStatus(task.status)}
+                </p>
+                <p>
+                  <span className="text-muted">优先级：</span> {formatTaskPriority(task.priority)}
+                </p>
+                <p>
+                  <span className="text-muted">创建来源：</span> {task.created_by}
+                </p>
+              </div>
+            </aside>
+            <TaskDeletePanel task={task} projectName={projectName!} onDeleted={handleTaskDeleted} />
+          </div>
         }
         main={
           <section className="space-y-4 rounded-lg border border-border bg-surface p-4">
@@ -215,9 +219,7 @@ export default function TaskDetailPage() {
                         <p className="mt-1 text-xs text-muted">
                           长描述已自动收纳到 <code>{task.description_file}</code>
                         </p>
-                      ) : (
-                        <p className="mt-1 text-xs text-muted">任务正文按统一紧凑 Markdown 规则渲染。</p>
-                      )}
+                      ) : null}
                     </div>
                     {descriptionContent?.trim() ? (
                       <MarkdownPreview value={descriptionContent} className="text-sm" compact />
@@ -240,14 +242,10 @@ export default function TaskDetailPage() {
                     </div>
                   </div>
                 </article>
-
-                <TaskActions task={task} projectName={projectName!} onUpdate={loadTask} onDeleted={handleTaskDeleted} />
-
                 {task.summary_content?.trim() ? (
                   <section className="rounded-lg border border-border bg-white p-4 shadow-sm">
                     <div className="mb-3 border-b border-border pb-3">
                       <h3 className="text-sm font-semibold text-text">任务总结</h3>
-                      <p className="mt-1 text-xs text-muted">与任务描述相同，按统一紧凑 Markdown 规则渲染。</p>
                       {task.summary_file ? (
                         <p className="mt-1 text-xs text-muted">
                           总结文件：<code>{task.summary_file}</code>
@@ -257,10 +255,13 @@ export default function TaskDetailPage() {
                     <MarkdownPreview value={task.summary_content} className="text-sm" compact />
                   </section>
                 ) : null}
+
+                <TaskTerminalPanel task={task} projectName={projectName!} onTaskRefresh={loadTask} />
               </>
             )}
           </section>
         }
+        rail={<TaskWorktreePanel task={task} projectName={projectName!} onUpdate={loadTask} />}
       />
       {projectName && <TerminalOverviewFloating projectName={projectName} showConfig={false} defaultExpanded={false} />}
     </>
