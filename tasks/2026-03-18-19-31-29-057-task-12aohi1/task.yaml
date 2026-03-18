@@ -20,7 +20,7 @@ parent_tasks: []
 labels:
   - bug
 created_at: '2026-03-18T11:31:29.057Z'
-updated_at: '2026-03-18T11:31:29.057Z'
+updated_at: '2026-03-18T11:32:11.936Z'
 created_by: web
 agent:
   assigned: false
@@ -43,5 +43,6 @@ terminal:
   stopped_at: null
   stop_reason: null
 git:
-  branch: null
+  branch: 2026-03-18-19-31-29-057-task-12aohi1
   commits: []
+  source_branch: master
