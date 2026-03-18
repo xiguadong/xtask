@@ -29,6 +29,31 @@ function formatTimestampForId(date = new Date()) {
   ].join('-');
 }
 
+function hashText(value = '') {
+  let hash = 0;
+  for (const char of String(value)) {
+    hash = (hash * 33 + char.codePointAt(0)) >>> 0;
+  }
+  return hash.toString(36);
+}
+
+function createTaskIdSlug(title) {
+  const asciiSlug = String(title || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  if (asciiSlug) {
+    return asciiSlug;
+  }
+
+  const fallbackHash = hashText(String(title || '').trim()).slice(0, 8);
+  return fallbackHash ? `task-${fallbackHash}` : 'task';
+}
+
 function getDefaultTerminal() {
   return {
     enabled: false,
@@ -140,11 +165,7 @@ export function getTaskById(projectPath, id) {
 
 export function createTask(projectPath, task) {
   const timestamp = formatTimestampForId();
-  const slug = String(task?.title || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^\p{Letter}\p{Number}]+/gu, '-')
-    .replace(/^-+|-+$/g, '') || 'task';
+  const slug = createTaskIdSlug(task?.title);
   const id = `${timestamp}-${slug}`;
 
   const newTask = {

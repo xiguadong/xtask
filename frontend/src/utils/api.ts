@@ -90,6 +90,10 @@ export async function createTask(projectName: string, task: any) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(task)
   });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '创建任务失败');
+  }
   return res.json();
 }
 

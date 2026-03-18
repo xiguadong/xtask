@@ -224,17 +224,21 @@ export default function ProjectDetailPage() {
     const form = event.currentTarget;
     const data = new FormData(form);
 
-    await createTask(projectName!, {
-      title: data.get('title'),
-      description: data.get('description'),
-      priority: data.get('priority'),
-      milestone_id: data.get('milestone') || null,
-      labels: normalizeTaskLabels((data.get('labels') as string)?.split(',') || [])
-    });
+    try {
+      await createTask(projectName!, {
+        title: data.get('title'),
+        description: data.get('description'),
+        priority: data.get('priority'),
+        milestone_id: data.get('milestone') || null,
+        labels: normalizeTaskLabels((data.get('labels') as string)?.split(',') || [])
+      });
 
-    setShowTaskForm(false);
-    form.reset();
-    refreshTasks();
+      setShowTaskForm(false);
+      form.reset();
+      refreshTasks();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : '创建任务失败');
+    }
   }
 
   async function handleCreateMilestone(event: React.FormEvent<HTMLFormElement>) {

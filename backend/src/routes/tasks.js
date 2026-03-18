@@ -37,8 +37,12 @@ router.post('/:projectName/tasks', (req, res) => {
   const project = getProjectByName(req.params.projectName);
   if (!project) return res.status(404).json({ error: 'Project not found' });
 
-  const task = createTask(project.path, req.body);
-  res.status(201).json(task);
+  try {
+    const task = createTask(project.path, req.body);
+    res.status(201).json(task);
+  } catch (error) {
+    res.status(500).json({ error: error.message || '创建任务失败' });
+  }
 });
 
 router.get('/:projectName/tasks/:id', (req, res) => {
