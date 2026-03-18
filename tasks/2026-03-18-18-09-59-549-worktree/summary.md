@@ -1,0 +1,5 @@
+- 任务详情页改为三栏结构：左侧展示任务元信息与删除任务危险操作，中间保留任务正文与总结，右侧承载 Worktree 与终端面板。
+- Worktree 创建/关联表单从正文操作区移到右侧侧栏，配置分支时不再打断阅读任务内容。
+- 删除任务操作单独放到左侧信息栏，和常规 Worktree 操作彻底分离，降低误触与误解风险。
+- 补充 `docs/task.md` 与 `PROGRESS.md`，记录本次布局调整。
+- 复用主分支 `node_modules` 做了 `frontend npm run build -- --configLoader runner` 构建验证，结果通过；当前仅保留既有大包体积告警。
