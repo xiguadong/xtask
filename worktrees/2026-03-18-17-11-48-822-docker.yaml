@@ -6,5 +6,6 @@ agent:
   identity: null
   model: null
 status: active
-tasks: []
+tasks:
+  - 1773825108822-docker
 last_commit: null
