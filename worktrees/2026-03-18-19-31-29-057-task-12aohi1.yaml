@@ -6,5 +6,6 @@ agent:
   identity: null
   model: null
 status: active
-tasks: []
+tasks:
+  - 2026-03-18-19-31-29-057-task-12aohi1
 last_commit: null
