@@ -6,6 +6,7 @@ import { getRepoRoot, getCurrentBranch } from '../utils/gitRepo.js';
 import { listDir, readYaml as readGitYaml, writeFiles } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
 import { prepareTaskDescription, prepareTaskSummary } from '../utils/taskContent.js';
+import { archiveXtaskTodoDocs } from '../utils/xtaskTodos.js';
 
 function normalizeTaskLabel(label) {
   return String(label || '').trim().toLowerCase();
@@ -342,6 +343,22 @@ export function updateTask(id, options = {}) {
     ...descriptionChanges,
     ...summaryChanges
   ], 'xtask update task');
+
+  // 任务标记 done 时，归档 xtask_todos/ 文档到 xtask 数据分支
+  if (isInWorktree && task.status === 'done') {
+    const worktreePath = worktree.worktree_path
+      ? (path.isAbsolute(worktree.worktree_path)
+        ? worktree.worktree_path
+        : path.resolve(projectRoot, worktree.worktree_path))
+      : process.cwd();
+    try {
+      archiveXtaskTodoDocs(worktreePath, id, writeFiles, projectRoot);
+      console.log(`✓ xtask_todos/ 文档已归档到数据分支`);
+    } catch (err) {
+      console.warn(`⚠️ xtask_todos/ 归档失败: ${err.message}`);
+    }
+  }
+
   console.log(`Updated task: ${id}${isInWorktree ? ` (branch: ${currentBranch})` : ''}`);
 }
 

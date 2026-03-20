@@ -1,9 +1,12 @@
 import express from 'express';
+import path from 'path';
 import { getProjectByName } from '../services/projectService.js';
 import { getTasks, getTaskById, createTask, updateTask, deleteTask, assignAgent, getTaskDescription } from '../services/taskService.js';
 import * as branchTaskService from '../services/branchTaskService.js';
 import * as terminalService from '../services/terminalService.js';
 import { isTaskDone } from '../utils/taskStatus.js';
+import { getTodoDocs } from '../utils/xtaskTodos.js';
+import { getWorktree } from '../services/worktreeService.js';
 
 const router = express.Router();
 
@@ -137,6 +140,29 @@ router.get('/:projectName/tasks/:id/description', (req, res) => {
   if (!description) return res.status(404).json({ error: 'Description not found' });
 
   res.json({ content: description });
+});
+
+// 获取任务的 todo 文档 (task.md / analysis.md)
+router.get('/:projectName/tasks/:id/todo-docs', (req, res) => {
+  const project = getProjectByName(req.params.projectName);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  const { task, branch } = resolveTaskVariant(project.path, req.params.id, req.query.branch);
+  if (!task) return res.status(404).json({ error: 'Task not found' });
+
+  // 获取 worktree 路径
+  let worktreePath = null;
+  if (branch) {
+    const worktree = getWorktree(project.path, branch);
+    if (worktree?.worktree_path) {
+      worktreePath = path.isAbsolute(worktree.worktree_path)
+        ? worktree.worktree_path
+        : path.resolve(project.path, worktree.worktree_path);
+    }
+  }
+
+  const docs = getTodoDocs(project.path, req.params.id, task, worktreePath);
+  res.json(docs);
 });
 
 export default router;

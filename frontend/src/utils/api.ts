@@ -264,3 +264,21 @@ export async function updateTaskTerminalConfig(projectName: string, taskId: stri
   }
   return res.json();
 }
+
+export interface TodoDocsResponse {
+  task_md: string | null;
+  analysis_md: string | null;
+  has_task_md: boolean;
+  has_analysis_md: boolean;
+  source: 'local' | 'archive' | 'none';
+}
+
+export async function fetchTodoDocs(projectName: string, taskId: string, branch?: string): Promise<TodoDocsResponse> {
+  const params = branch ? `?branch=${encodeURIComponent(branch)}` : '';
+  const res = await fetch(`${API_BASE}/projects/${projectName}/tasks/${taskId}/todo-docs${params}`);
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || '加载 Todo 文档失败');
+  }
+  return res.json();
+}

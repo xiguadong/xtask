@@ -1,9 +1,11 @@
+import fs from 'fs';
 import { Command } from 'commander';
 import path from 'path';
 import yaml from 'js-yaml';
 import { getRepoRoot, getCurrentBranch } from '../utils/gitRepo.js';
 import { listDir, readYaml as readGitYaml, writeFiles } from '../utils/gitDataStore.js';
 import { normalizeTaskStatus } from '../utils/taskStatus.js';
+import { initXtaskTodos } from '../utils/xtaskTodos.js';
 
 const program = new Command();
 
@@ -61,6 +63,17 @@ program
     writeFiles(projectRoot, [
       { path: `worktrees/${branch}.yaml`, content: yaml.dump(worktree) }
     ], 'xtask create worktree');
+
+    // 初始化 xtask_todos/ 目录
+    const resolvedPath = path.isAbsolute(worktreePath)
+      ? worktreePath
+      : path.resolve(projectRoot, worktreePath);
+    try {
+      initXtaskTodos(resolvedPath, projectRoot);
+      console.log(`✓ xtask_todos/ 已初始化`);
+    } catch (err) {
+      console.warn(`⚠️ xtask_todos/ 初始化失败: ${err.message}`);
+    }
 
     console.log(`✓ Worktree created: ${branch}`);
   });

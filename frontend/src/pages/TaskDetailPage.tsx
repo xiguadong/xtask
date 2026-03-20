@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import LabelBadge from '../components/LabelBadge';
 import Shell from '../components/layout/Shell';
 import TaskTerminalPanel from '../components/TaskTerminalPanel';
@@ -9,10 +9,83 @@ import MarkdownEditor from '../components/MarkdownEditor';
 import MarkdownPreview from '../components/MarkdownPreview';
 import TerminalOverviewFloating from '../components/TerminalOverviewFloating';
 import { useMilestones } from '../hooks/useMilestones';
+import { useTodoDocs } from '../hooks/useTodoDocs';
 import { Task } from '../types';
 import { normalizeTaskLabel, normalizeTaskLabels } from '../utils/taskLabels';
 import { formatTaskDisplayId, formatTaskPriority, formatTaskStatus, formatTaskWorktreeBranchName, normalizeTaskStatus } from '../utils/taskDisplay';
 import { fetchTask, updateTask } from '../utils/api';
+
+function TodoDocsPanel({ projectName, taskId, branch }: { projectName: string; taskId: string; branch?: string }) {
+  const { docs, loading } = useTodoDocs(projectName, taskId, branch);
+
+  if (loading) {
+    return (
+      <aside className="rounded-lg border border-border bg-surface p-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Todo 进度</h2>
+        <p className="mt-2 text-xs text-muted">加载中...</p>
+      </aside>
+    );
+  }
+
+  if (!docs || (!docs.has_task_md && !docs.has_analysis_md)) {
+    return null;
+  }
+
+  // 从 task.md 中提取 Status 字段
+  let todoStatus = '未知';
+  if (docs.task_md) {
+    const match = docs.task_md.match(/\*\*Status:\*\*\s*(\S+)/);
+    if (match) todoStatus = match[1];
+  }
+
+  // 统计 task.md 中的 checkbox 完成情况
+  let totalChecks = 0;
+  let doneChecks = 0;
+  if (docs.task_md) {
+    const checkboxes = docs.task_md.match(/- \[([ xX])\]/g) || [];
+    totalChecks = checkboxes.length;
+    doneChecks = checkboxes.filter((cb) => cb.includes('[x]') || cb.includes('[X]')).length;
+  }
+
+  const sourceLabel = docs.source === 'archive' ? '归档' : docs.source === 'local' ? '本地' : '';
+  const docsLink = `/projects/${projectName}/tasks/${taskId}/todo-docs${branch ? `?branch=${encodeURIComponent(branch)}` : ''}`;
+
+  return (
+    <aside className="rounded-lg border border-border bg-surface p-3">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Todo 进度</h2>
+      <div className="mt-2 space-y-2 rounded-md border border-border bg-white p-3 text-xs">
+        <p>
+          <span className="text-muted">状态：</span> {todoStatus}
+        </p>
+        {totalChecks > 0 && (
+          <p>
+            <span className="text-muted">进度：</span> {doneChecks}/{totalChecks}
+            <span className="ml-2 inline-block h-1.5 w-20 rounded-full bg-slate-200">
+              <span
+                className="block h-full rounded-full bg-primary"
+                style={{ width: `${Math.round((doneChecks / totalChecks) * 100)}%` }}
+              />
+            </span>
+          </p>
+        )}
+        <p>
+          <span className="text-muted">数据源：</span> {sourceLabel}
+        </p>
+        <p>
+          <span className="text-muted">文件：</span>
+          {docs.has_task_md && <span className="ml-1 rounded bg-slate-100 px-1">task.md</span>}
+          {docs.has_analysis_md && <span className="ml-1 rounded bg-slate-100 px-1">analysis.md</span>}
+        </p>
+      </div>
+      <Link
+        to={docsLink}
+        className="mt-2 block rounded-md bg-primary px-3 py-1.5 text-center text-xs font-semibold text-white hover:bg-primary-hover"
+      >
+        查看详情
+      </Link>
+    </aside>
+  );
+}
 
 export default function TaskDetailPage() {
   const { projectName, taskId } = useParams<{ projectName: string; taskId: string }>();
@@ -261,7 +334,12 @@ export default function TaskDetailPage() {
             )}
           </section>
         }
-        rail={<TaskWorktreePanel task={task} projectName={projectName!} onUpdate={loadTask} />}
+        rail={
+          <div className="space-y-3">
+            <TaskWorktreePanel task={task} projectName={projectName!} onUpdate={loadTask} />
+            <TodoDocsPanel projectName={projectName!} taskId={taskId!} branch={task.git?.branch || undefined} />
+          </div>
+        }
       />
       {projectName && <TerminalOverviewFloating projectName={projectName} showConfig={false} defaultExpanded={false} />}
     </>
