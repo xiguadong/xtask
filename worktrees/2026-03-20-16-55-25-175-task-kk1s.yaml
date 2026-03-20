@@ -1,0 +1,10 @@
+branch: 2026-03-20-16-55-25-175-task-kk1s
+worktree_path: cache/worktrees/2026-03-20-16-55-25-175-task-kk1s
+source_branch: master
+created_at: '2026-03-20T08:58:13.838Z'
+agent:
+  identity: null
+  model: null
+status: active
+tasks: []
+last_commit: null
