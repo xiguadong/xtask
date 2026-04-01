@@ -346,11 +346,9 @@ export function updateTask(id, options = {}) {
 
   // 任务标记 done 时，归档 xtask_todos/ 文档到 xtask 数据分支
   if (isInWorktree && task.status === 'done') {
-    const worktreePath = worktree.worktree_path
-      ? (path.isAbsolute(worktree.worktree_path)
-        ? worktree.worktree_path
-        : path.resolve(projectRoot, worktree.worktree_path))
-      : process.cwd();
+    // 在 worktree 内运行时，projectRoot 已经是 worktree 根目录（git show-toplevel）
+    // 直接使用 process.cwd() 避免 worktree_path 相对路径解析错误
+    const worktreePath = process.cwd();
     try {
       archiveXtaskTodoDocs(worktreePath, id, writeFiles, projectRoot);
       console.log(`✓ xtask_todos/ 文档已归档到数据分支`);
