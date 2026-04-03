@@ -37,7 +37,8 @@ bash scripts/xtask-work.sh
 
 1. 所有实现步骤完成
 2. 将 `xtask_todos/task.md` 的 Status 改为 `AwaitingCommit`
-3. 通过 xtask-safe 标记任务为 done
+3. 使用 xtask-summary 归档任务文档和总结
+4. 通过 xtask-safe 标记任务为 done
 
 ## 注意事项
 

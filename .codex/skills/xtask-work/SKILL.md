@@ -36,3 +36,10 @@ description: xtask 任务执行与进展管理。管理 xtask_todos/ 下的 task
 - 相关文件清单
 - 关键代码片段
 - 设计决策与理由
+
+### 完成任务
+
+1. 所有实现步骤完成
+2. 将 `task.md` 的 Status 改为 `AwaitingCommit`
+3. 使用 xtask-summary 归档任务文档和总结
+4. 通过 xtask-safe 标记任务为 done
