@@ -107,18 +107,49 @@ git ls-tree -r --name-only refs/xtask-data
 
 如果仓库里已经有 `AGENTS.md` 或 `CLAUDE.md`，不要再额外征求“是否写入”的确认，直接补齐规则即可。
 
-### 5. 与用户做最小交互
+### 5. 安装 xtask Skills
+
+自动安装 xtask 相关 skills 到目标仓库。运行安装脚本：
+
+```bash
+scripts/install-skills.sh --local --agent codex
+```
+
+如果目标仓库同时使用 Claude，可改为：
+
+```bash
+scripts/install-skills.sh --local --agent both
+```
+
+该脚本会自动安装以下 skills：
+
+- `xtask-safe` — 任务状态管理
+- `xtask-work` — 任务执行工作流
+- `xtask-summary` — 任务完成归档
+- `init-xtask` — 初始化 xtask 体系
+
+如果脚本不可用（例如目标仓库未包含 scripts/），可手动复制：
+
+```bash
+mkdir -p .codex/skills
+cp -r /path/to/xtask/.codex/skills/xtask-safe .codex/skills/
+cp -r /path/to/xtask/.codex/skills/xtask-work .codex/skills/
+cp -r /path/to/xtask/.codex/skills/xtask-summary .codex/skills/
+cp -r /path/to/xtask/.codex/skills/init-xtask .codex/skills/
+```
+
+### 6. 与用户做最小交互
 
 完成初始化后，直接用简短中文问题补齐 milestone 背景。优先问 2 个问题，不要一口气问太多：
 
 1. 这个项目当前最重要的交付目标是什么？
-2. 你希望第一阶段更偏“接管梳理 / 做出 MVP / 准备发布”哪一种？
+2. 你希望第一阶段更偏"接管梳理 / 做出 MVP / 准备发布"哪一种？
 
 如果还需要时间信息，再补第 3 个问题：
 
 3. 是否有明确发布日期或最近 2~4 周的截止时间？
 
-### 6. 先给 milestone 方案，再执行创建
+### 7. 先给 milestone 方案，再执行创建
 
 根据用户回答，从 `references/milestone-presets.md` 选择最贴近的一组，通常给 3 个 milestone 即可。
 
@@ -133,7 +164,7 @@ git ls-tree -r --name-only refs/xtask-data
 
 在用户确认前，不要直接创建。
 
-### 7. 用 CLI 创建 milestone
+### 8. 用 CLI 创建 milestone
 
 用户确认后，再逐条执行：
 
@@ -179,5 +210,6 @@ xtask project migrate-to-git
 - 是否发现并迁移旧 `.xtask/`
 - 是否已补充或创建 `AGENTS.md` / `CLAUDE.md`
 - 如果没创建对应文件，是因为用户拒绝还是仓库已跳过
+- 是否已安装 xtask skills（xtask-safe, xtask-work, xtask-summary, init-xtask）
 - 给用户的 milestone 建议是什么
 - 哪一步还需要用户确认
