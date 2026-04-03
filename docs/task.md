@@ -258,3 +258,14 @@
 - [x] 移动文档到 docs/ 目录 (2026-03-05)
 - [x] 更新 CLAUDE.md 添加结构约束 (2026-03-05)
 - [x] 创建 docs/task.md 任务追踪文档 (2026-03-05)
+
+## 2026-04-03
+
+### xtask 技能体系与任务模板
+
+- [x] 技能定义 - 新增 `.codex` / `.claude` 下的 `xtask-work`、`xtask-summary`，并增强 `init-xtask` 流程 (2026-04-03)
+- [x] 安装脚本 - 新增 `scripts/install-skills.sh`，用于同步 xtask 技能到代理目录 (2026-04-03)
+- [x] 执行脚本 - 新增 `scripts/xtask-work.sh`，统一任务执行阶段的文档初始化与进展记录 (2026-04-03)
+- [x] 总结脚本 - 新增 `scripts/xtask-summary.sh`，统一任务总结与归档流程 (2026-04-03)
+- [x] 模板文件 - 新增 `xtask_todos/task.md`、`xtask_todos/analysis.md`、`xtask_todos/summary.md` (2026-04-03)
+- [x] 仓库配置 - `.gitignore` 增加 `.sisyphus/` 忽略规则 (2026-04-03)

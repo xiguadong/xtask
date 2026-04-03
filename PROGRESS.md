@@ -8,6 +8,13 @@
 
 🚧 开发中
 
+## 2026-04-03
+
+- ✅ 合并 xtask skill 分支，补充 `xtask-work`、`xtask-summary` 与增强后的 `init-xtask` 技能定义
+- ✅ 新增 `scripts/install-skills.sh`，支持批量安装/同步 xtask 技能到代理目录
+- ✅ 新增 `scripts/xtask-work.sh` 与 `scripts/xtask-summary.sh`，统一任务执行记录与任务总结流程
+- ✅ 补充 `xtask_todos/task.md`、`analysis.md`、`summary.md` 模板，并在 `.gitignore` 中忽略 `.sisyphus/` 临时目录
+
 ## 2026-03-18
 
 - ✅ 任务详情页操作区改为三栏布局：左侧固定危险操作，中间保留任务正文，右侧集中 Worktree 与终端面板
