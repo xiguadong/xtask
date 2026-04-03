@@ -15,7 +15,12 @@ function runGit(projectPath, args) {
 export function detectDefaultBranch(projectPath) {
   const remoteHead = runGit(projectPath, ['symbolic-ref', 'refs/remotes/origin/HEAD']);
   if (remoteHead) {
-    return remoteHead.replace('refs/remotes/origin/', '');
+    const branch = remoteHead.replace('refs/remotes/origin/', '');
+    const remoteExists = runGit(projectPath, ['show-ref', '--verify', `refs/remotes/origin/${branch}`]);
+    const localExists = runGit(projectPath, ['show-ref', '--verify', `refs/heads/${branch}`]);
+    if (remoteExists || localExists) {
+      return branch;
+    }
   }
 
   for (const branch of ['main', 'master']) {
