@@ -108,9 +108,12 @@ if [ ! -f xtask_todos/analysis.md ]; then
 EOF
 fi
 
-TASK_DESCRIPTION=""
-if git show "refs/xtask-data:tasks/$TASK_ID/task.yaml" >/dev/null 2>&1; then
-	TASK_DESCRIPTION=$(git show "refs/xtask-data:tasks/$TASK_ID/task.yaml" | grep "^description:" | cut -d' ' -f2- | sed "s/^['\"]//;s/['\"]$//")
+TASK_DESCRIPTION=$(echo "$CURRENT_OUTPUT" | sed -n '/^--- Description ---$/,/^---/p' | tail -n +2 | head -n -1)
+if [[ -z "$TASK_DESCRIPTION" ]]; then
+	# 如果 description_file 存在，尝试从 git 读取
+	if git show "refs/xtask-data:tasks/$TASK_ID/task.yaml" >/dev/null 2>&1; then
+		TASK_DESCRIPTION=$(git show "refs/xtask-data:tasks/$TASK_ID/task.yaml" | grep "^description:" | cut -d' ' -f2- | sed "s/^['\"]//;s/['\"]$//")
+	fi
 fi
 
 TASK_MILESTONE=$(echo "$CURRENT_OUTPUT" | grep "^Milestone: " | cut -d' ' -f2-)

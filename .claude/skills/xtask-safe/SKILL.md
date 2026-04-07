@@ -34,7 +34,7 @@ xtask task update <task-id> --status <new-status>
 
 1. 先查询父任务信息获取 milestone 和 labels：
 ```bash
-xtask task get <parent-id>
+xtask task show <parent-id>
 ```
 
 2. 使用继承的属性创建子任务：

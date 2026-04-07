@@ -248,6 +248,18 @@ export function showTask(id) {
     return;
   }
   printTask(task);
+
+  // 显示任务描述
+  if (task.description) {
+    console.log('\n--- Description ---');
+    console.log(task.description);
+  } else if (task.description_file) {
+    const descContent = readGitYaml(projectRoot, task.description_file);
+    if (descContent) {
+      console.log('\n--- Description ---');
+      console.log(typeof descContent === 'string' ? descContent : JSON.stringify(descContent, null, 2));
+    }
+  }
 }
 
 export function showCurrentTask() {
@@ -262,9 +274,12 @@ export function showCurrentTask() {
   const directTask = normalizeTask(readGitYaml(projectRoot, `branches/${currentBranch}/${currentBranch}.yaml`));
   const { tasks, missing } = getBranchTaskCandidates(projectRoot, currentBranch);
 
+  let taskToShow = null;
   if (directTask) {
+    taskToShow = directTask;
     printTask(directTask, { branch: currentBranch });
   } else if (tasks.length === 1) {
+    taskToShow = tasks[0];
     printTask(tasks[0], { branch: currentBranch });
   } else if (tasks.length > 1) {
     console.log(`Current branch: ${currentBranch}`);
@@ -274,6 +289,20 @@ export function showCurrentTask() {
     });
   } else {
     console.log(`No task found for current branch: ${currentBranch}`);
+  }
+
+  // 显示任务描述
+  if (taskToShow) {
+    if (taskToShow.description) {
+      console.log('\n--- Description ---');
+      console.log(taskToShow.description);
+    } else if (taskToShow.description_file) {
+      const descContent = readGitYaml(projectRoot, taskToShow.description_file);
+      if (descContent) {
+        console.log('\n--- Description ---');
+        console.log(typeof descContent === 'string' ? descContent : JSON.stringify(descContent, null, 2));
+      }
+    }
   }
 
   if (missing.length > 0) {
