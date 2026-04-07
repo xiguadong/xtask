@@ -16,6 +16,15 @@ description: xtask 任务执行与进展管理。管理 xtask_todos/ 下的 task
 
 ## 工作流程
 
+### 获取任务信息
+
+运行脚本获取任务信息并生成任务摘要：
+
+```bash
+bash .codex/skills/xtask-work/scripts/xtask-work.sh
+```
+
+
 ### 初始化任务文档
 
 在 `xtask_todos/` 目录下创建：
