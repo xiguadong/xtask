@@ -112,13 +112,13 @@ git ls-tree -r --name-only refs/xtask-data
 自动安装 xtask 相关 skills 到目标仓库。运行安装脚本：
 
 ```bash
-scripts/install-skills.sh --local --agent codex
+.codex/skills/init-xtask/scripts/install-skills.sh --local --agent codex
 ```
 
 如果目标仓库同时使用 Claude，可改为：
 
 ```bash
-scripts/install-skills.sh --local --agent both
+.codex/skills/init-xtask/scripts/install-skills.sh --local --agent both
 ```
 
 该脚本会自动安装以下 skills：

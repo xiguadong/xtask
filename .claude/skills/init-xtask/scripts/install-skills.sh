@@ -4,7 +4,7 @@ set -euo pipefail
 
 show_help() {
 	cat <<EOF
-用法: scripts/install-skills.sh [选项]
+用法: install-skills.sh [选项]
 
 安装 xtask 相关 skills 到本地或全局目录
 
@@ -17,13 +17,13 @@ show_help() {
 
 示例:
   # 安装到项目本地，仅 codex
-  scripts/install-skills.sh --local --agent codex
+  install-skills.sh --local --agent codex
 
   # 安装到全局，支持 codex 和 claude
-  scripts/install-skills.sh --global --agent both
+  install-skills.sh --global --agent both
 
   # 显示帮助
-  scripts/install-skills.sh --help
+  install-skills.sh --help
 EOF
 }
 

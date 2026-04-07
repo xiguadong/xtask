@@ -4,7 +4,7 @@ set -euo pipefail
 
 show_help() {
 	cat <<EOF
-用法: scripts/xtask-work.sh [选项]
+用法: xtask-work.sh [选项]
 
 获取当前分支任务信息，并自动更新状态为 in_progress（如果是 todo）
 
@@ -12,7 +12,7 @@ show_help() {
   --help    显示此帮助信息
 
 示例:
-  scripts/xtask-work.sh
+  xtask-work.sh
 EOF
 }
 

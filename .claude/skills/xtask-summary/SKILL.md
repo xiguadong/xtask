@@ -1,6 +1,6 @@
 ---
 name: xtask-summary
-description: "xtask 任务完成归档。当用户提示任务已完成、需要生成 summary、需要归档总结时触发。运行 scripts/xtask-summary.sh 生成并归档 summary。"
+description: "xtask 任务完成归档。当用户提示任务已完成、需要生成 summary、需要归档总结时触发。运行 .claude/skills/xtask-summary/scripts/xtask-summary.sh 生成并归档 summary。"
 ---
 
 # xtask-summary
@@ -19,7 +19,7 @@ description: "xtask 任务完成归档。当用户提示任务已完成、需要
 1. 确认用户是否同意将任务标记为 done
 2. 运行脚本生成 summary：
    ```bash
-   bash scripts/xtask-summary.sh <task-id>
+   bash .claude/skills/xtask-summary/scripts/xtask-summary.sh <task-id>
    ```
 3. 脚本会：
    - 生成任务完成总结
