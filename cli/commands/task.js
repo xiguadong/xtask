@@ -283,7 +283,7 @@ export function showCurrentTask() {
     printTask(tasks[0], { branch: currentBranch });
   } else if (tasks.length > 1) {
     console.log(`Current branch: ${currentBranch}`);
-    console.log('Found multiple tasks in current branch, please use xtask task show <id>:');
+    console.log('Found multiple tasks in current branch, please use xtask task current or xtask task show <id>:');
     tasks.forEach((task) => {
       console.log(`${task.id}: ${task.title} [${task.status}]`);
     });

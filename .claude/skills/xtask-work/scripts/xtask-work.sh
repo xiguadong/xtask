@@ -111,8 +111,11 @@ fi
 TASK_DESCRIPTION=$(echo "$CURRENT_OUTPUT" | sed -n '/^--- Description ---$/,/^---/p' | tail -n +2 | head -n -1)
 if [[ -z "$TASK_DESCRIPTION" ]]; then
 	# 如果 description_file 存在，尝试从 git 读取
-	if git show "refs/xtask-data:tasks/$TASK_ID/task.yaml" >/dev/null 2>&1; then
-		TASK_DESCRIPTION=$(git show "refs/xtask-data:tasks/$TASK_ID/task.yaml" | grep "^description:" | cut -d' ' -f2- | sed "s/^['\"]//;s/['\"]$//")
+	BRANCH=$(git branch --show-current 2>/dev/null || echo "")
+	if [[ -n "$BRANCH" ]] && git show "refs/xtask-data:branches/$BRANCH/$TASK_ID.yaml" >/dev/null 2>&1; then
+		TASK_DESCRIPTION=$(git show "refs/xtask-data:branches/$BRANCH/$TASK_ID.yaml" | grep "^description:" | cut -d' ' -f2- | sed "s/^['\"]//;s['\"]$//")
+	elif git show "refs/xtask-data:tasks/$TASK_ID/task.yaml" >/dev/null 2>&1; then
+		TASK_DESCRIPTION=$(git show "refs/xtask-data:tasks/$TASK_ID/task.yaml" | grep "^description:" | cut -d' ' -f2- | sed "s/^['\"]//;s['\"]$//")
 	fi
 fi
 
